@@ -6,38 +6,20 @@ type Member = {
   id: string;
   nickname: string;
   riot_id: string;
-  tier: string | null;
+  match_tier: number | null;
   main_line: string | null;
   sub_line: string | null;
+  reference_note: string | null;
   activity_status: string | null;
   is_active: boolean;
 };
 
-const tierOrder = [
-  "챌린저","그랜드마스터","마스터","다이아몬드","에메랄드",
-  "플래티넘","골드","실버","브론즈","아이언","언랭크"
-];
-
 const lines = ["전체","탑","정글","미드","원딜","서폿"];
-
-function tierClass(tier: string | null) {
-  const value = tier || "언랭크";
-  if (value.includes("챌린저")) return "challenger";
-  if (value.includes("그랜드마스터")) return "grandmaster";
-  if (value.includes("마스터")) return "master";
-  if (value.includes("다이아")) return "diamond";
-  if (value.includes("에메랄드")) return "emerald";
-  if (value.includes("플래티넘")) return "platinum";
-  if (value.includes("골드")) return "gold";
-  if (value.includes("실버")) return "silver";
-  if (value.includes("브론즈")) return "bronze";
-  if (value.includes("아이언")) return "iron";
-  return "unranked";
-}
 
 export default function ReferenceRoster({ members }: { members: Member[] }) {
   const [search, setSearch] = useState("");
   const [line, setLine] = useState("전체");
+  const [tier, setTier] = useState("전체");
   const [sort, setSort] = useState("tier");
 
   const visible = useMemo(() => {
@@ -47,41 +29,40 @@ export default function ReferenceRoster({ members }: { members: Member[] }) {
       const matchesSearch =
         !q ||
         member.nickname.toLowerCase().includes(q) ||
-        member.riot_id.toLowerCase().includes(q);
+        member.riot_id.toLowerCase().includes(q) ||
+        (member.reference_note || "").toLowerCase().includes(q);
 
       const matchesLine =
         line === "전체" ||
         member.main_line === line ||
         member.sub_line === line;
 
-      return matchesSearch && matchesLine;
+      const matchesTier =
+        tier === "전체" ||
+        String(member.match_tier || "") === tier;
+
+      return matchesSearch && matchesLine && matchesTier;
     });
 
     return [...filtered].sort((a, b) => {
       if (sort === "nickname") {
         return a.nickname.localeCompare(b.nickname, "ko");
       }
-
       if (sort === "line") {
         return (a.main_line || "").localeCompare(b.main_line || "", "ko");
       }
-
-      const aTier = a.tier || "언랭크";
-      const bTier = b.tier || "언랭크";
-      const aBase = tierOrder.findIndex(tier => aTier.includes(tier));
-      const bBase = tierOrder.findIndex(tier => bTier.includes(tier));
-      return (aBase === -1 ? 999 : aBase) - (bBase === -1 ? 999 : bBase);
+      return (a.match_tier || 99) - (b.match_tier || 99);
     });
-  }, [members, search, line, sort]);
+  }, [members, search, line, tier, sort]);
 
   return (
     <>
-      <section className="reference-toolbar">
+      <section className="reference-toolbar reference-toolbar-v2">
         <div className="reference-search">
           <input
             value={search}
             onChange={event => setSearch(event.target.value)}
-            placeholder="닉네임 또는 Riot ID 검색"
+            placeholder="닉네임, Riot ID 또는 참고사항 검색"
           />
         </div>
 
@@ -98,8 +79,17 @@ export default function ReferenceRoster({ members }: { members: Member[] }) {
           ))}
         </div>
 
+        <select value={tier} onChange={event => setTier(event.target.value)}>
+          <option value="전체">전체 티어</option>
+          <option value="1">1티어</option>
+          <option value="2">2티어</option>
+          <option value="3">3티어</option>
+          <option value="4">4티어</option>
+          <option value="5">5티어</option>
+        </select>
+
         <select value={sort} onChange={event => setSort(event.target.value)}>
-          <option value="tier">티어순</option>
+          <option value="tier">내전 티어순</option>
           <option value="nickname">닉네임순</option>
           <option value="line">주라인순</option>
         </select>
@@ -107,16 +97,17 @@ export default function ReferenceRoster({ members }: { members: Member[] }) {
 
       <section className="reference-summary">
         <div><b>{visible.length}</b><span>현재 표시 인원</span></div>
-        <div><b>{members.filter(member => member.activity_status === "active").length}</b><span>활동 인원</span></div>
-        <div><b>{members.filter(member => member.main_line === "원딜").length}</b><span>원딜 주라인</span></div>
-        <div><b>{members.filter(member => member.main_line === "정글").length}</b><span>정글 주라인</span></div>
+        <div><b>{members.filter(member => member.match_tier === 1).length}</b><span>1티어</span></div>
+        <div><b>{members.filter(member => member.match_tier === 3).length}</b><span>3티어</span></div>
+        <div><b>{members.filter(member => member.match_tier === 5).length}</b><span>5티어</span></div>
       </section>
 
       <section className="reference-grid">
         {visible.map(member => (
-          <article className="reference-member-card" key={member.id}>
-            <div className={`tier-emblem ${tierClass(member.tier)}`}>
-              <span>◆</span>
+          <article className="reference-member-card reference-member-card-v2" key={member.id}>
+            <div className={`match-tier-emblem tier-${member.match_tier || 0}`}>
+              <strong>{member.match_tier || "-"}</strong>
+              <span>티어</span>
             </div>
 
             <div className="reference-member-main">
@@ -130,11 +121,14 @@ export default function ReferenceRoster({ members }: { members: Member[] }) {
               <p>{member.riot_id}</p>
 
               <div className="reference-tags">
-                <span className={`tier-tag ${tierClass(member.tier)}`}>
-                  {member.tier || "언랭크"}
-                </span>
+                <span className="match-tier-tag">{member.match_tier ? `${member.match_tier}티어` : "티어 미정"}</span>
                 <span>주 {member.main_line || "미정"}</span>
                 <span>부 {member.sub_line || "미정"}</span>
+              </div>
+
+              <div className="reference-note">
+                <b>참고사항</b>
+                <p>{member.reference_note || "등록된 참고사항이 없습니다."}</p>
               </div>
             </div>
           </article>

@@ -4,9 +4,10 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 type MemberUpdate = {
   id: string;
-  tier: string;
+  match_tier: number | null;
   main_line: string;
   sub_line: string;
+  reference_note: string | null;
 };
 
 export async function POST(request: Request) {
@@ -22,12 +23,19 @@ export async function POST(request: Request) {
   const db = getSupabaseAdmin();
 
   for (const member of members) {
+    const tier = member.match_tier == null ? null : Number(member.match_tier);
+
+    if (tier !== null && ![1,2,3,4,5].includes(tier)) {
+      return NextResponse.json({ message: "내전 티어는 1~5만 사용할 수 있습니다." }, { status: 400 });
+    }
+
     const { error } = await db
       .from("members")
       .update({
-        tier: String(member.tier || "언랭크"),
+        match_tier: tier,
         main_line: String(member.main_line || "미정"),
-        sub_line: String(member.sub_line || "미정")
+        sub_line: String(member.sub_line || "미정"),
+        reference_note: String(member.reference_note || "").trim() || null
       })
       .eq("id", member.id);
 

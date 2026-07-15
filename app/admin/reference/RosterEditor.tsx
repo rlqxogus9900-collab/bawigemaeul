@@ -6,22 +6,11 @@ type Member = {
   id: string;
   nickname: string;
   riot_id: string;
-  tier: string | null;
+  match_tier: number | null;
   main_line: string | null;
   sub_line: string | null;
+  reference_note: string | null;
 };
-
-const tiers = [
-  "언랭크",
-  "아이언4","아이언3","아이언2","아이언1",
-  "브론즈4","브론즈3","브론즈2","브론즈1",
-  "실버4","실버3","실버2","실버1",
-  "골드4","골드3","골드2","골드1",
-  "플래티넘4","플래티넘3","플래티넘2","플래티넘1",
-  "에메랄드4","에메랄드3","에메랄드2","에메랄드1",
-  "다이아몬드4","다이아몬드3","다이아몬드2","다이아몬드1",
-  "마스터","그랜드마스터","챌린저"
-];
 
 const lines = ["미정","탑","정글","미드","원딜","서폿"];
 
@@ -30,7 +19,7 @@ export default function RosterEditor({ initialMembers }: { initialMembers: Membe
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
-  function update(id: string, key: keyof Member, value: string) {
+  function update(id: string, key: keyof Member, value: string | number | null) {
     setMembers(current =>
       current.map(member => member.id === id ? { ...member, [key]: value } : member)
     );
@@ -63,14 +52,15 @@ export default function RosterEditor({ initialMembers }: { initialMembers: Membe
       {message && <div className={message.includes("실패") ? "error" : "flash"}>{message}</div>}
 
       <div className="table-wrap">
-        <table className="roster-admin-table">
+        <table className="roster-admin-table roster-admin-table-v2">
           <thead>
             <tr>
               <th>홈페이지 닉네임</th>
               <th>Riot ID</th>
-              <th>현재 티어</th>
+              <th>내전 티어</th>
               <th>주라인</th>
               <th>부라인</th>
+              <th>참고사항</th>
             </tr>
           </thead>
           <tbody>
@@ -80,10 +70,15 @@ export default function RosterEditor({ initialMembers }: { initialMembers: Membe
                 <td>{member.riot_id}</td>
                 <td>
                   <select
-                    value={member.tier || "언랭크"}
-                    onChange={event => update(member.id, "tier", event.target.value)}
+                    value={member.match_tier || 0}
+                    onChange={event => update(member.id, "match_tier", Number(event.target.value) || null)}
                   >
-                    {tiers.map(tier => <option key={tier}>{tier}</option>)}
+                    <option value={0}>미정</option>
+                    <option value={1}>1티어</option>
+                    <option value={2}>2티어</option>
+                    <option value={3}>3티어</option>
+                    <option value={4}>4티어</option>
+                    <option value={5}>5티어</option>
                   </select>
                 </td>
                 <td>
@@ -101,6 +96,14 @@ export default function RosterEditor({ initialMembers }: { initialMembers: Membe
                   >
                     {lines.map(line => <option key={line}>{line}</option>)}
                   </select>
+                </td>
+                <td>
+                  <textarea
+                    value={member.reference_note || ""}
+                    placeholder="예: 원딜 주포지션, 탑 가능 / 팀장 제외"
+                    onChange={event => update(member.id, "reference_note", event.target.value)}
+                    rows={2}
+                  />
                 </td>
               </tr>
             ))}

@@ -9,7 +9,7 @@ export default async function AdminReferencePage() {
 
   const { data: members } = await getSupabaseAdmin()
     .from("members")
-    .select("id,nickname,riot_id,tier,main_line,sub_line")
+    .select("id,nickname,riot_id,match_tier,main_line,sub_line,reference_note")
     .eq("is_active", true)
     .order("nickname", { ascending: true });
 
@@ -19,7 +19,7 @@ export default async function AdminReferencePage() {
         <div>
           <span>STAFF ONLY</span>
           <h1>내전 참고 명단 관리</h1>
-          <p className="muted">티어와 주라인·부라인을 한 번에 수정합니다.</p>
+          <p className="muted">경매용 1~5티어, 주라인·부라인과 참고사항을 한 번에 수정합니다.</p>
         </div>
       </div>
 
