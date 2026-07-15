@@ -3,44 +3,197 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export const dynamic = "force-dynamic";
 
+const lineRatios = [
+  ["탑", 18],
+  ["정글", 22],
+  ["미드", 20],
+  ["원딜", 25],
+  ["서폿", 15]
+];
+
 export default async function HomePage() {
   const db = getSupabaseAdmin();
-  const [{ data: notices }, { data: rules }, { data: matches }] = await Promise.all([
+
+  const [
+    { data: notices },
+    { data: rules },
+    { data: matches },
+    { data: members }
+  ] = await Promise.all([
     db.from("notices").select("*").order("is_pinned", { ascending: false }).order("created_at", { ascending: false }).limit(4),
     db.from("clan_rules").select("*").order("sort_order").limit(3),
-    db.from("regular_match_results").select("*").order("played_at", { ascending: false }).limit(1)
+    db.from("regular_match_results").select("*").order("played_at", { ascending: false }).limit(1),
+    db.from("members").select("id,nickname,riot_id,activity_status,activity_excluded").order("created_at", { ascending: true }).limit(5)
   ]);
+
   const latest = matches?.[0];
+  const winner = latest?.winner_name || "미정";
+  const score = latest ? `${latest.team_a_sets} : ${latest.team_b_sets}` : "-";
+  const playedAt = latest?.played_at
+    ? new Date(latest.played_at).toLocaleDateString("ko-KR")
+    : "";
 
   return (
     <>
       <section className="home-hero">
-        <div><small>BAWIGEMAEUL CLAN</small><h1>바위게마을</h1><p>함께 승리하는 우리들의 마을.</p></div>
+        <div>
+          <small>BAWIGEMAEUL CLAN</small>
+          <h1>바위게마을</h1>
+          <p>
+            함께 승리하는 우리들의 마을.<br />
+            일반 내전, 정기내전 통계와 챔피언 공략을 한곳에서 확인하세요.
+          </p>
+          <div className="hero-actions">
+            <Link className="card-button" href="/normal-match">일반 내전 시작</Link>
+            <Link className="top-button" href="/reference">참고 명단 보기</Link>
+          </div>
+        </div>
         <img src="/assets/crab-logo.jpg" alt="바위게마을" />
       </section>
-      <section className="home-grid">
+
+      <section className="winner-banner">
+        <div className="winner-crown">🏆</div>
+        <div className="winner-main">
+          <span>최근 대회·내전 우승팀</span>
+          <h2>{winner}</h2>
+          <p>우승 멤버 등록 전</p>
+        </div>
+        <div className="winner-score">
+          <small>{playedAt}</small>
+          <strong>{score}</strong>
+          <b>결승 세트 스코어</b>
+        </div>
+        <Link className="top-button" href="/hall-of-fame">역대 대회 보기</Link>
+      </section>
+
+      <section className="home-grid home-grid-v628">
         <article className="home-card">
-          <div className="card-head"><h2>📢 공지사항</h2><Link href="/notices">전체 보기</Link></div>
+          <h2>주라인 비율</h2>
+          <div className="line-chart">
+            <div className="line-donut" aria-label="주라인 비율 원형 차트" />
+            <div className="line-legend">
+              {lineRatios.map(([line, ratio]) => (
+                <div key={line}>
+                  <span>{line}</span>
+                  <b>{ratio}%</b>
+                </div>
+              ))}
+            </div>
+          </div>
+        </article>
+
+        <article className="home-card">
+          <div className="card-head">
+            <h2>공지사항</h2>
+            <Link href="/notices">전체 보기</Link>
+          </div>
           <div className="home-list">
-            {notices?.length ? notices.map(n => <div key={n.id}><span>{n.is_pinned ? "📌" : "•"}</span><b>{n.title}</b></div>) : <p className="muted">등록된 공지가 없습니다.</p>}
+            {notices?.length ? notices.map(notice => (
+              <div key={notice.id}>
+                <span>{notice.is_pinned ? "📌" : "공지"}</span>
+                <b>{notice.title}</b>
+              </div>
+            )) : <p className="muted">등록된 공지가 없습니다.</p>}
           </div>
         </article>
+
         <article className="home-card rules-card">
-          <div className="card-head"><h2>📜 클랜 규칙</h2><Link href="/rules">전체 보기</Link></div>
+          <div className="card-head">
+            <h2>📜 클랜 규칙</h2>
+            <Link href="/rules">전체 보기</Link>
+          </div>
           <div className="rule-preview">
-            {rules?.length ? rules.map((r,i) => <div key={r.id}><em>{i+1}</em><span>{r.content}</span></div>) : <p className="muted">등록된 규칙이 없습니다.</p>}
+            {rules?.length ? rules.map((rule, index) => (
+              <div key={rule.id}>
+                <em>{index + 1}</em>
+                <span>{rule.content}</span>
+              </div>
+            )) : <p className="muted">등록된 클랜 규칙이 없습니다.</p>}
+          </div>
+          <Link className="top-button rule-button" href="/rules">전체 규칙 보기</Link>
+        </article>
+
+        <article className="home-card recent-match-card">
+          <div className="card-head">
+            <h2>최근 정기내전 결과</h2>
+            <Link href="/stats">통계 보기</Link>
+          </div>
+          {latest ? (
+            <div className="recent-match-result">
+              <small>{playedAt}</small>
+              <div>
+                <span>{latest.team_a_name}</span>
+                <strong>{latest.team_a_sets} : {latest.team_b_sets}</strong>
+                <span>{latest.team_b_name}</span>
+              </div>
+              <b>🏆 {latest.winner_name} 승리</b>
+            </div>
+          ) : <p className="muted">등록된 결과가 없습니다.</p>}
+        </article>
+
+        <article className="home-card stats-wide">
+          <div className="card-head">
+            <h2>정기내전 승률 TOP</h2>
+            <Link href="/stats">전체 통계</Link>
+          </div>
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>닉네임</th>
+                  <th>승률</th>
+                  <th>내전 KDA</th>
+                  <th>평균 경매가</th>
+                  <th>모스트 3</th>
+                </tr>
+              </thead>
+              <tbody>
+                {members?.length ? members.map(member => (
+                  <tr key={member.id}>
+                    <td>{member.nickname}</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>통계 연동 전</td>
+                  </tr>
+                )) : (
+                  <tr><td colSpan={5} className="muted">등록된 클랜원이 없습니다.</td></tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </article>
-        <article className="home-card match-card">
-          <div className="card-head"><h2>🏆 최근 정기내전 결과</h2><Link href="/stats">통계 보기</Link></div>
-          {latest ? <div className="match-result">
-            <div><b>{latest.team_a_name}</b><strong>{latest.team_a_sets}</strong></div><span>:</span>
-            <div><strong>{latest.team_b_sets}</strong><b>{latest.team_b_name}</b></div><p>{latest.winner_name} 승리</p>
-          </div> : <p className="muted">등록된 결과가 없습니다.</p>}
+
+        <article className="home-card next-schedule-card">
+          <h2>다음 일정</h2>
+          <div className="next-schedule">
+            <time>일정 등록 전</time>
+            <b>예정된 일정이 없습니다.</b>
+            <p>일정 관리 기능 이식 후 자동으로 표시됩니다.</p>
+            <span>참가 0명</span>
+          </div>
         </article>
-        <article className="home-card custom-card"><div className="custom-icon">⭐</div><h2>바위게마을 소식</h2><p>대회, 이벤트, 모집 안내를 운영진이 설정할 수 있는 홈 카드입니다.</p><Link className="card-button" href="/notices">클랜 공지 보기</Link></article>
-        <article className="home-card custom-card"><div className="custom-icon">📖</div><h2>인기 공략</h2><p>클랜원들이 자주 찾는 챔피언 공략을 확인하세요.</p><Link className="card-button" href="/guides">공략 보러가기</Link></article>
-        <article className="home-card custom-card"><div className="custom-icon">🦀</div><h2>바위게마을 안내</h2><p>온라인 버전에 V6.2.8 기능을 순서대로 이식하고 있습니다.</p><Link className="card-button" href="/schedule">일정 확인</Link></article>
+
+        <article className="home-card custom-card">
+          <div className="custom-icon">⭐</div>
+          <h2>바위게마을 소식</h2>
+          <p>운영진이 홈페이지 관리에서 이 영역을 자유롭게 변경할 수 있습니다.</p>
+          <Link className="card-button" href="/notices">클랜 공지 보기</Link>
+        </article>
+
+        <article className="home-card custom-card">
+          <div className="custom-icon">📖</div>
+          <h2>인기 공략</h2>
+          <p>클랜원들이 많이 보는 챔피언 공략을 확인하세요.</p>
+          <Link className="card-button" href="/guides">공략 보러가기</Link>
+        </article>
+
+        <article className="home-card custom-card">
+          <div className="custom-icon">🦀</div>
+          <h2>바위게마을 안내</h2>
+          <p>운영진이 이벤트, 모집, 대회 안내 등 원하는 내용으로 설정할 수 있습니다.</p>
+          <Link className="card-button" href="/schedule">자세히 보기</Link>
+        </article>
       </section>
     </>
   );
