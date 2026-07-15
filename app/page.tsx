@@ -18,12 +18,14 @@ export default async function HomePage() {
     { data: notices },
     { data: rules },
     { data: matches },
-    { data: members }
+    { data: members },
+    { data: sponsors }
   ] = await Promise.all([
     db.from("notices").select("*").order("is_pinned", { ascending: false }).order("created_at", { ascending: false }).limit(4),
     db.from("clan_rules").select("*").order("sort_order").limit(3),
     db.from("regular_match_results").select("*").order("played_at", { ascending: false }).limit(1),
-    db.from("members").select("id,nickname,riot_id,activity_status,activity_excluded").order("created_at", { ascending: true }).limit(5)
+    db.from("members").select("id,nickname,riot_id,activity_status,activity_excluded").order("created_at", { ascending: true }).limit(5),
+    db.from("sponsors").select("*").eq("is_visible", true).order("sort_order", { ascending: true }).order("created_at", { ascending: true }).limit(12)
   ]);
 
   const latest = matches?.[0];
@@ -186,6 +188,30 @@ export default async function HomePage() {
           <h2>인기 공략</h2>
           <p>클랜원들이 많이 보는 챔피언 공략을 확인하세요.</p>
           <Link className="card-button" href="/guides">공략 보러가기</Link>
+        </article>
+
+        <article className="home-card sponsor-card">
+          <div className="custom-icon">💖</div>
+          <h2>후원 목록</h2>
+          <p className="sponsor-intro">
+            클랜 이벤트와 운영에 도움을 주신 분들입니다.<br />
+            항상 진심으로 감사드립니다. 🦀
+          </p>
+
+          <div className="sponsor-list">
+            {sponsors?.length ? sponsors.map(sponsor => (
+              <span key={sponsor.id}>{sponsor.display_name}</span>
+            )) : <span className="muted">등록된 후원자가 없습니다.</span>}
+          </div>
+
+          <div className="sponsor-message">
+            <b>후원은 전적으로 자율입니다.</b>
+            <p>
+              부담은 갖지 않으셔도 됩니다.<br />
+              응원과 함께해 주시는 마음만으로도 저희에게는 큰 힘이 됩니다. ❤️
+            </p>
+            <small>바위게마을을 응원해주시는 모든 분들께 감사드립니다.</small>
+          </div>
         </article>
 
         <article className="home-card custom-card">

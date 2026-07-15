@@ -22,7 +22,7 @@ const staffItems = [
   ["/admin/match-records", "📝", "정기내전 상세 기록"], ["/admin/boards", "🗂", "게시판 관리"],
   ["/admin/notices", "✍", "공지 관리"], ["/admin/rules", "📜", "규칙 관리"],
   ["/admin/schedule", "📅", "일정 관리"], ["/admin/whistle", "📮", "신문고 관리"],
-  ["/admin/members", "👥", "계정·권한 관리"], ["/admin/home", "🏠", "홈페이지 관리"],
+  ["/admin/members", "👥", "계정·권한 관리"], ["/admin/home", "🏠", "홈페이지 관리"], ["/admin/sponsors", "💖", "후원 관리"],
   ["/admin/settings", "⚙", "관리자 설정"]
 ];
 

@@ -76,3 +76,67 @@
   .winner-score{border-left:0;border-top:1px solid #66552c}
   .line-chart{grid-template-columns:1fr}.line-donut{margin:auto}
 }
+/* Online Beta 1.3.2 sponsor list */
+.sponsor-card{border-color:#704155;background:linear-gradient(145deg,#25131d,#0e2017)}
+.sponsor-intro{color:#d8c4cc!important;line-height:1.6}
+.sponsor-list{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin:4px 0 15px;
+}
+.sponsor-list span{
+  display:inline-flex;
+  padding:6px 10px;
+  border:1px solid #70485a;
+  border-radius:999px;
+  background:#321b26;
+  color:#f0becf;
+  font-size:12px;
+  font-weight:800;
+}
+.sponsor-message{
+  margin-top:auto;
+  padding:11px;
+  border:1px solid #563d47;
+  border-radius:11px;
+  background:#160e13;
+}
+.sponsor-message b{color:#f0c2d0;font-size:12px}
+.sponsor-message p{margin:6px 0;color:#c3aeb5!important;font-size:11px;line-height:1.55}
+.sponsor-message small{color:#8f777f;font-size:10px}
+.sponsor-add-form{
+  display:grid;
+  grid-template-columns:minmax(150px,1fr) minmax(180px,1.3fr) 90px 115px auto;
+  gap:8px;
+  align-items:center;
+  margin-top:14px;
+}
+.sponsor-visible-check{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  color:#b3c3ba;
+  font-size:12px;
+  white-space:nowrap;
+}
+.sponsor-visible-check input{width:auto}
+.sponsor-admin-list{display:grid;gap:8px}
+.sponsor-admin-row{
+  padding:10px;
+  border:1px solid var(--line);
+  border-radius:11px;
+  background:#07150f;
+}
+.sponsor-edit-form{
+  display:grid;
+  grid-template-columns:minmax(150px,1fr) minmax(180px,1.3fr) 90px 115px auto auto;
+  gap:8px;
+  align-items:center;
+}
+@media(max-width:1100px){
+  .sponsor-add-form,.sponsor-edit-form{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:620px){
+  .sponsor-add-form,.sponsor-edit-form{grid-template-columns:1fr}
+}
