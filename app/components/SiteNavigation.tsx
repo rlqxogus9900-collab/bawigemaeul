@@ -17,7 +17,7 @@ const publicItems = [
 ];
 
 const staffItems = [
-  ["/admin/members", "♙", "클랜원 명단"], ["/admin/activity", "▣", "활동 관리"],
+  ["/admin/reference", "☷", "내전 참고 명단 관리"], ["/admin/members", "♙", "클랜원 명단"], ["/admin/activity", "▣", "활동 관리"],
   ["/admin/auction", "🔨", "경매 관리"], ["/admin/tournaments", "🏆", "대회·내전 기록"],
   ["/admin/match-records", "📝", "정기내전 상세 기록"], ["/admin/boards", "🗂", "게시판 관리"],
   ["/admin/notices", "✍", "공지 관리"], ["/admin/rules", "📜", "규칙 관리"],
