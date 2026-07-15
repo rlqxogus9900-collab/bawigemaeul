@@ -10,9 +10,17 @@ export async function POST(
   const { id } = await params;
 
   if (currentUser.id === id) {
-    return NextResponse.redirect(new URL("/admin/members?error=self", request.url), 303);
+    return NextResponse.json(
+      { message: "현재 로그인 중인 본인 계정은 삭제할 수 없습니다." },
+      { status: 400 }
+    );
   }
 
-  await getSupabaseAdmin().from("members").delete().eq("id", id);
-  return NextResponse.redirect(new URL("/admin/members?saved=1", request.url), 303);
+  const { error } = await getSupabaseAdmin().from("members").delete().eq("id", id);
+
+  if (error) {
+    return NextResponse.json({ message: "계정 삭제에 실패했습니다." }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true });
 }
