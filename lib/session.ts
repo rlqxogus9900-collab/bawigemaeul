@@ -1,5 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 const COOKIE_NAME = "bawi_session";
 
@@ -18,7 +19,11 @@ function secret() {
 }
 
 export async function createSession(user: SessionUser, remember: boolean) {
-  const token = await new SignJWT(user)
+  const token = await new SignJWT({
+    id: user.id,
+    nickname: user.nickname,
+    role: user.role
+  })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(remember ? "30d" : "12h")
@@ -46,10 +51,24 @@ export async function getSession(): Promise<SessionUser | null> {
 
   try {
     const { payload } = await jwtVerify(token, secret());
+    const id = String(payload.id || "");
+    if (!id) return null;
+
+    const db = getSupabaseAdmin();
+    const { data: member, error } = await db
+      .from("members")
+      .select("id,nickname,role,is_active")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error || !member || !member.is_active) {
+      return null;
+    }
+
     return {
-      id: String(payload.id),
-      nickname: String(payload.nickname),
-      role: payload.role === "staff" ? "staff" : "member"
+      id: member.id,
+      nickname: member.nickname,
+      role: member.role === "staff" ? "staff" : "member"
     };
   } catch {
     return null;
