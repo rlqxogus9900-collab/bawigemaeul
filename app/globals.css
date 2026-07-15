@@ -315,3 +315,19 @@
 .status-neutral{padding:4px 7px;border-radius:999px;background:#232d29;color:#b5c2bc;font-size:9px;font-weight:900}
 @media(max-width:1250px){.reference-toolbar-v3{grid-template-columns:1fr 1fr}}
 @media(max-width:700px){.reference-toolbar-v3{grid-template-columns:1fr}}
+.modal-backdrop{
+  position:fixed;inset:0;z-index:1000;display:grid;place-items:center;
+  padding:18px;background:#000b;backdrop-filter:blur(5px)
+}
+.modal-card{
+  width:min(520px,100%);padding:22px;border:1px solid #6a562c;
+  border-radius:18px;background:linear-gradient(145deg,#10281c,#07150f);
+  box-shadow:0 24px 80px #000a
+}
+.modal-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px}
+.modal-head small{color:var(--gold);font-weight:900}.modal-head h2{margin:4px 0 0}
+.modal-close{
+  width:38px;height:38px;border:1px solid var(--line);border-radius:10px;
+  background:#081b13;color:white;font-size:25px;cursor:pointer
+}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
