@@ -6,21 +6,20 @@ type Member = {
   id: string;
   nickname: string;
   riot_id: string;
+  average_tier: string | null;
   match_tier: number | null;
   main_line: string | null;
   sub_line: string | null;
   reference_note: string | null;
-  activity_status: string | null;
-  is_active: boolean;
 };
 
-const lines = ["전체","탑","정글","미드","원딜","서폿"];
+const lines = ["전체", "탑", "정글", "미드", "원딜", "서폿"];
 
 export default function ReferenceRoster({ members }: { members: Member[] }) {
   const [search, setSearch] = useState("");
   const [line, setLine] = useState("전체");
   const [tier, setTier] = useState("전체");
-  const [sort, setSort] = useState("tier");
+  const [sort, setSort] = useState("match_tier");
 
   const visible = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -30,6 +29,7 @@ export default function ReferenceRoster({ members }: { members: Member[] }) {
         !q ||
         member.nickname.toLowerCase().includes(q) ||
         member.riot_id.toLowerCase().includes(q) ||
+        (member.average_tier || "").toLowerCase().includes(q) ||
         (member.reference_note || "").toLowerCase().includes(q);
 
       const matchesLine =
@@ -45,34 +45,29 @@ export default function ReferenceRoster({ members }: { members: Member[] }) {
     });
 
     return [...filtered].sort((a, b) => {
-      if (sort === "nickname") {
-        return a.nickname.localeCompare(b.nickname, "ko");
-      }
-      if (sort === "line") {
-        return (a.main_line || "").localeCompare(b.main_line || "", "ko");
-      }
+      if (sort === "nickname") return a.nickname.localeCompare(b.nickname, "ko");
+      if (sort === "average_tier") return (a.average_tier || "").localeCompare(b.average_tier || "", "ko");
+      if (sort === "line") return (a.main_line || "").localeCompare(b.main_line || "", "ko");
       return (a.match_tier || 99) - (b.match_tier || 99);
     });
   }, [members, search, line, tier, sort]);
 
   return (
     <>
-      <section className="reference-toolbar reference-toolbar-v2">
-        <div className="reference-search">
-          <input
-            value={search}
-            onChange={event => setSearch(event.target.value)}
-            placeholder="닉네임, Riot ID 또는 참고사항 검색"
-          />
-        </div>
+      <section className="reference-toolbar reference-toolbar-v3">
+        <input
+          value={search}
+          onChange={event => setSearch(event.target.value)}
+          placeholder="닉네임, Riot ID, 평균티어 또는 참고사항 검색"
+        />
 
         <div className="line-filter">
           {lines.map(item => (
             <button
               key={item}
+              type="button"
               className={line === item ? "active" : ""}
               onClick={() => setLine(item)}
-              type="button"
             >
               {item}
             </button>
@@ -80,7 +75,7 @@ export default function ReferenceRoster({ members }: { members: Member[] }) {
         </div>
 
         <select value={tier} onChange={event => setTier(event.target.value)}>
-          <option value="전체">전체 티어</option>
+          <option value="전체">전체 내전티어</option>
           <option value="1">1티어</option>
           <option value="2">2티어</option>
           <option value="3">3티어</option>
@@ -89,56 +84,49 @@ export default function ReferenceRoster({ members }: { members: Member[] }) {
         </select>
 
         <select value={sort} onChange={event => setSort(event.target.value)}>
-          <option value="tier">내전 티어순</option>
+          <option value="match_tier">내전티어순</option>
+          <option value="average_tier">평균티어순</option>
           <option value="nickname">닉네임순</option>
           <option value="line">주라인순</option>
         </select>
       </section>
 
-      <section className="reference-summary">
-        <div><b>{visible.length}</b><span>현재 표시 인원</span></div>
-        <div><b>{members.filter(member => member.match_tier === 1).length}</b><span>1티어</span></div>
-        <div><b>{members.filter(member => member.match_tier === 3).length}</b><span>3티어</span></div>
-        <div><b>{members.filter(member => member.match_tier === 5).length}</b><span>5티어</span></div>
-      </section>
-
-      <section className="reference-grid">
-        {visible.map(member => (
-          <article className="reference-member-card reference-member-card-v2" key={member.id}>
-            <div className={`match-tier-emblem tier-${member.match_tier || 0}`}>
-              <strong>{member.match_tier || "-"}</strong>
-              <span>티어</span>
-            </div>
-
-            <div className="reference-member-main">
-              <div className="reference-member-title">
-                <h3>{member.nickname}</h3>
-                <span className={member.activity_status === "active" ? "status-active" : "status-idle"}>
-                  {member.activity_status === "active" ? "활동" : "비활동"}
-                </span>
-              </div>
-
-              <p>{member.riot_id}</p>
-
-              <div className="reference-tags">
-                <span className="match-tier-tag">{member.match_tier ? `${member.match_tier}티어` : "티어 미정"}</span>
-                <span>주 {member.main_line || "미정"}</span>
-                <span>부 {member.sub_line || "미정"}</span>
-              </div>
-
-              <div className="reference-note">
-                <b>참고사항</b>
-                <p>{member.reference_note || "등록된 참고사항이 없습니다."}</p>
-              </div>
-            </div>
-          </article>
-        ))}
-
-        {!visible.length && (
-          <div className="reference-empty">
-            조건에 맞는 클랜원이 없습니다.
-          </div>
-        )}
+      <section className="card">
+        <div className="table-wrap">
+          <table className="reference-list-table">
+            <thead>
+              <tr>
+                <th>닉네임</th>
+                <th>Riot ID</th>
+                <th>평균티어</th>
+                <th>내전티어</th>
+                <th>주라인</th>
+                <th>부라인</th>
+                <th>참고사항</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visible.map(member => (
+                <tr key={member.id}>
+                  <td><b>{member.nickname}</b></td>
+                  <td>{member.riot_id}</td>
+                  <td>{member.average_tier || "미정"}</td>
+                  <td>
+                    <span className={`match-tier-table tier-${member.match_tier || 0}`}>
+                      {member.match_tier ? `${member.match_tier}티어` : "미정"}
+                    </span>
+                  </td>
+                  <td>{member.main_line || "미정"}</td>
+                  <td>{member.sub_line || "미정"}</td>
+                  <td className="reference-note-cell">{member.reference_note || "-"}</td>
+                </tr>
+              ))}
+              {!visible.length && (
+                <tr><td colSpan={7} className="muted">조건에 맞는 클랜원이 없습니다.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </section>
     </>
   );
