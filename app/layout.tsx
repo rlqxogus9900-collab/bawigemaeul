@@ -30,7 +30,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <main className="main-content">{children}</main>
           <footer className="site-footer">
             <div><b>BAWIGEMAEUL</b><span>Since 2026</span></div>
-            <small>Created for 바위게마을 · Online Beta 1.3.5.1</small>
+            <small>Created for 바위게마을 · Online Beta 1.3.5.2</small>
           </footer>
         </div>
       </body>

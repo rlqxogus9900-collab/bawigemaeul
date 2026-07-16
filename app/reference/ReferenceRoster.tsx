@@ -14,6 +14,7 @@ type Member = {
 };
 
 const lines = ["전체", "탑", "정글", "미드", "원딜", "서폿"];
+const romanTier: Record<number, string> = { 1: "Ⅰ", 2: "Ⅱ", 3: "Ⅲ", 4: "Ⅳ", 5: "Ⅴ" };
 
 export default function ReferenceRoster({ members }: { members: Member[] }) {
   const [search, setSearch] = useState("");
@@ -76,11 +77,11 @@ export default function ReferenceRoster({ members }: { members: Member[] }) {
 
         <select value={tier} onChange={event => setTier(event.target.value)}>
           <option value="전체">전체 내전티어</option>
-          <option value="1">1티어</option>
-          <option value="2">2티어</option>
-          <option value="3">3티어</option>
-          <option value="4">4티어</option>
-          <option value="5">5티어</option>
+          <option value="1">Ⅰ티어</option>
+          <option value="2">Ⅱ티어</option>
+          <option value="3">Ⅲ티어</option>
+          <option value="4">Ⅳ티어</option>
+          <option value="5">Ⅴ티어</option>
         </select>
 
         <select value={sort} onChange={event => setSort(event.target.value)}>
@@ -113,7 +114,7 @@ export default function ReferenceRoster({ members }: { members: Member[] }) {
                   <td>{member.average_tier || "미정"}</td>
                   <td>
                     <span className={`match-tier-table tier-${member.match_tier || 0}`}>
-                      {member.match_tier ? `${member.match_tier}티어` : "미정"}
+                      {member.match_tier ? `${romanTier[member.match_tier]}티어` : "미정"}
                     </span>
                   </td>
                   <td>{member.main_line || "미정"}</td>
