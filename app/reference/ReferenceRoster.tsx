@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import MemberProfileLink from "@/app/components/MemberProfileLink";
 
 type Member = {
   id: string;
@@ -109,7 +110,7 @@ export default function ReferenceRoster({ members }: { members: Member[] }) {
             <tbody>
               {visible.map(member => (
                 <tr key={member.id}>
-                  <td><b>{member.nickname}</b></td>
+                  <td><MemberProfileLink memberId={member.id} nickname={member.nickname} className="reference-profile-link" /></td>
                   <td>{member.riot_id}</td>
                   <td>{member.average_tier || "미정"}</td>
                   <td>

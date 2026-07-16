@@ -15,6 +15,7 @@ export async function POST(
   const { id } = await params;
   const form = await request.formData();
   const fallbackPostId = String(form.get("post_id") || "");
+  const action = String(form.get("_action") || "delete");
   const db = getSupabaseAdmin();
 
   const { data: comment } = await db
@@ -40,10 +41,29 @@ export async function POST(
     );
   }
 
-  await db
-    .from("board_comments")
-    .delete()
-    .eq("id", id);
+  if (action === "update") {
+    const content = String(form.get("content") || "").trim();
+
+    if (!content) {
+      return NextResponse.redirect(
+        new URL(`/boards/${comment.post_id}?comment_error=1#comments`, request.url),
+        303
+      );
+    }
+
+    await db
+      .from("board_comments")
+      .update({
+        content: content.slice(0, 1000),
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", id);
+  } else {
+    await db
+      .from("board_comments")
+      .delete()
+      .eq("id", id);
+  }
 
   return NextResponse.redirect(
     new URL(`/boards/${comment.post_id}#comments`, request.url),

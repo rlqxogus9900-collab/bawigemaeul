@@ -48,7 +48,7 @@ export default async function BoardsPage({
 
   let postsQuery = db
     .from("board_posts")
-    .select("id,title,author_nickname,is_pinned,view_count,comment_count,created_at,subcategory_id")
+    .select("id,title,author_member_id,author_nickname,is_pinned,view_count,comment_count,like_count,created_at,subcategory_id")
     .eq("subcategory_id", selectedBoardId)
     .order("is_pinned", { ascending: false })
     .order("created_at", { ascending: false });

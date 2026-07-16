@@ -2,7 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
-import CommentDeleteButton from "./CommentDeleteButton";
+import MemberProfileLink from "@/app/components/MemberProfileLink";
+import CommentActions from "./CommentActions";
+import PostLikeButton from "./PostLikeButton";
 
 export const dynamic = "force-dynamic";
 
@@ -53,32 +55,53 @@ export default async function BoardPostPage({
   }
 
   const nextViewCount = Number(post.view_count || 0) + 1;
+
   await db
     .from("board_posts")
     .update({ view_count: nextViewCount })
     .eq("id", id);
 
-  const { data: comments } = await db
-    .from("board_comments")
-    .select(`
-      id,
-      post_id,
-      author_member_id,
-      author_nickname,
-      content,
-      created_at,
-      updated_at
-    `)
-    .eq("post_id", id)
-    .order("created_at", { ascending: true });
+  const [
+    { data: comments },
+    { count: likeCount },
+    { data: myLike }
+  ] = await Promise.all([
+    db
+      .from("board_comments")
+      .select(`
+        id,
+        post_id,
+        author_member_id,
+        author_nickname,
+        content,
+        created_at,
+        updated_at
+      `)
+      .eq("post_id", id)
+      .order("created_at", { ascending: true }),
+    db
+      .from("board_post_likes")
+      .select("id", { count: "exact", head: true })
+      .eq("post_id", id),
+    user
+      ? db
+          .from("board_post_likes")
+          .select("id")
+          .eq("post_id", id)
+          .eq("member_id", user.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null })
+  ]);
 
   const canManagePost = Boolean(
-    user && (user.role === "staff" || user.id === post.author_member_id)
+    user &&
+      (user.role === "staff" ||
+        user.id === post.author_member_id)
   );
 
   return (
     <>
-      <section className="card board-detail-card">
+      <section className={`card board-detail-card ${post.is_pinned ? "pinned-detail" : ""}`}>
         <div className="board-detail-top">
           <div>
             <span>{post.is_pinned ? "📌 고정글" : board.name}</span>
@@ -90,13 +113,25 @@ export default async function BoardPostPage({
         </div>
 
         <div className="board-post-meta">
-          <b>{post.author_nickname}</b>
+          <MemberProfileLink
+            memberId={post.author_member_id}
+            nickname={post.author_nickname}
+          />
           <span>{new Date(post.created_at).toLocaleString("ko-KR")}</span>
           <span>조회 {nextViewCount}</span>
           <span>댓글 {comments?.length || 0}</span>
         </div>
 
         <div className="board-post-content">{post.content}</div>
+
+        <div className="board-post-reaction">
+          <PostLikeButton
+            postId={post.id}
+            initialCount={likeCount || 0}
+            initialLiked={Boolean(myLike)}
+            loggedIn={Boolean(user)}
+          />
+        </div>
 
         {canManagePost && (
           <div className="board-detail-actions">
@@ -111,7 +146,7 @@ export default async function BoardPostPage({
         )}
       </section>
 
-      <section className="card board-comments-card">
+      <section className="card board-comments-card" id="comments">
         <div className="board-comments-head">
           <div>
             <span>COMMENTS</span>
@@ -121,7 +156,7 @@ export default async function BoardPostPage({
 
         <div className="board-comment-list">
           {(comments || []).map((comment) => {
-            const canDeleteComment = Boolean(
+            const canManageComment = Boolean(
               user &&
                 (user.role === "staff" ||
                   user.id === comment.author_member_id)
@@ -131,27 +166,28 @@ export default async function BoardPostPage({
               <article className="board-comment" key={comment.id}>
                 <div className="board-comment-meta">
                   <div>
-                    <strong>{comment.author_nickname}</strong>
+                    <MemberProfileLink
+                      memberId={comment.author_member_id}
+                      nickname={comment.author_nickname}
+                    />
                     {comment.author_member_id === post.author_member_id && (
                       <span className="comment-author-badge">작성자</span>
                     )}
                   </div>
                   <time>
                     {new Date(comment.created_at).toLocaleString("ko-KR")}
+                    {comment.updated_at !== comment.created_at && " · 수정됨"}
                   </time>
                 </div>
 
                 <p>{comment.content}</p>
 
-                {canDeleteComment && (
-                  <form
-                    action={`/api/boards/comments/${comment.id}`}
-                    method="post"
-                    className="board-comment-actions"
-                  >
-                    <input type="hidden" name="post_id" value={post.id} />
-                    <CommentDeleteButton />
-                  </form>
+                {canManageComment && (
+                  <CommentActions
+                    commentId={comment.id}
+                    postId={post.id}
+                    initialContent={comment.content}
+                  />
                 )}
               </article>
             );
