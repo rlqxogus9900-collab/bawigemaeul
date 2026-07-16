@@ -13,6 +13,7 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
   if (user.role !== "staff" && user.id !== post.author_member_id) return NextResponse.redirect(new URL(`/boards/${id}`, request.url), 303);
 
   if (String(form.get("_action")) === "delete") {
+    await db.from("board_comments").delete().eq("post_id", id);
     await db.from("board_posts").delete().eq("id", id);
     return NextResponse.redirect(new URL(`/boards?board=${post.subcategory_id}`, request.url), 303);
   }
