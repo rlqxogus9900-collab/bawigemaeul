@@ -147,7 +147,7 @@ export default function SiteNavigation({
                     onClick={() => toggleGroup(groupKey)}
                   >
                     <span><i>{group.icon}</i>{group.name}</span>
-                    <em>{openGroups[groupKey] ? "▴" : "▾"}</em>
+                    <em>{openGroups[groupKey] ? "▼" : "▲"}</em>
                   </button>
 
                   {openGroups[groupKey] && (
@@ -183,7 +183,7 @@ export default function SiteNavigation({
                       onClick={() => toggleGroup(groupKey)}
                     >
                       <span><i>{category.icon}</i>{category.name}</span>
-                      <em>{openGroups[groupKey] ? "▴" : "▾"}</em>
+                      <em>{openGroups[groupKey] ? "▼" : "▲"}</em>
                     </button>
 
                     {openGroups[groupKey] && (
@@ -213,7 +213,7 @@ export default function SiteNavigation({
           {user?.role === "staff" && (
             <div className="cafe-menu-section">
               <button className="admin-menu-toggle cafe-admin-toggle" onClick={() => setAdminOpen(value => !value)}>
-                <span>관리자 메뉴</span><em>{adminOpen ? "▴" : "▾"}</em>
+                <span>관리자 메뉴</span><em>{adminOpen ? "▼" : "▲"}</em>
               </button>
 
               {adminOpen && (
