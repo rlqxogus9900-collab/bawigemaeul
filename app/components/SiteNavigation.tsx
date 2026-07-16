@@ -1,70 +1,162 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 type User = { nickname: string; role: "member" | "staff" } | null;
+type BoardCategory = {
+  id: string;
+  name: string;
+  icon: string;
+  sort_order: number;
+  subcategories: { id: string; name: string }[];
+};
 
-const publicItems = [
-  ["/", "⌂", "홈"], ["/reference", "☷", "내전 참고 명단"],
-  ["/normal-match", "⚔", "일반 내전"], ["/auction", "📡", "실시간 경매"],
-  ["/stats", "▥", "정기내전 통계"], ["/coin", "◉", "코인토스"],
-  ["/guides", "◆", "챔피언 공략"], ["/notices", "📢", "클랜 공지"],
-  ["/rules", "📜", "클랜 규칙"], ["/boards", "💬", "게시판"],
-  ["/schedule", "📅", "일정"], ["/whistle", "📮", "바위게 신문고"],
+const clanItems = [
+  ["/", "⌂", "홈"],
+  ["/reference", "☷", "내전 참고 명단"],
+  ["/normal-match", "⚔", "일반 내전"],
+  ["/auction", "📡", "실시간 경매"],
+  ["/stats", "▥", "정기내전 통계"],
+  ["/coin", "◉", "코인토스"],
+  ["/guides", "◆", "챔피언 공략"],
+  ["/rules", "📜", "클랜 규칙"],
+  ["/schedule", "📅", "일정"],
+  ["/whistle", "📮", "바위게 신문고"],
   ["/hall-of-fame", "🏆", "명예의 전당"]
 ];
 
 const staffItems = [
-  ["/admin/roster", "👥", "명단"], ["/admin/reference", "☷", "내전 참고 명단 관리"], ["/admin/members", "♙", "명단 설정"], ["/admin/activity", "▣", "활동 관리"],
-  ["/admin/auction", "🔨", "경매 관리"], ["/admin/tournaments", "🏆", "대회·내전 기록"],
-  ["/admin/match-records", "📝", "정기내전 상세 기록"], ["/admin/boards", "🗂", "게시판 관리"],
-  ["/admin/notices", "✍", "공지 관리"], ["/admin/rules", "📜", "규칙 관리"],
-  ["/admin/schedule", "📅", "일정 관리"], ["/admin/whistle", "📮", "신문고 관리"],
-  ["/admin/members", "👥", "계정·권한 관리"], ["/admin/home", "🏠", "홈페이지 관리"], ["/admin/sponsors", "💖", "후원 관리"],
+  ["/admin/roster", "👥", "명단"],
+  ["/admin/reference", "☷", "내전 참고 명단 관리"],
+  ["/admin/members", "♙", "명단 설정"],
+  ["/admin/activity", "▣", "활동 관리"],
+  ["/admin/auction", "🔨", "경매 관리"],
+  ["/admin/tournaments", "🏆", "대회·내전 기록"],
+  ["/admin/match-records", "📝", "정기내전 상세 기록"],
+  ["/admin/boards", "🗂", "게시판·메뉴 관리"],
+  ["/admin/notices", "✍", "공지 관리"],
+  ["/admin/rules", "📜", "규칙 관리"],
+  ["/admin/schedule", "📅", "일정 관리"],
+  ["/admin/whistle", "📮", "신문고 관리"],
+  ["/admin/home", "🏠", "홈페이지 관리"],
+  ["/admin/sponsors", "💖", "후원 관리"],
   ["/admin/settings", "⚙", "관리자 설정"]
 ];
 
-export default function SiteNavigation({ user }: { user: User }) {
+export default function SiteNavigation({
+  user,
+  boardCategories
+}: {
+  user: User;
+  boardCategories: BoardCategory[];
+}) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const currentBoard = searchParams.get("board");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(
+    Object.fromEntries(boardCategories.map(category => [category.id, true]))
+  );
   const [adminOpen, setAdminOpen] = useState(true);
-  const active = (href: string) => href === "/" ? pathname === "/" : pathname.startsWith(href);
+
+  const active = (href: string) =>
+    href === "/" ? pathname === "/" : pathname.startsWith(href);
+
+  function toggleGroup(id: string) {
+    setOpenGroups(current => ({ ...current, [id]: !current[id] }));
+  }
 
   return (
     <>
       <button className="mobile-menu-button" onClick={() => setMobileOpen(true)}>☰</button>
-      {mobileOpen && <button className="sidebar-backdrop" aria-label="메뉴 닫기" onClick={() => setMobileOpen(false)} />}
-      <aside className={`sidebar ${mobileOpen ? "open" : ""}`}>
+      {mobileOpen && (
+        <button className="sidebar-backdrop" aria-label="메뉴 닫기" onClick={() => setMobileOpen(false)} />
+      )}
+
+      <aside className={`sidebar cafe-sidebar ${mobileOpen ? "open" : ""}`}>
         <div className="brand">
           <img src="/assets/crab-logo.jpg" alt="바위게마을" />
-          <div><h1>바위게마을</h1><small>BAWIGEMAEUL · ONLINE</small></div>
+          <div>
+            <h1>바위게마을</h1>
+            <small>BAWIGEMAEUL · ONLINE</small>
+          </div>
           <button className="sidebar-close" onClick={() => setMobileOpen(false)}>×</button>
         </div>
+
         <nav className="sidebar-nav">
-          {publicItems.map(([href, icon, label]) => (
-            <Link key={href} href={href} className={active(href) ? "active" : ""} onClick={() => setMobileOpen(false)}>
-              <span>{icon}</span><b>{label}</b>
-            </Link>
-          ))}
+          <div className="cafe-menu-section">
+            <div className="cafe-section-title">클랜 메뉴</div>
+            {clanItems.map(([href, icon, label]) => (
+              <Link key={href} href={href} className={active(href) ? "active" : ""} onClick={() => setMobileOpen(false)}>
+                <span>{icon}</span><b>{label}</b>
+              </Link>
+            ))}
+          </div>
+
+          {boardCategories.length > 0 && (
+            <div className="cafe-menu-section">
+              <div className="cafe-section-title">게시판</div>
+
+              {boardCategories.map(category => (
+                <div className="cafe-board-group" key={category.id}>
+                  <button
+                    type="button"
+                    className="cafe-board-group-title"
+                    onClick={() => toggleGroup(category.id)}
+                  >
+                    <span><i>{category.icon}</i>{category.name}</span>
+                    <em>{openGroups[category.id] ? "▴" : "▾"}</em>
+                  </button>
+
+                  {openGroups[category.id] && (
+                    <div className="cafe-board-submenu">
+                      {category.subcategories.map(subcategory => (
+                        <Link
+                          key={subcategory.id}
+                          href={`/boards?board=${subcategory.id}`}
+                          className={pathname === "/boards" && currentBoard === subcategory.id ? "active" : ""}
+                          onClick={() => setMobileOpen(false)}
+                        >
+                          <span>└</span><b>{subcategory.name}</b>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
           {user?.role === "staff" && (
-            <>
-              <button className="admin-menu-toggle" onClick={() => setAdminOpen(v => !v)}>
-                관리자 메뉴 <span>{adminOpen ? "▴" : "▾"}</span>
+            <div className="cafe-menu-section">
+              <button className="admin-menu-toggle cafe-admin-toggle" onClick={() => setAdminOpen(value => !value)}>
+                <span>관리자 메뉴</span><em>{adminOpen ? "▴" : "▾"}</em>
               </button>
-              {adminOpen && <div className="admin-nav-group">
-                {staffItems.map(([href, icon, label], index) => (
-                  <Link key={`${href}-${index}`} href={href} className={active(href) ? "active" : ""} onClick={() => setMobileOpen(false)}>
-                    <span>{icon}</span><b>{label}</b>
-                  </Link>
-                ))}
-              </div>}
-            </>
+
+              {adminOpen && (
+                <div className="admin-nav-group">
+                  {staffItems.map(([href, icon, label], index) => (
+                    <Link
+                      key={`${href}-${index}`}
+                      href={href}
+                      className={active(href) ? "active" : ""}
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      <span>{icon}</span><b>{label}</b>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
         </nav>
+
         <div className="side-bottom">
-          <img src="/assets/crab-logo.jpg" alt="" /><b>함께하면 더 즐겁다!</b><small>© 2026 바위게마을</small>
+          <img src="/assets/crab-logo.jpg" alt="" />
+          <b>함께하면 더 즐겁다!</b>
+          <small>© 2026 바위게마을</small>
         </div>
       </aside>
     </>
