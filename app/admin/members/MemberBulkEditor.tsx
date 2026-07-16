@@ -49,18 +49,18 @@ export default function MemberBulkEditor({
 
   async function deleteMember(row: MemberRow) {
     if (row.id === currentUserId) {
-      setMessage("현재 로그인 중인 본인 계정은 삭제할 수 없습니다.");
+      setMessage("본인 계정은 삭제할 수 없습니다.");
       return;
     }
     if (!window.confirm(`${row.nickname} 계정을 명단과 로그인 계정에서 삭제할까요?`)) return;
     setMessage("");
-    const response = await fetch(`/api/admin/members/${row.id}/delete`, { method: "POST" });
+    const response = await fetch(`/api/admin/members/${row.id}`, { method: "DELETE" });
     const result = await response.json().catch(() => null);
     if (!response.ok) {
-      setMessage(result?.message || "계정 삭제에 실패했습니다.");
+      setMessage(result?.message || "삭제에 실패했습니다.");
       return;
     }
-    setRows(current => current.filter(item => item.id !== row.id));
+    setRows(current => current.filter(member => member.id !== row.id));
     setMessage(`${row.nickname} 계정을 삭제했습니다.`);
   }
 
@@ -106,14 +106,9 @@ export default function MemberBulkEditor({
                 <strong>{row.nickname || "이름 없음"}</strong>
                 <span>{row.riot_id || "Riot ID 없음"}</span>
               </div>
-              <div className="member-card-tools">
-                <span className={`roman-tier-badge tier-${row.match_tier || 0}`}>
-                  {row.match_tier ? romanTier[row.match_tier] : "-"}
-                </span>
-                <button className="member-delete-button" type="button" disabled={row.id === currentUserId} onClick={() => deleteMember(row)}>
-                  삭제
-                </button>
-              </div>
+              <span className={`roman-tier-badge tier-${row.match_tier || 0}`}>
+                {row.match_tier ? romanTier[row.match_tier] : "-"}
+              </span>
             </div>
 
             <div className="member-field-grid">
@@ -197,6 +192,16 @@ export default function MemberBulkEditor({
                   <option value="disabled">계정 비활성</option>
                 </select>
               </label>
+            </div>
+            <div className="member-card-danger-zone">
+              <button
+                className="button danger member-delete-button"
+                type="button"
+                disabled={row.id === currentUserId}
+                onClick={() => deleteMember(row)}
+              >
+                {row.id === currentUserId ? "본인 계정" : "계정 삭제"}
+              </button>
             </div>
           </article>
         ))}
