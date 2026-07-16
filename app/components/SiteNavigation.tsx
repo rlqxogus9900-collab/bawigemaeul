@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type User = { nickname: string; role: "member" | "staff" } | null;
 type BoardCategory = {
@@ -27,6 +27,7 @@ const fixedGroups: FixedGroup[] = [
     icon: "🦀",
     items: [
       ["/", "⌂", "홈"],
+      ["/updates", "🆕", "업데이트"],
       ["/rules", "📜", "클랜 규칙"],
       ["/schedule", "📅", "일정"],
       ["/hall-of-fame", "🏆", "명예의 전당"]
@@ -91,6 +92,7 @@ export default function SiteNavigation({
   const searchParams = useSearchParams();
   const currentBoard = searchParams.get("board");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [navigating, setNavigating] = useState(false);
 
   const initialGroups: Record<string, boolean> = {};
   fixedGroups.forEach(group => {
@@ -103,6 +105,8 @@ export default function SiteNavigation({
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(initialGroups);
   const [adminOpen, setAdminOpen] = useState(true);
 
+  useEffect(() => { setNavigating(false); }, [pathname, currentBoard]);
+
   const active = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
@@ -114,8 +118,10 @@ export default function SiteNavigation({
     <>
       <button className="mobile-menu-button" onClick={() => setMobileOpen(true)}>☰</button>
       {mobileOpen && (
-        <button className="sidebar-backdrop" aria-label="메뉴 닫기" onClick={() => setMobileOpen(false)} />
+        <button className="sidebar-backdrop" aria-label="메뉴 닫기" onClick={() => { setNavigating(true); setMobileOpen(false); }} />
       )}
+
+      {navigating && <div className="route-progress" aria-hidden="true" />}
 
       <aside className={`sidebar cafe-sidebar ${mobileOpen ? "open" : ""}`}>
         <div className="brand">
@@ -124,7 +130,7 @@ export default function SiteNavigation({
             <h1>바위게마을</h1>
             <small>BAWIGEMAEUL · ONLINE</small>
           </div>
-          <button className="sidebar-close" onClick={() => setMobileOpen(false)}>×</button>
+          <button className="sidebar-close" onClick={() => { setNavigating(true); setMobileOpen(false); }}>×</button>
         </div>
 
         <nav className="sidebar-nav">
@@ -151,7 +157,7 @@ export default function SiteNavigation({
                           key={href}
                           href={href}
                           className={active(href) ? "active" : ""}
-                          onClick={() => setMobileOpen(false)}
+                          onClick={() => { setNavigating(true); setMobileOpen(false); }}
                         >
                           <span>{icon}</span><b>{label}</b>
                         </Link>
@@ -191,7 +197,7 @@ export default function SiteNavigation({
                                 ? "active"
                                 : ""
                             }
-                            onClick={() => setMobileOpen(false)}
+                            onClick={() => { setNavigating(true); setMobileOpen(false); }}
                           >
                             <span>└</span><b>{subcategory.name}</b>
                           </Link>
@@ -217,7 +223,7 @@ export default function SiteNavigation({
                       key={`${href}-${index}`}
                       href={href}
                       className={active(href) ? "active" : ""}
-                      onClick={() => setMobileOpen(false)}
+                      onClick={() => { setNavigating(true); setMobileOpen(false); }}
                     >
                       <span>{icon}</span><b>{label}</b>
                     </Link>

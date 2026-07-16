@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { requireStaff } from "@/lib/session";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
@@ -21,5 +22,6 @@ export async function POST(request: Request) {
     is_visible: form.get("is_visible") === "on"
   });
 
+  revalidateTag("board-menu", "max");
   return NextResponse.redirect(new URL("/admin/boards?saved=1", request.url), 303);
 }

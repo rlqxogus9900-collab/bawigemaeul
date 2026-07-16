@@ -1,7 +1,7 @@
 import "./globals.css";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
-import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { getCachedBoardMenu } from "@/lib/board-menu";
 import SiteNavigation from "@/app/components/SiteNavigation";
 
 export const metadata = {
@@ -10,33 +10,15 @@ export const metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const user = await getSession();
-  const db = getSupabaseAdmin();
-
-  const { data: rawBoardCategories } = await db
-    .from("board_categories")
-    .select(`
-      id,
-      name,
-      icon,
-      sort_order,
-      is_visible,
-      access_level,
-      board_subcategories (
-        id,
-        category_id,
-        name,
-        sort_order,
-        is_visible,
-        access_level
-      )
-    `)
-    .order("sort_order", { ascending: true });
+  const [user, rawBoardCategories] = await Promise.all([
+    getSession(),
+    getCachedBoardMenu()
+  ]);
 
   const canSee = (accessLevel: string | null) =>
     accessLevel !== "staff" || user?.role === "staff";
 
-  const boardCategories = (rawBoardCategories || [])
+  const boardCategories = rawBoardCategories
     .filter(category => category.is_visible !== false && canSee(category.access_level))
     .map(category => ({
       id: category.id,
@@ -71,13 +53,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   <span className={`account-pill ${user.role}`}>
                     {user.nickname} / {user.role === "staff" ? "운영진" : "클랜원"}
                   </span>
-                  <Link className="top-button" href="/change-password">비밀번호 변경</Link>
+                  <Link className="top-button" href="/change-password" prefetch>
+                    비밀번호 변경
+                  </Link>
                   <form action="/api/auth/logout" method="post">
                     <button className="top-button outline">로그아웃</button>
                   </form>
                 </>
               ) : (
-                <Link className="top-button gold" href="/login">클랜원 로그인</Link>
+                <Link className="top-button gold" href="/login" prefetch>
+                  클랜원 로그인
+                </Link>
               )}
             </div>
           </header>
@@ -86,7 +72,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
           <footer className="site-footer">
             <div><b>BAWIGEMAEUL</b><span>Since 2026</span></div>
-            <small>Created for 바위게마을 · Online Beta 1.3.6.2</small>
+            <small>Created for 바위게마을 · Online Beta 1.3.6.3</small>
           </footer>
         </div>
       </body>
