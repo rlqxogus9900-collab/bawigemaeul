@@ -76,8 +76,8 @@ export default async function HomePage() {
         <div className="hero-copy">
           <span className="hero-eyebrow">LEAGUE OF LEGENDS CLAN</span>
           <h1>
-            같이 즐기고,<br />
-            같이 강해지는 <em>바위게마을</em>
+            다 같이 즐길 수 있는<br />
+            <em>바위게마을</em>
           </h1>
           <p>
             정기내전, 경매, 통계와 클랜 소식을 한곳에서 확인하는
