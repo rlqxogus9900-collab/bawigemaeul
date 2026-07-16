@@ -13,18 +13,53 @@ type BoardCategory = {
   subcategories: { id: string; name: string }[];
 };
 
-const clanItems = [
-  ["/", "⌂", "홈"],
-  ["/reference", "☷", "내전 참고 명단"],
-  ["/normal-match", "⚔", "일반 내전"],
-  ["/auction", "📡", "실시간 경매"],
-  ["/stats", "▥", "정기내전 통계"],
-  ["/coin", "◉", "코인토스"],
-  ["/guides", "◆", "챔피언 공략"],
-  ["/rules", "📜", "클랜 규칙"],
-  ["/schedule", "📅", "일정"],
-  ["/whistle", "📮", "바위게 신문고"],
-  ["/hall-of-fame", "🏆", "명예의 전당"]
+type FixedGroup = {
+  id: string;
+  name: string;
+  icon: string;
+  items: [string, string, string][];
+};
+
+const fixedGroups: FixedGroup[] = [
+  {
+    id: "clan",
+    name: "클랜",
+    icon: "🦀",
+    items: [
+      ["/", "⌂", "홈"],
+      ["/rules", "📜", "클랜 규칙"],
+      ["/schedule", "📅", "일정"],
+      ["/hall-of-fame", "🏆", "명예의 전당"]
+    ]
+  },
+  {
+    id: "match",
+    name: "내전",
+    icon: "⚔",
+    items: [
+      ["/reference", "☷", "내전 참고 명단"],
+      ["/normal-match", "⚔", "일반 내전"],
+      ["/auction", "📡", "실시간 경매"],
+      ["/stats", "▥", "정기내전 통계"],
+      ["/coin", "◉", "코인토스"]
+    ]
+  },
+  {
+    id: "game",
+    name: "게임 정보",
+    icon: "◆",
+    items: [
+      ["/guides", "◆", "챔피언 공략"]
+    ]
+  },
+  {
+    id: "support",
+    name: "클랜 운영",
+    icon: "📮",
+    items: [
+      ["/whistle", "📮", "바위게 신문고"]
+    ]
+  }
 ];
 
 const staffItems = [
@@ -56,9 +91,16 @@ export default function SiteNavigation({
   const searchParams = useSearchParams();
   const currentBoard = searchParams.get("board");
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(
-    Object.fromEntries(boardCategories.map(category => [category.id, true]))
-  );
+
+  const initialGroups: Record<string, boolean> = {};
+  fixedGroups.forEach(group => {
+    initialGroups[`fixed-${group.id}`] = true;
+  });
+  boardCategories.forEach(category => {
+    initialGroups[`board-${category.id}`] = true;
+  });
+
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(initialGroups);
   const [adminOpen, setAdminOpen] = useState(true);
 
   const active = (href: string) =>
@@ -87,45 +129,78 @@ export default function SiteNavigation({
 
         <nav className="sidebar-nav">
           <div className="cafe-menu-section">
-            <div className="cafe-section-title">클랜 메뉴</div>
-            {clanItems.map(([href, icon, label]) => (
-              <Link key={href} href={href} className={active(href) ? "active" : ""} onClick={() => setMobileOpen(false)}>
-                <span>{icon}</span><b>{label}</b>
-              </Link>
-            ))}
+            <div className="cafe-section-title">바위게마을</div>
+
+            {fixedGroups.map(group => {
+              const groupKey = `fixed-${group.id}`;
+              return (
+                <div className="cafe-board-group" key={group.id}>
+                  <button
+                    type="button"
+                    className="cafe-board-group-title"
+                    onClick={() => toggleGroup(groupKey)}
+                  >
+                    <span><i>{group.icon}</i>{group.name}</span>
+                    <em>{openGroups[groupKey] ? "▴" : "▾"}</em>
+                  </button>
+
+                  {openGroups[groupKey] && (
+                    <div className="cafe-board-submenu">
+                      {group.items.map(([href, icon, label]) => (
+                        <Link
+                          key={href}
+                          href={href}
+                          className={active(href) ? "active" : ""}
+                          onClick={() => setMobileOpen(false)}
+                        >
+                          <span>{icon}</span><b>{label}</b>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           {boardCategories.length > 0 && (
             <div className="cafe-menu-section">
               <div className="cafe-section-title">게시판</div>
 
-              {boardCategories.map(category => (
-                <div className="cafe-board-group" key={category.id}>
-                  <button
-                    type="button"
-                    className="cafe-board-group-title"
-                    onClick={() => toggleGroup(category.id)}
-                  >
-                    <span><i>{category.icon}</i>{category.name}</span>
-                    <em>{openGroups[category.id] ? "▴" : "▾"}</em>
-                  </button>
+              {boardCategories.map(category => {
+                const groupKey = `board-${category.id}`;
+                return (
+                  <div className="cafe-board-group" key={category.id}>
+                    <button
+                      type="button"
+                      className="cafe-board-group-title"
+                      onClick={() => toggleGroup(groupKey)}
+                    >
+                      <span><i>{category.icon}</i>{category.name}</span>
+                      <em>{openGroups[groupKey] ? "▴" : "▾"}</em>
+                    </button>
 
-                  {openGroups[category.id] && (
-                    <div className="cafe-board-submenu">
-                      {category.subcategories.map(subcategory => (
-                        <Link
-                          key={subcategory.id}
-                          href={`/boards?board=${subcategory.id}`}
-                          className={pathname === "/boards" && currentBoard === subcategory.id ? "active" : ""}
-                          onClick={() => setMobileOpen(false)}
-                        >
-                          <span>└</span><b>{subcategory.name}</b>
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
+                    {openGroups[groupKey] && (
+                      <div className="cafe-board-submenu">
+                        {category.subcategories.map(subcategory => (
+                          <Link
+                            key={subcategory.id}
+                            href={`/boards?board=${subcategory.id}`}
+                            className={
+                              pathname === "/boards" && currentBoard === subcategory.id
+                                ? "active"
+                                : ""
+                            }
+                            onClick={() => setMobileOpen(false)}
+                          >
+                            <span>└</span><b>{subcategory.name}</b>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
 

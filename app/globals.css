@@ -454,3 +454,19 @@
   .board-sub-create-v2,
   .board-sub-edit-v2{grid-template-columns:1fr}
 }
+/* Online Beta 1.3.6.2 - all sidebar menus use cafe groups */
+.cafe-board-submenu a span{
+  width:20px;
+  text-align:center;
+  color:#6f8a7a;
+  font-size:11px;
+}
+.cafe-board-submenu a b{
+  font-size:12px;
+  font-weight:600;
+}
+.cafe-menu-section + .cafe-menu-section{
+  margin-top:11px;
+  padding-top:4px;
+  border-top:1px solid #1d382a;
+}
