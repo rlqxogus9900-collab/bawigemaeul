@@ -13,15 +13,7 @@ export async function POST(
   const db = getSupabaseAdmin();
 
   if (String(form.get("_action") || "update") === "delete") {
-    const { count } = await db
-      .from("board_posts")
-      .select("id", { count: "exact", head: true })
-      .eq("subcategory_id", id);
-
-    if ((count || 0) > 0) {
-      return NextResponse.redirect(new URL("/admin/boards?error=1", request.url), 303);
-    }
-
+    await db.from("board_posts").delete().eq("subcategory_id", id);
     await db.from("board_subcategories").delete().eq("id", id);
   } else {
     await db.from("board_subcategories").update({

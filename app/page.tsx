@@ -15,11 +15,32 @@ const getHomeData = unstable_cache(
       { data: members },
       { data: sponsors }
     ] = await Promise.all([
-      db.from("notices").select("id,title,is_pinned,created_at").order("is_pinned", { ascending: false }).order("created_at", { ascending: false }).limit(5),
-      db.from("clan_rules").select("id,content,sort_order").order("sort_order").limit(4),
-      db.from("regular_match_results").select("*").order("played_at", { ascending: false }).limit(1),
-      db.from("members").select("id,nickname,main_line,is_active,activity_status").eq("is_active", true),
-      db.from("sponsors").select("id,display_name").eq("is_visible", true).order("sort_order", { ascending: true }).limit(10)
+      db
+        .from("notices")
+        .select("id,title,is_pinned,created_at")
+        .order("is_pinned", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(5),
+      db
+        .from("clan_rules")
+        .select("id,content,sort_order")
+        .order("sort_order", { ascending: true })
+        .limit(5),
+      db
+        .from("regular_match_results")
+        .select("*")
+        .order("played_at", { ascending: false })
+        .limit(1),
+      db
+        .from("members")
+        .select("id,nickname,main_line,is_active")
+        .eq("is_active", true),
+      db
+        .from("sponsors")
+        .select("id,display_name")
+        .eq("is_visible", true)
+        .order("sort_order", { ascending: true })
+        .limit(10)
     ]);
 
     return {
@@ -30,19 +51,19 @@ const getHomeData = unstable_cache(
       sponsors: sponsors || []
     };
   },
-  ["home-dashboard-v2"],
+  ["home-dashboard-v3"],
   { revalidate: 60, tags: ["home-dashboard"] }
 );
 
 export default async function HomePage() {
   const { notices, rules, latest, members, sponsors } = await getHomeData();
 
-  const activeMembers = members.filter(member => member.activity_status === "active").length;
   const lineCounts = ["탑", "정글", "미드", "원딜", "서폿"].map(line => ({
     line,
     count: members.filter(member => member.main_line === line).length
   }));
   const maxLine = Math.max(...lineCounts.map(item => item.count), 1);
+  const totalAssigned = lineCounts.reduce((sum, item) => sum + item.count, 0);
 
   const winner = latest?.winner_name || "아직 등록 전";
   const playedAt = latest?.played_at
@@ -63,53 +84,46 @@ export default async function HomePage() {
             바위게마을 공식 공간입니다.
           </p>
           <div className="hero-actions">
-            <Link href="/reference" className="hero-primary" prefetch>내전 참고 명단</Link>
-            <Link href="/updates" className="hero-secondary" prefetch>최근 업데이트</Link>
+            <Link href="/reference" className="hero-primary" prefetch>
+              내전 참고 명단
+            </Link>
+            <Link href="/updates" className="hero-secondary" prefetch>
+              최근 업데이트
+            </Link>
           </div>
         </div>
 
         <div className="hero-visual">
           <div className="hero-glow" />
           <img src="/assets/crab-logo.jpg" alt="바위게마을" />
-          <div className="hero-floating-stat stat-one">
-            <span>클랜원</span><b>{members.length}명</b>
-          </div>
-          <div className="hero-floating-stat stat-two">
-            <span>활동 중</span><b>{activeMembers}명</b>
+          <div className="hero-floating-stat stat-one single-stat">
+            <span>클랜원</span>
+            <b>{members.length}명</b>
           </div>
         </div>
       </section>
 
       <section className="home-quick-grid">
-        <Link href="/updates" className="quick-card update" prefetch>
-          <span>🆕</span><div><small>WHAT'S NEW</small><b>업데이트 내역</b><p>새로 추가된 기능 확인</p></div>
+        <Link href="/updates" className="quick-card" prefetch>
+          <span>🆕</span>
+          <div><small>WHAT&apos;S NEW</small><b>업데이트 내역</b><p>새로 추가된 기능 확인</p></div>
         </Link>
-        <Link href="/schedule" className="quick-card schedule" prefetch>
-          <span>📅</span><div><small>NEXT SCHEDULE</small><b>다음 일정</b><p>클랜 일정 확인</p></div>
+        <Link href="/schedule" className="quick-card" prefetch>
+          <span>📅</span>
+          <div><small>NEXT SCHEDULE</small><b>다음 일정</b><p>클랜 일정 확인</p></div>
         </Link>
-        <Link href="/hall-of-fame" className="quick-card hall" prefetch>
-          <span>🏆</span><div><small>HALL OF FAME</small><b>명예의 전당</b><p>우승 기록 확인</p></div>
+        <Link href="/hall-of-fame" className="quick-card" prefetch>
+          <span>🏆</span>
+          <div><small>HALL OF FAME</small><b>명예의 전당</b><p>우승 기록 확인</p></div>
         </Link>
-        <Link href="/stats" className="quick-card stats" prefetch>
-          <span>📊</span><div><small>CLAN STATS</small><b>정기내전 통계</b><p>승률과 기록 확인</p></div>
+        <Link href="/stats" className="quick-card" prefetch>
+          <span>📊</span>
+          <div><small>CLAN STATS</small><b>정기내전 통계</b><p>승률과 기록 확인</p></div>
         </Link>
       </section>
 
       <section className="home-dashboard-grid">
-        <article className="dashboard-card featured-winner">
-          <div className="dashboard-label">RECENT WINNER</div>
-          <div className="winner-showcase">
-            <div className="winner-icon">🏆</div>
-            <div>
-              <small>{playedAt}</small>
-              <h2>{winner}</h2>
-              <p>{latest ? `${latest.team_a_name} ${latest.team_a_sets} : ${latest.team_b_sets} ${latest.team_b_name}` : "최근 정기내전 결과를 등록해주세요."}</p>
-            </div>
-          </div>
-          <Link href="/hall-of-fame" prefetch>전체 기록 보기 →</Link>
-        </article>
-
-        <article className="dashboard-card notices-panel">
+        <article className="dashboard-card notices-panel home-important-card">
           <div className="dashboard-head">
             <div><span>NOTICE</span><h2>최근 공지</h2></div>
             <Link href="/notices" prefetch>전체보기</Link>
@@ -121,35 +135,44 @@ export default async function HomePage() {
                 <b>{notice.title}</b>
                 <time>{new Date(notice.created_at).toLocaleDateString("ko-KR")}</time>
               </div>
-            )) : <p className="empty-copy">등록된 공지가 없습니다.</p>}
+            )) : (
+              <p className="empty-copy">등록된 공지가 없습니다.</p>
+            )}
           </div>
         </article>
 
-        <article className="dashboard-card line-panel">
-          <div className="dashboard-head">
-            <div><span>MAIN POSITION</span><h2>주라인 현황</h2></div>
-            <small>{members.length}명 기준</small>
-          </div>
-          <div className="modern-bars">
-            {lineCounts.map(item => (
-              <div key={item.line}>
-                <div><b>{item.line}</b><span>{item.count}명</span></div>
-                <i><em style={{ width: `${(item.count / maxLine) * 100}%` }} /></i>
-              </div>
-            ))}
-          </div>
-        </article>
-
-        <article className="dashboard-card rules-panel">
+        <article className="dashboard-card rules-panel home-important-card">
           <div className="dashboard-head">
             <div><span>CLAN RULES</span><h2>클랜 규칙</h2></div>
             <Link href="/rules" prefetch>전체보기</Link>
           </div>
           <div className="rule-number-list">
             {rules.length ? rules.map((rule, index) => (
-              <div key={rule.id}><span>{String(index + 1).padStart(2, "0")}</span><p>{rule.content}</p></div>
-            )) : <p className="empty-copy">등록된 규칙이 없습니다.</p>}
+              <div key={rule.id}>
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <p>{rule.content}</p>
+              </div>
+            )) : (
+              <p className="empty-copy">등록된 규칙이 없습니다.</p>
+            )}
           </div>
+        </article>
+
+        <article className="dashboard-card featured-winner">
+          <div className="dashboard-label">RECENT WINNER</div>
+          <div className="winner-showcase">
+            <div className="winner-icon">🏆</div>
+            <div>
+              <small>{playedAt}</small>
+              <h2>{winner}</h2>
+              <p>
+                {latest
+                  ? `${latest.team_a_name} ${latest.team_a_sets} : ${latest.team_b_sets} ${latest.team_b_name}`
+                  : "최근 정기내전 결과를 등록해주세요."}
+              </p>
+            </div>
+          </div>
+          <Link href="/hall-of-fame" prefetch>전체 기록 보기 →</Link>
         </article>
 
         <article className="dashboard-card sponsor-panel">
@@ -161,20 +184,46 @@ export default async function HomePage() {
           <div className="polished-sponsors">
             {sponsors.length ? sponsors.map(sponsor => (
               <span key={sponsor.id}>{sponsor.display_name}</span>
-            )) : <span className="empty-copy">등록된 후원자가 없습니다.</span>}
+            )) : (
+              <span className="empty-copy">등록된 후원자가 없습니다.</span>
+            )}
           </div>
           <small>후원은 전적으로 자율이며, 함께해 주시는 마음만으로도 충분합니다.</small>
         </article>
 
-        <article className="dashboard-card activity-panel">
-          <div className="dashboard-label">CLAN STATUS</div>
-          <div className="activity-big">
-            <strong>{activeMembers}</strong>
-            <span>현재 활동 인원</span>
+        <article className="dashboard-card line-distribution-panel">
+          <div className="dashboard-head">
+            <div><span>MAIN POSITION DISTRIBUTION</span><h2>라인별 분포도</h2></div>
+            <small>{totalAssigned}명 기준</small>
           </div>
-          <div className="activity-meta">
-            <div><b>{members.length}</b><span>전체 클랜원</span></div>
-            <div><b>{members.length - activeMembers}</b><span>비활동</span></div>
+
+          <div className="line-distribution-layout">
+            <div className="line-donut" aria-label="라인별 분포도">
+              <div className="line-donut-center">
+                <strong>{totalAssigned}</strong>
+                <span>라인 등록</span>
+              </div>
+            </div>
+
+            <div className="modern-bars line-bars-large">
+              {lineCounts.map(item => {
+                const percent = totalAssigned
+                  ? Math.round((item.count / totalAssigned) * 100)
+                  : 0;
+
+                return (
+                  <div key={item.line}>
+                    <div>
+                      <b>{item.line}</b>
+                      <span>{item.count}명 · {percent}%</span>
+                    </div>
+                    <i>
+                      <em style={{ width: `${(item.count / maxLine) * 100}%` }} />
+                    </i>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </article>
       </section>

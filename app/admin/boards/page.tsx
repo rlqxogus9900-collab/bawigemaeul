@@ -1,5 +1,6 @@
 import { requireStaff } from "@/lib/session";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import DeleteBoardButton from "./DeleteBoardButton";
 
 export const dynamic = "force-dynamic";
 
@@ -89,7 +90,7 @@ export default async function AdminBoardsPage({
               </label>
 
               <button className="button">대분류 저장</button>
-              <button className="button danger" name="_action" value="delete">삭제</button>
+              <DeleteBoardButton message={`대분류 ${category.name}와 내부 소분류 및 게시글을 모두 삭제할까요?`} />
             </form>
 
             <div className="board-sub-admin-head">
@@ -139,7 +140,7 @@ export default async function AdminBoardsPage({
                   </label>
 
                   <button className="button">저장</button>
-                  <button className="button danger" name="_action" value="delete">삭제</button>
+                  <DeleteBoardButton message={`소분류 ${subcategory.name}와 내부 게시글을 모두 삭제할까요?`} />
                 </form>
               ))}
 
