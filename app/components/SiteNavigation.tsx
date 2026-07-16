@@ -49,17 +49,13 @@ const fixedGroups: FixedGroup[] = [
     id: "game",
     name: "게임 정보",
     icon: "◆",
-    items: [
-      ["/guides", "◆", "챔피언 공략"]
-    ]
+    items: [["/guides", "◆", "챔피언 공략"]]
   },
   {
     id: "support",
     name: "클랜 운영",
     icon: "📮",
-    items: [
-      ["/whistle", "📮", "바위게 신문고"]
-    ]
+    items: [["/whistle", "📮", "바위게 신문고"]]
   }
 ];
 
@@ -105,7 +101,9 @@ export default function SiteNavigation({
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(initialGroups);
   const [adminOpen, setAdminOpen] = useState(true);
 
-  useEffect(() => { setNavigating(false); }, [pathname, currentBoard]);
+  useEffect(() => {
+    setNavigating(false);
+  }, [pathname, currentBoard]);
 
   const active = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -114,23 +112,56 @@ export default function SiteNavigation({
     setOpenGroups(current => ({ ...current, [id]: !current[id] }));
   }
 
+  function startNavigation(
+    event: React.MouseEvent<HTMLAnchorElement>,
+    href: string,
+    boardId?: string
+  ) {
+    const samePage = boardId
+      ? pathname === "/boards" && currentBoard === boardId
+      : active(href);
+
+    if (samePage) {
+      event.preventDefault();
+      setNavigating(false);
+      setMobileOpen(false);
+      return;
+    }
+
+    setNavigating(true);
+    setMobileOpen(false);
+  }
+
   return (
     <>
       <button className="mobile-menu-button" onClick={() => setMobileOpen(true)}>☰</button>
+
       {mobileOpen && (
-        <button className="sidebar-backdrop" aria-label="메뉴 닫기" onClick={() => { setNavigating(true); setMobileOpen(false); }} />
+        <button
+          className="sidebar-backdrop"
+          aria-label="메뉴 닫기"
+          onClick={() => setMobileOpen(false)}
+        />
       )}
 
       {navigating && <div className="route-progress" aria-hidden="true" />}
 
       <aside className={`sidebar cafe-sidebar ${mobileOpen ? "open" : ""}`}>
         <div className="brand">
-          <img src="/assets/crab-logo.jpg" alt="바위게마을" />
-          <div>
-            <h1>바위게마을</h1>
-            <small>BAWIGEMAEUL · ONLINE</small>
-          </div>
-          <button className="sidebar-close" onClick={() => { setNavigating(true); setMobileOpen(false); }}>×</button>
+          <Link
+            href="/"
+            className="brand-home-link"
+            onClick={event => startNavigation(event, "/")}
+            aria-label="바위게마을 홈으로 이동"
+          >
+            <img src="/assets/crab-logo.jpg" alt="바위게마을" />
+            <div>
+              <h1>바위게마을</h1>
+              <small>BAWIGEMAEUL · ONLINE</small>
+            </div>
+          </Link>
+
+          <button className="sidebar-close" onClick={() => setMobileOpen(false)}>×</button>
         </div>
 
         <nav className="sidebar-nav">
@@ -139,6 +170,7 @@ export default function SiteNavigation({
 
             {fixedGroups.map(group => {
               const groupKey = `fixed-${group.id}`;
+
               return (
                 <div className="cafe-board-group" key={group.id}>
                   <button
@@ -157,7 +189,7 @@ export default function SiteNavigation({
                           key={href}
                           href={href}
                           className={active(href) ? "active" : ""}
-                          onClick={() => { setNavigating(true); setMobileOpen(false); }}
+                          onClick={event => startNavigation(event, href)}
                         >
                           <span>{icon}</span><b>{label}</b>
                         </Link>
@@ -175,6 +207,7 @@ export default function SiteNavigation({
 
               {boardCategories.map(category => {
                 const groupKey = `board-${category.id}`;
+
                 return (
                   <div className="cafe-board-group" key={category.id}>
                     <button
@@ -197,7 +230,13 @@ export default function SiteNavigation({
                                 ? "active"
                                 : ""
                             }
-                            onClick={() => { setNavigating(true); setMobileOpen(false); }}
+                            onClick={event =>
+                              startNavigation(
+                                event,
+                                `/boards?board=${subcategory.id}`,
+                                subcategory.id
+                              )
+                            }
                           >
                             <span>└</span><b>{subcategory.name}</b>
                           </Link>
@@ -212,7 +251,10 @@ export default function SiteNavigation({
 
           {user?.role === "staff" && (
             <div className="cafe-menu-section">
-              <button className="admin-menu-toggle cafe-admin-toggle" onClick={() => setAdminOpen(value => !value)}>
+              <button
+                className="admin-menu-toggle cafe-admin-toggle"
+                onClick={() => setAdminOpen(value => !value)}
+              >
                 <span>관리자 메뉴</span><em>{adminOpen ? "▼" : "▲"}</em>
               </button>
 
@@ -223,7 +265,7 @@ export default function SiteNavigation({
                       key={`${href}-${index}`}
                       href={href}
                       className={active(href) ? "active" : ""}
-                      onClick={() => { setNavigating(true); setMobileOpen(false); }}
+                      onClick={event => startNavigation(event, href)}
                     >
                       <span>{icon}</span><b>{label}</b>
                     </Link>

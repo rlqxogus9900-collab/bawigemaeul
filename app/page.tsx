@@ -4,6 +4,12 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export const revalidate = 60;
 
+const latestUpdate = {
+  version: "1.3.7.1",
+  title: "홈 화면 배치 및 메뉴 반응 개선",
+  summary: "후원 목록 위치 변경, 최신 업데이트 카드 추가, 같은 탭 재클릭 로딩바 제거"
+};
+
 const getHomeData = unstable_cache(
   async () => {
     const db = getSupabaseAdmin();
@@ -51,7 +57,7 @@ const getHomeData = unstable_cache(
       sponsors: sponsors || []
     };
   },
-  ["home-dashboard-v3"],
+  ["home-dashboard-v4"],
   { revalidate: 60, tags: ["home-dashboard"] }
 );
 
@@ -62,6 +68,7 @@ export default async function HomePage() {
     line,
     count: members.filter(member => member.main_line === line).length
   }));
+
   const maxLine = Math.max(...lineCounts.map(item => item.count), 1);
   const totalAssigned = lineCounts.reduce((sum, item) => sum + item.count, 0);
 
@@ -72,35 +79,54 @@ export default async function HomePage() {
 
   return (
     <>
-      <section className="new-home-hero">
-        <div className="hero-copy">
-          <span className="hero-eyebrow">LEAGUE OF LEGENDS CLAN</span>
-          <h1>
-            다 같이 즐길 수 있는<br />
-            <em>바위게마을</em>
-          </h1>
-          <p>
-            정기내전, 경매, 통계와 클랜 소식을 한곳에서 확인하는
-            바위게마을 공식 공간입니다.
-          </p>
-          <div className="hero-actions">
-            <Link href="/reference" className="hero-primary" prefetch>
-              내전 참고 명단
-            </Link>
-            <Link href="/updates" className="hero-secondary" prefetch>
-              최근 업데이트
-            </Link>
+      <section className="new-home-hero hero-layout-v2">
+        <Link href="/" className="hero-home-link" aria-label="바위게마을 홈">
+          <div className="hero-copy">
+            <span className="hero-eyebrow">LEAGUE OF LEGENDS CLAN</span>
+            <h1>
+              다 같이 즐길 수 있는<br />
+              <em>바위게마을</em>
+            </h1>
+            <p>
+              정기내전, 경매, 통계와 클랜 소식을 한곳에서 확인하는
+              바위게마을 공식 공간입니다.
+            </p>
           </div>
-        </div>
 
-        <div className="hero-visual">
-          <div className="hero-glow" />
-          <img src="/assets/crab-logo.jpg" alt="바위게마을" />
-          <div className="hero-floating-stat stat-one single-stat">
-            <span>클랜원</span>
-            <b>{members.length}명</b>
+          <div className="hero-logo-area">
+            <div className="hero-glow" />
+            <img src="/assets/crab-logo.jpg" alt="바위게마을" />
+            <div className="member-count-card">
+              <span>현재 클랜원</span>
+              <strong>{members.length}</strong>
+              <b>명</b>
+            </div>
           </div>
-        </div>
+        </Link>
+
+        <aside className="hero-sponsor-box">
+          <div className="hero-sponsor-head">
+            <div>
+              <span>THANK YOU</span>
+              <h2>후원 목록</h2>
+            </div>
+            <i>💖</i>
+          </div>
+
+          <p>클랜 이벤트와 운영에 도움을 주신 분들입니다.</p>
+
+          <div className="hero-sponsor-list">
+            {sponsors.length ? sponsors.map(sponsor => (
+              <span key={sponsor.id}>{sponsor.display_name}</span>
+            )) : (
+              <span className="empty-copy">등록된 후원자가 없습니다.</span>
+            )}
+          </div>
+
+          <small>
+            후원은 전적으로 자율이며, 함께해 주시는 마음만으로도 충분합니다.
+          </small>
+        </aside>
       </section>
 
       <section className="home-quick-grid">
@@ -128,6 +154,7 @@ export default async function HomePage() {
             <div><span>NOTICE</span><h2>최근 공지</h2></div>
             <Link href="/notices" prefetch>전체보기</Link>
           </div>
+
           <div className="polished-list">
             {notices.length ? notices.map(notice => (
               <div key={notice.id}>
@@ -146,6 +173,7 @@ export default async function HomePage() {
             <div><span>CLAN RULES</span><h2>클랜 규칙</h2></div>
             <Link href="/rules" prefetch>전체보기</Link>
           </div>
+
           <div className="rule-number-list">
             {rules.length ? rules.map((rule, index) => (
               <div key={rule.id}>
@@ -175,21 +203,16 @@ export default async function HomePage() {
           <Link href="/hall-of-fame" prefetch>전체 기록 보기 →</Link>
         </article>
 
-        <article className="dashboard-card sponsor-panel">
-          <div className="dashboard-head">
-            <div><span>THANK YOU</span><h2>후원 목록</h2></div>
-            <span>💖</span>
+        <Link href="/updates" className="dashboard-card latest-update-panel" prefetch>
+          <div className="latest-update-icon">🆕</div>
+          <div className="latest-update-copy">
+            <span>LATEST UPDATE</span>
+            <strong>v{latestUpdate.version}</strong>
+            <h2>{latestUpdate.title}</h2>
+            <p>{latestUpdate.summary}</p>
+            <b>업데이트 자세히 보기 →</b>
           </div>
-          <p className="sponsor-copy">클랜 이벤트와 운영에 도움을 주신 분들입니다.</p>
-          <div className="polished-sponsors">
-            {sponsors.length ? sponsors.map(sponsor => (
-              <span key={sponsor.id}>{sponsor.display_name}</span>
-            )) : (
-              <span className="empty-copy">등록된 후원자가 없습니다.</span>
-            )}
-          </div>
-          <small>후원은 전적으로 자율이며, 함께해 주시는 마음만으로도 충분합니다.</small>
-        </article>
+        </Link>
 
         <article className="dashboard-card line-distribution-panel">
           <div className="dashboard-head">
