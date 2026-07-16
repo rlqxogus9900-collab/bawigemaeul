@@ -67,6 +67,7 @@ export default async function BoardsPage({
       categories={normalized as never[]}
       posts={(posts || []) as never[]}
       selectedBoardId={selectedBoardId}
+      canWrite={Boolean(user)}
     />
   );
 }
