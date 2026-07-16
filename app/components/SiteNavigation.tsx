@@ -64,6 +64,7 @@ const staffItems = [
   ["/admin/reference", "☷", "내전 참고 명단 관리"],
   ["/admin/members", "♙", "명단 설정"],
   ["/admin/activity", "▣", "활동 관리"],
+  ["/admin/regular-match", "🗳", "정기내전 모집 관리"],
   ["/admin/auction", "🔨", "경매 관리"],
   ["/admin/tournaments", "🏆", "대회·내전 기록"],
   ["/admin/match-records", "📝", "정기내전 상세 기록"],

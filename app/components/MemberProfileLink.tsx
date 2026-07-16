@@ -14,7 +14,6 @@ type Profile = {
   sub_line: string | null;
   role: string | null;
   activity_status: string | null;
-  last_activity_at: string | null;
   reference_note: string | null;
   stats: {
     winRate: number | null;
@@ -195,11 +194,13 @@ export default function MemberProfileLink({
 
                 <footer className="profile-modal-footer">
                   <div>
-                    <span>최근 활동</span>
+                    <span>활동 상태</span>
                     <b>
-                      {profile.last_activity_at
-                        ? new Date(profile.last_activity_at).toLocaleDateString("ko-KR")
-                        : "기록 없음"}
+                      {profile.activity_status === "active"
+                        ? "활동"
+                        : profile.activity_status === "inactive"
+                          ? "비활동"
+                          : "미정"}
                     </b>
                   </div>
                   {profile.reference_note && <p>{profile.reference_note}</p>}

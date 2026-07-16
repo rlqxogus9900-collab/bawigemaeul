@@ -32,7 +32,6 @@ export async function GET(
       sub_line,
       role,
       activity_status,
-      last_activity_at,
       reference_note
     `)
     .eq("id", id)
