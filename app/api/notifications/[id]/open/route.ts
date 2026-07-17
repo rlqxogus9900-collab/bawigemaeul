@@ -8,23 +8,22 @@ export async function POST(
 ) {
   const user = await getSession();
   if (!user) {
-    return NextResponse.json({ ok: false }, { status: 401 });
+    return NextResponse.redirect(new URL("/login", request.url), 303);
   }
 
   const { id } = await context.params;
+  const form = await request.formData();
+  const link = String(form.get("link") || "/notifications");
+
   await getSupabaseAdmin()
     .from("notifications")
     .update({ is_read: true, read_at: new Date().toISOString() })
     .eq("id", id)
     .eq("member_id", user.id);
 
-  const contentType = request.headers.get("content-type") || "";
-  if (contentType.includes("application/x-www-form-urlencoded") ||
-      contentType.includes("multipart/form-data")) {
-    const form = await request.formData();
-    const redirectTo = String(form.get("redirect") || "/notifications");
-    return NextResponse.redirect(new URL(redirectTo, request.url), 303);
-  }
+  const safeLink = link.startsWith("/") && !link.startsWith("//")
+    ? link
+    : "/notifications";
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.redirect(new URL(safeLink, request.url), 303);
 }

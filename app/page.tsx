@@ -7,9 +7,9 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const latestUpdate = {
-  version: "1.3.7.19",
-  title: "알림 시스템 추가",
-  summary: "새 공지·투표·댓글 알림과 읽음 처리 기능을 추가"
+  version: "1.3.7.20",
+  title: "홈 이미지 안정화 및 전체 알림",
+  summary: "바위게 이미지 크기 변화 제거와 전체 알림 확인 페이지 추가"
 };
 
 
@@ -122,14 +122,16 @@ export default async function HomePage() {
 
           <div className="hero-logo-area">
             <div className="hero-glow" />
-            <Image
-              src="/assets/crab-logo.jpg"
-              alt="바위게마을"
-              width={420}
-              height={420}
-              priority
-              sizes="(max-width: 700px) 190px, 280px"
-            />
+            <div className="hero-logo-fixed">
+              <Image
+                src="/assets/crab-logo.jpg"
+                alt="바위게마을"
+                width={280}
+                height={280}
+                priority
+                sizes="(max-width: 700px) 190px, 280px"
+              />
+            </div>
             <div className="member-count-card">
               <span>현재 클랜원</span>
               <strong>{memberCount}</strong>

@@ -142,6 +142,12 @@ export default function NotificationCenter() {
               <p className="notification-empty">아직 받은 알림이 없습니다.</p>
             )}
           </div>
+
+          <footer className="notification-popover-footer">
+            <Link href="/notifications" onClick={() => setOpen(false)}>
+              전체 알림 보기 →
+            </Link>
+          </footer>
         </section>
       )}
     </div>

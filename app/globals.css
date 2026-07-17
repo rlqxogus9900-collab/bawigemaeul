@@ -2395,14 +2395,14 @@ td{padding:11px 10px;font-size:13px}
 }
 
 
-/* Online Beta 1.3.7.19 - homepage performance */
+/* Online Beta 1.3.7.20 - homepage performance */
 .hero-logo-area img{
   width:min(280px,100%);
   height:auto;
 }
 
 
-/* Online Beta 1.3.7.19 - admin dashboard */
+/* Online Beta 1.3.7.20 - admin dashboard */
 .admin-dashboard-hero{
   display:flex;
   justify-content:space-between;
@@ -2606,7 +2606,7 @@ td{padding:11px 10px;font-size:13px}
 }
 
 
-/* Online Beta 1.3.7.19 - notifications */
+/* Online Beta 1.3.7.20 - notifications */
 .notification-center{position:relative;z-index:40}
 .notification-bell{
   position:relative;display:grid;place-items:center;width:38px;height:38px;
@@ -2653,4 +2653,190 @@ td{padding:11px 10px;font-size:13px}
 @media(max-width:700px){
   .notification-popover{position:fixed;top:68px;right:12px;left:12px;width:auto}
   .topbar-account .account-pill{display:none}
+}
+
+
+/* Online Beta 1.3.7.20 - stable home logo and notification archive */
+.hero-logo-fixed{
+  position:relative;
+  width:280px;
+  height:280px;
+  flex:0 0 280px;
+  overflow:hidden;
+  border-radius:50%;
+  contain:layout paint;
+}
+
+.hero-logo-fixed img{
+  display:block!important;
+  width:280px!important;
+  height:280px!important;
+  max-width:none!important;
+  object-fit:cover;
+  transform:none!important;
+  animation:none!important;
+  transition:none!important;
+}
+
+.notification-popover-footer{
+  padding:11px 15px;
+  border-top:1px solid #263d30;
+  background:#0e2419;
+  text-align:center;
+}
+
+.notification-popover-footer a{
+  color:#d6c06b;
+  font-size:12px;
+  font-weight:800;
+  text-decoration:none;
+}
+
+.notification-page-hero{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  margin-bottom:16px;
+  padding:25px;
+  border:1px solid #355040;
+  border-radius:18px;
+  background:linear-gradient(135deg,#0b2419,#102d20);
+}
+
+.notification-page-hero span{
+  color:#d6c06b;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.12em;
+}
+
+.notification-page-hero h1{
+  margin:6px 0;
+}
+
+.notification-page-hero p{
+  margin:0;
+  color:#94a69a;
+}
+
+.notification-page-list{
+  padding:0;
+  overflow:hidden;
+}
+
+.notification-page-list article{
+  display:grid;
+  grid-template-columns:42px minmax(0,1fr) auto;
+  gap:13px;
+  align-items:center;
+  padding:16px 18px;
+  border-bottom:1px solid #263b30;
+}
+
+.notification-page-list article:last-child{
+  border-bottom:0;
+}
+
+.notification-page-list article.unread{
+  background:#10271b;
+}
+
+.notification-page-list article.read{
+  background:#0a1c14;
+  opacity:.8;
+}
+
+.notification-page-list article>i{
+  font-style:normal;
+  font-size:24px;
+}
+
+.notification-page-title{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.notification-page-title span{
+  padding:2px 6px;
+  border-radius:999px;
+  background:#d6c06b;
+  color:#132116;
+  font-size:9px;
+  font-weight:900;
+}
+
+.notification-page-list p{
+  margin:5px 0;
+  color:#9eafa4;
+  font-size:12px;
+}
+
+.notification-page-list time{
+  color:#687c70;
+  font-size:10px;
+}
+
+.notification-page-list form button{
+  border:1px solid #405b49;
+  border-radius:9px;
+  background:#10271b;
+  color:#d6c06b;
+  padding:8px 11px;
+  font-size:11px;
+  cursor:pointer;
+}
+
+.notification-page-empty{
+  display:grid;
+  place-items:center;
+  gap:8px;
+  min-height:260px;
+  color:#819388;
+}
+
+.notification-page-empty span{
+  font-size:32px;
+}
+
+.notification-page-back{
+  margin-top:14px;
+  text-align:right;
+}
+
+.notification-page-back a{
+  color:#d6c06b;
+  text-decoration:none;
+}
+
+@media(max-width:700px){
+  .hero-logo-fixed{
+    width:190px;
+    height:190px;
+    flex-basis:190px;
+  }
+
+  .hero-logo-fixed img{
+    width:190px!important;
+    height:190px!important;
+  }
+
+  .notification-page-hero{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .notification-page-hero form,
+  .notification-page-hero button{
+    width:100%;
+  }
+
+  .notification-page-list article{
+    grid-template-columns:34px minmax(0,1fr);
+  }
+
+  .notification-page-list article>form{
+    grid-column:2;
+  }
 }
