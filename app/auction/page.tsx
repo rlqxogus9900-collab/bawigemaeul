@@ -44,6 +44,9 @@ export default async function AuctionPage() {
 
   const captainIds = new Set((captains || []).map(item => item.member_id));
   const players = (votes || []).filter(item => !captainIds.has(item.member_id));
+  const linkedPost = Array.isArray(poll?.board_posts)
+    ? poll.board_posts[0]
+    : poll?.board_posts;
 
   return (
     <>
@@ -59,7 +62,7 @@ export default async function AuctionPage() {
       <section className="auction-sync-grid">
         <article className="card">
           <span className="auction-sync-label">AUCTION SOURCE</span>
-          <h2>{poll?.board_posts?.title || "경매 연동 투표 미선택"}</h2>
+          <h2>{linkedPost?.title || "경매 연동 투표 미선택"}</h2>
           <p>{poll?.match_at ? new Date(poll.match_at).toLocaleString("ko-KR") : "일정 없음"}</p>
           <div className="auction-sync-number">
             <small>경매 대상</small>
