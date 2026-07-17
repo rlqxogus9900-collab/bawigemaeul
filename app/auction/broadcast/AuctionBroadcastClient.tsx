@@ -52,6 +52,7 @@ export default function AuctionBroadcastClient() {
   const [uiHidden, setUiHidden] = useState(false);
   const [soundOn, setSoundOn] = useState(true);
   const [flash, setFlash] = useState<Flash>(null);
+  const [timeLeft, setTimeLeft] = useState(15);
 
   const previousState = useRef<AuctionState | null>(null);
   const stateReady = useRef(false);
@@ -123,6 +124,22 @@ export default function AuctionBroadcastClient() {
     if (previousBid.current > 0 && bid > previousBid.current) playTone(760, 0.16);
     previousBid.current = bid;
   }, [state.room?.current_bid, playTone]);
+
+  useEffect(() => {
+    if (!state.room?.current_player_id || state.room.status !== "live") {
+      setTimeLeft(15);
+      return;
+    }
+    setTimeLeft(15);
+  }, [state.room?.current_player_id, state.room?.current_bid, state.room?.status]);
+
+  useEffect(() => {
+    if (!state.room?.current_player_id || state.room.status !== "live") return;
+    const countdown = window.setInterval(() => {
+      setTimeLeft((value) => Math.max(0, value - 1));
+    }, 1000);
+    return () => window.clearInterval(countdown);
+  }, [state.room?.current_player_id, state.room?.status, state.room?.current_bid]);
 
   const room = state.room;
   const currentPlayer = state.players.find((player) => player.id === room?.current_player_id);
@@ -201,7 +218,11 @@ export default function AuctionBroadcastClient() {
 
           <section className="broadcast-stage">
             <small>현재 경매 선수</small>
-            <h2>{currentPlayer?.nickname || "다음 선수 대기"}</h2>
+            <h2 className="broadcast-player-nickname">{currentPlayer?.nickname || "다음 선수 대기"}</h2>
+            <div className={`broadcast-countdown ${timeLeft <= 5 ? "urgent" : ""} ${timeLeft === 0 ? "expired" : ""}`}>
+              <span>{timeLeft === 0 ? "시간 종료" : "남은 시간"}</span>
+              <strong>{timeLeft}</strong><em>초</em>
+            </div>
             <div className="broadcast-price">
               <span>현재가</span>
               <strong>{room.current_bid.toLocaleString()}</strong>

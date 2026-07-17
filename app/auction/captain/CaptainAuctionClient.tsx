@@ -58,9 +58,11 @@ export default function CaptainAuctionClient({
   const [staffTeamId, setStaffTeamId] = useState<string>("");
   const [finishOpen, setFinishOpen] = useState(false);
   const [flash, setFlash] = useState<Flash>(null);
+  const [timeLeft, setTimeLeft] = useState(15);
 
   const previousState = useRef<State | null>(null);
   const stateReady = useRef(false);
+  const autoUnsoldPlayerId = useRef<string | null>(null);
 
   const load = useCallback(async () => {
     const response = await fetch("/api/auction/state", { cache: "no-store" });
@@ -106,6 +108,46 @@ export default function CaptainAuctionClient({
     window.addEventListener("keydown", close);
     return () => window.removeEventListener("keydown", close);
   }, []);
+
+  useEffect(() => {
+    autoUnsoldPlayerId.current = null;
+    if (!state.room?.current_player_id || state.room.status !== "live") {
+      setTimeLeft(15);
+      return;
+    }
+    setTimeLeft(15);
+  }, [state.room?.current_player_id, state.room?.current_bid, state.room?.status]);
+
+  useEffect(() => {
+    if (!state.room?.current_player_id || state.room.status !== "live") return;
+    const countdown = window.setInterval(() => setTimeLeft((value) => Math.max(0, value - 1)), 1000);
+    return () => window.clearInterval(countdown);
+  }, [state.room?.current_player_id, state.room?.current_bid, state.room?.status]);
+
+  useEffect(() => {
+    const room = state.room;
+    const playerId = room?.current_player_id;
+    if (!isStaff || !room || room.status !== "live" || !playerId || timeLeft !== 0) return;
+    if (autoUnsoldPlayerId.current === playerId) return;
+
+    autoUnsoldPlayerId.current = playerId;
+    void (async () => {
+      setBusy(true);
+      setError("");
+      const response = await fetch("/api/admin/auction/action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ roomId: room.id, action: "unsold" })
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        autoUnsoldPlayerId.current = null;
+        setError(result.error || "자동 유찰 처리 실패");
+      }
+      await load();
+      setBusy(false);
+    })();
+  }, [timeLeft, isStaff, state.room, load]);
 
   const room = state.room;
   const myTeam = state.teams.find((team) => team.captain_member_id === currentUserId);
@@ -190,12 +232,18 @@ export default function CaptainAuctionClient({
           </div>
 
           <div className="captain-admin-controls">
-            {room.status === "ready" && (
-              <button disabled={busy} onClick={() => adminAction("start")}>경매 시작</button>
+            {room.status === "finished" ? (
+              <a className="captain-new-auction-button" href="/admin/auction">새 경매 시작</a>
+            ) : (
+              <>
+                {room.status === "ready" && (
+                  <button disabled={busy} onClick={() => adminAction("start")}>경매 시작</button>
+                )}
+                <button disabled={busy || !leadingTeam || room.status !== "live"} onClick={() => adminAction("sell")}>낙찰</button>
+                <button disabled={busy || !currentPlayer || room.status !== "live"} onClick={() => adminAction("unsold")}>유찰</button>
+                <button className="danger" disabled={busy} onClick={() => setFinishOpen(true)}>경매 종료</button>
+              </>
             )}
-            <button disabled={busy || !leadingTeam || room.status !== "live"} onClick={() => adminAction("sell")}>낙찰</button>
-            <button disabled={busy || !currentPlayer || room.status !== "live"} onClick={() => adminAction("unsold")}>유찰</button>
-            <button className="danger" disabled={busy || room.status === "finished"} onClick={() => setFinishOpen(true)}>경매 종료</button>
           </div>
 
           <div className="captain-admin-nominate">
@@ -233,7 +281,12 @@ export default function CaptainAuctionClient({
 
         <div className="captain-current-player">
           <small>현재 선수</small>
-          <h1>{currentPlayer?.nickname || (room.status === "finished" ? "경매 종료" : "선수 지명 대기")}</h1>
+          <h1 className="captain-player-nickname">{currentPlayer?.nickname || (room.status === "finished" ? "경매 종료" : "선수 지명 대기")}</h1>
+          {room.status === "live" && currentPlayer && (
+            <div className={`captain-countdown ${timeLeft <= 5 ? "urgent" : ""} ${timeLeft === 0 ? "expired" : ""}`}>
+              <span>{timeLeft === 0 ? "시간 종료" : "남은 시간"}</span><strong>{timeLeft}</strong><em>초</em>
+            </div>
+          )}
           <div><span>현재가</span><strong>{room.current_bid.toLocaleString()}점</strong></div>
           <p>{leadingTeam ? `${leadingTeam.name} 최고 입찰 중` : "입찰 대기"}</p>
         </div>

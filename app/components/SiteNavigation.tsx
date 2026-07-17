@@ -197,8 +197,10 @@ export default function SiteNavigation({
                         <Link
                           key={href}
                           href={href}
+                          target={href === "/auction" ? "_blank" : undefined}
+                          rel={href === "/auction" ? "noopener noreferrer" : undefined}
                           className={active(href) ? "active" : ""}
-                          onClick={event => startNavigation(event, href)}
+                          onClick={event => href === "/auction" ? setMobileOpen(false) : startNavigation(event, href)}
                         >
                           <span>{icon}</span><b>{label}</b>
                         </Link>
