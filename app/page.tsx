@@ -7,9 +7,9 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const latestUpdate = {
-  version: "1.3.8.14",
-  title: "바위게 신문고 활성화",
-  summary: "익명 제보, 분류·상태 필터, 운영진 답변과 처리 관리 기능 추가"
+  version: "1.3.8.15",
+  title: "챔피언 공략 페이지 활성화",
+  summary: "라인별 검색, 운영진 추천, 룬·아이템·스킬 순서와 핵심 팁 추가"
 };
 
 
