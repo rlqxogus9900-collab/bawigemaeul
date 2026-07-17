@@ -60,6 +60,7 @@ const fixedGroups: FixedGroup[] = [
 ];
 
 const staffItems = [
+  ["/admin", "▦", "관리자 대시보드"],
   ["/admin/roster", "👥", "명단"],
   ["/admin/reference", "☷", "내전 참고 명단 관리"],
   ["/admin/members", "♙", "명단 설정"],
@@ -107,8 +108,11 @@ export default function SiteNavigation({
     setNavigating(false);
   }, [pathname, currentBoard]);
 
-  const active = (href: string) =>
-    href === "/" ? pathname === "/" : pathname.startsWith(href);
+  const active = (href: string) => {
+    if (href === "/") return pathname === "/";
+    if (href === "/admin") return pathname === "/admin";
+    return pathname.startsWith(href);
+  };
 
   function toggleGroup(id: string) {
     setOpenGroups(current => ({ ...current, [id]: !current[id] }));

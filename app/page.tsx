@@ -7,9 +7,9 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const latestUpdate = {
-  version: "1.3.7.17",
-  title: "홈페이지 속도 개선",
-  summary: "홈 데이터 조회량과 초기 네트워크 요청을 줄여 첫 화면 로딩 개선"
+  version: "1.3.7.18",
+  title: "관리자 대시보드 추가",
+  summary: "클랜원·투표·신문고·경매 현황과 빠른 관리 메뉴를 한곳에 추가"
 };
 
 
