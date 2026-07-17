@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 
 const SPIN_DURATION = 1800;
+const FACE_SWAP_INTERVAL = 110;
+const ASSET_VERSION = "1.3.8.10";
 
 type CoinSide = "smile" | "cry";
 
@@ -11,16 +13,24 @@ const sideLabel: Record<CoinSide, string> = {
   cry: "우는 바위게"
 };
 
+const sideImage: Record<CoinSide, string> = {
+  smile: `/assets/coin-smile.png?v=${ASSET_VERSION}`,
+  cry: `/assets/coin-cry.png?v=${ASSET_VERSION}`
+};
+
 export default function CoinTossClient() {
   const [result, setResult] = useState<CoinSide | null>(null);
+  const [visibleSide, setVisibleSide] = useState<CoinSide>("smile");
   const [spinning, setSpinning] = useState(false);
-  const [rotation, setRotation] = useState(0);
+  const [spinCount, setSpinCount] = useState(0);
   const [history, setHistory] = useState<CoinSide[]>([]);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, []);
 
@@ -28,21 +38,25 @@ export default function CoinTossClient() {
     if (spinning) return;
 
     const next: CoinSide = Math.random() < 0.5 ? "smile" : "cry";
-    const extraTurns = 8 + Math.floor(Math.random() * 4);
-    const landing = next === "smile" ? 0 : 180;
 
     setSpinning(true);
     setResult(null);
-    setRotation(current => {
-      // 현재 코인의 실제 방향을 기준으로 목표 면까지 필요한 각도만 더합니다.
-      // 이전 결과가 뒷면(180도)이었을 때 다음 결과가 앞면이어도
-      // 단순히 360도만 더하면 계속 뒷면으로 보이던 문제를 방지합니다.
-      const normalized = ((current % 360) + 360) % 360;
-      const correction = (landing - normalized + 360) % 360;
-      return current + extraTurns * 360 + correction;
-    });
+    setSpinCount(current => current + 1);
 
+    // 브라우저의 3D 뒷면 렌더링에 의존하지 않고 회전 중 실제 이미지를
+    // 웃는 면/우는 면으로 번갈아 교체해 두 면이 반드시 다르게 보이게 합니다.
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
+      setVisibleSide(current => (current === "smile" ? "cry" : "smile"));
+    }, FACE_SWAP_INTERVAL);
+
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      setVisibleSide(next);
       setResult(next);
       setHistory(current => [next, ...current].slice(0, 10));
       setSpinning(false);
@@ -53,6 +67,7 @@ export default function CoinTossClient() {
     if (spinning) return;
     setHistory([]);
     setResult(null);
+    setVisibleSide("smile");
   }
 
   return (
@@ -70,12 +85,12 @@ export default function CoinTossClient() {
         <article className="card coin-stage-card">
           <div className="coin-side-guide" aria-label="코인 앞뒤 안내">
             <div>
-              <img src="/assets/coin-smile.png" alt="웃는 바위게" />
+              <img src={sideImage.smile} alt="웃는 바위게" />
               <b>앞면</b>
               <span>웃는 바위게</span>
             </div>
             <div>
-              <img src="/assets/coin-cry.png" alt="우는 바위게" />
+              <img src={sideImage.cry} alt="우는 바위게" />
               <b>뒷면</b>
               <span>우는 바위게</span>
             </div>
@@ -83,21 +98,24 @@ export default function CoinTossClient() {
 
           <div className="coin-stage" aria-live="polite">
             <div
-              className={`scuttle-coin${spinning ? " is-spinning" : ""}`}
-              style={{ transform: `rotateY(${rotation}deg)` }}
+              key={spinCount}
+              className={`scuttle-coin scuttle-coin-single${spinning ? " is-spinning" : ""}`}
             >
-              <div className="scuttle-coin-face coin-front">
-                <img src="/assets/coin-smile.png" alt="웃는 바위게 면" />
-              </div>
-              <div className="scuttle-coin-face coin-back">
-                <img src="/assets/coin-cry.png" alt="우는 바위게 면" />
+              <div className={`scuttle-coin-face coin-visible-face face-${visibleSide}`}>
+                <img
+                  src={sideImage[visibleSide]}
+                  alt={visibleSide === "smile" ? "웃는 바위게 면" : "우는 바위게 면"}
+                />
+                <span className="coin-face-name">
+                  {visibleSide === "smile" ? "웃는 면" : "우는 면"}
+                </span>
               </div>
             </div>
           </div>
 
           <div className={`coin-result${result ? ` result-${result}` : ""}`}>
             {spinning ? (
-              <><small>COIN TOSS</small><strong>바위게가 회전 중...</strong></>
+              <><small>COIN TOSS</small><strong>웃는 면과 우는 면이 회전 중...</strong></>
             ) : result ? (
               <><small>RESULT</small><strong>{sideLabel[result]} 당첨!</strong></>
             ) : (
@@ -125,7 +143,7 @@ export default function CoinTossClient() {
             {history.map((side, index) => (
               <div key={`${side}-${index}`} className={`coin-history-item history-${side}`}>
                 <span>{index + 1}</span>
-                <img src={`/assets/coin-${side === "smile" ? "smile" : "cry"}.png`} alt="" />
+                <img src={sideImage[side]} alt="" />
                 <div>
                   <b>{sideLabel[side]}</b>
                   <small>{side === "smile" ? "앞면" : "뒷면"}</small>
