@@ -5,6 +5,12 @@ import { getCachedBoardMenu } from "@/lib/board-menu";
 import SiteNavigation from "@/app/components/SiteNavigation";
 import NotificationCenter from "@/app/components/NotificationCenter";
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1
+};
+
 export const metadata = {
   title: "바위게마을",
   description: "리그 오브 레전드 클랜 운영 플랫폼"
@@ -74,7 +80,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
           <footer className="site-footer">
             <div><b>BAWIGEMAEUL</b><span>Since 2026</span></div>
-            <small>Created for 바위게마을 · Online Beta 1.3.7.21</small>
+            <small>Created for 바위게마을 · Online Beta 1.3.7.22</small>
           </footer>
         </div>
       </body>

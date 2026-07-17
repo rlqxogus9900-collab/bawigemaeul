@@ -2395,14 +2395,14 @@ td{padding:11px 10px;font-size:13px}
 }
 
 
-/* Online Beta 1.3.7.21 - homepage performance */
+/* Online Beta 1.3.7.22 - homepage performance */
 .hero-logo-area img{
   width:min(280px,100%);
   height:auto;
 }
 
 
-/* Online Beta 1.3.7.21 - admin dashboard */
+/* Online Beta 1.3.7.22 - admin dashboard */
 .admin-dashboard-hero{
   display:flex;
   justify-content:space-between;
@@ -2606,7 +2606,7 @@ td{padding:11px 10px;font-size:13px}
 }
 
 
-/* Online Beta 1.3.7.21 - notifications */
+/* Online Beta 1.3.7.22 - notifications */
 .notification-center{position:relative;z-index:40}
 .notification-bell{
   position:relative;display:grid;place-items:center;width:38px;height:38px;
@@ -2656,7 +2656,7 @@ td{padding:11px 10px;font-size:13px}
 }
 
 
-/* Online Beta 1.3.7.21 - stable home logo and notification archive */
+/* Online Beta 1.3.7.22 - stable home logo and notification archive */
 .hero-logo-fixed{
   position:relative;
   width:280px;
@@ -2839,4 +2839,76 @@ td{padding:11px 10px;font-size:13px}
   .notification-page-list article>form{
     grid-column:2;
   }
+}
+
+
+/* Online Beta 1.3.7.22 - mobile viewport and home layout hotfix */
+html,body{
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+}
+
+.online-shell,
+.main-content,
+.new-home-hero,
+.hero-layout-v2,
+.hero-home-link,
+.home-quick-grid,
+.home-dashboard-grid,
+.dashboard-card{
+  min-width:0;
+  max-width:100%;
+}
+
+.rule-number-list p,
+.polished-list b{
+  min-width:0;
+  overflow-wrap:anywhere;
+  word-break:keep-all;
+}
+
+@media(max-width:850px){
+  .online-shell{width:100%;margin-left:0}
+  .topbar{width:100%;padding:12px 12px 12px 64px}
+  .topbar-title{min-width:0}
+  .topbar-account{min-width:0;flex:0 1 auto}
+  .main-content{width:100%;padding:14px 12px 36px;overflow:hidden}
+
+  .new-home-hero.hero-layout-v2,
+  .hero-layout-v2,
+  .hero-home-link,
+  .home-quick-grid,
+  .home-dashboard-grid{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+
+  .featured-winner,
+  .notices-panel,
+  .rules-panel,
+  .sponsor-panel,
+  .activity-panel,
+  .line-panel,
+  .line-distribution-panel,
+  .latest-update-panel{
+    grid-column:1 / -1!important;
+    width:100%;
+  }
+
+  .dashboard-card{width:100%;padding:17px}
+  .dashboard-head{min-width:0}
+  .rule-number-list>div{grid-template-columns:34px minmax(0,1fr)}
+}
+
+@media(max-width:480px){
+  .topbar-title small{display:none}
+  .topbar-account .top-button.gold{white-space:nowrap;padding:9px 12px}
+  .new-home-hero.hero-layout-v2{padding:10px}
+  .hero-home-link{padding:18px 14px}
+  .dashboard-head h2{font-size:20px}
+  .polished-list>div{
+    grid-template-columns:auto minmax(0,1fr) auto!important;
+  }
+  .polished-list>div time{grid-column:2 / 4}
 }
