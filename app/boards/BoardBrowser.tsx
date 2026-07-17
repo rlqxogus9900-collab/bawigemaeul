@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import MemberProfileLink from "@/app/components/MemberProfileLink";
+import AdminPostActions from "./AdminPostActions";
 
 type Subcategory = {
   id: string;
@@ -39,13 +40,15 @@ export default function BoardBrowser({
   posts,
   selectedBoardId,
   query,
-  canWrite
+  canWrite,
+  isStaff
 }: {
   categories: Category[];
   posts: Post[];
   selectedBoardId: string;
   query: string;
   canWrite: boolean;
+  isStaff: boolean;
 }) {
   const router = useRouter();
 
@@ -146,7 +149,7 @@ export default function BoardBrowser({
                 <th>조회</th>
                 <th>댓글</th>
                 <th>추천</th>
-                <th>작성일</th>
+                <th>작성일</th>{isStaff && <th>관리</th>}
               </tr>
             </thead>
             <tbody>
@@ -176,12 +179,20 @@ export default function BoardBrowser({
                   <td>
                     {new Date(post.created_at).toLocaleDateString("ko-KR")}
                   </td>
+                  {isStaff && (
+                    <td>
+                      <AdminPostActions
+                        postId={post.id}
+                        isPinned={post.is_pinned}
+                      />
+                    </td>
+                  )}
                 </tr>
               ))}
 
               {!posts.length && (
                 <tr>
-                  <td colSpan={7} className="muted">
+                  <td colSpan={isStaff ? 8 : 7} className="muted">
                     {query
                       ? "검색 결과가 없습니다."
                       : "등록된 게시글이 없습니다."}

@@ -66,6 +66,7 @@ export default async function BoardsPage({
       selectedBoardId={selectedBoardId}
       query={query}
       canWrite={Boolean(user)}
+      isStaff={user?.role === "staff"}
     />
   );
 }
