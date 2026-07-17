@@ -9,13 +9,16 @@ const POSTS_PER_PAGE = 15;
 export default async function BoardsPage({
   searchParams
 }: {
-  searchParams: Promise<{ board?: string; q?: string; page?: string }>
+  searchParams: Promise<{ board?: string; q?: string; page?: string; sort?: string }>
 }) {
   const user = await getSession();
   const params = await searchParams;
   const db = getSupabaseAdmin();
   const query = String(params.q || "").trim().slice(0, 50);
   const requestedPage = Math.max(1, Number.parseInt(String(params.page || "1"), 10) || 1);
+  const sort = ["latest", "popular", "views", "comments"].includes(String(params.sort))
+    ? String(params.sort)
+    : "latest";
 
   const canSee = (level: string | null) =>
     level !== "staff" || user?.role === "staff";
@@ -76,9 +79,26 @@ export default async function BoardsPage({
       .from("board_posts")
       .select("id,title,author_member_id,author_nickname,is_pinned,view_count,comment_count,like_count,post_type,created_at,subcategory_id")
       .eq("subcategory_id", selectedBoardId)
-      .order("is_pinned", { ascending: false })
-      .order("created_at", { ascending: false })
-      .range(from, to);
+      .order("is_pinned", { ascending: false });
+
+    if (sort === "popular") {
+      postsQuery = postsQuery
+        .order("like_count", { ascending: false })
+        .order("comment_count", { ascending: false })
+        .order("created_at", { ascending: false });
+    } else if (sort === "views") {
+      postsQuery = postsQuery
+        .order("view_count", { ascending: false })
+        .order("created_at", { ascending: false });
+    } else if (sort === "comments") {
+      postsQuery = postsQuery
+        .order("comment_count", { ascending: false })
+        .order("created_at", { ascending: false });
+    } else {
+      postsQuery = postsQuery.order("created_at", { ascending: false });
+    }
+
+    postsQuery = postsQuery.range(from, to);
 
     if (safeQuery) {
       postsQuery = postsQuery.or(
@@ -101,6 +121,7 @@ export default async function BoardsPage({
       currentPage={currentPage}
       totalCount={totalCount}
       postsPerPage={POSTS_PER_PAGE}
+      sort={sort}
     />
   );
 }

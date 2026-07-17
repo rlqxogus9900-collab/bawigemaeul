@@ -44,7 +44,8 @@ export default function BoardBrowser({
   isStaff,
   currentPage,
   totalCount,
-  postsPerPage
+  postsPerPage,
+  sort
 }: {
   categories: Category[];
   posts: Post[];
@@ -55,6 +56,7 @@ export default function BoardBrowser({
   currentPage: number;
   totalCount: number;
   postsPerPage: number;
+  sort: string;
 }) {
   const router = useRouter();
 
@@ -81,6 +83,7 @@ export default function BoardBrowser({
     const params = new URLSearchParams();
     if (selected?.id) params.set("board", selected.id);
     if (query) params.set("q", query);
+    if (sort !== "latest") params.set("sort", sort);
     if (page > 1) params.set("page", String(page));
     return `/boards?${params.toString()}`;
   }
@@ -139,12 +142,36 @@ export default function BoardBrowser({
           )}
         </div>
 
+        <nav className="board-sort-tabs" aria-label="게시글 정렬">
+          {[
+            ["latest", "최신순"],
+            ["popular", "추천순"],
+            ["views", "조회순"],
+            ["comments", "댓글순"]
+          ].map(([value, label]) => {
+            const params = new URLSearchParams();
+            if (selected?.id) params.set("board", selected.id);
+            if (query) params.set("q", query);
+            if (value !== "latest") params.set("sort", value);
+            return (
+              <Link
+                key={value}
+                className={sort === value ? "active" : ""}
+                href={`/boards?${params.toString()}`}
+              >
+                {label}
+              </Link>
+            );
+          })}
+        </nav>
+
         <form className="board-search-form" action="/boards" method="get">
           <input
             type="hidden"
             name="board"
             value={selected?.id || ""}
           />
+          {sort !== "latest" && <input type="hidden" name="sort" value={sort} />}
           <input
             name="q"
             defaultValue={query}
@@ -154,7 +181,7 @@ export default function BoardBrowser({
           {query && (
             <Link
               className="button outline"
-              href={`/boards?board=${selected?.id || ""}`}
+              href={`/boards?board=${selected?.id || ""}${sort !== "latest" ? `&sort=${sort}` : ""}`}
             >
               초기화
             </Link>

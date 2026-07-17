@@ -5,6 +5,7 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import MemberProfileLink from "@/app/components/MemberProfileLink";
 import CommentActions from "./CommentActions";
 import PostLikeButton from "./PostLikeButton";
+import ViewCounter from "./ViewCounter";
 import PollBlock from "./PollBlock";
 
 export const dynamic = "force-dynamic";
@@ -55,13 +56,6 @@ export default async function BoardPostPage({
   ) {
     notFound();
   }
-
-  const nextViewCount = Number(post.view_count || 0) + 1;
-
-  await db
-    .from("board_posts")
-    .update({ view_count: nextViewCount })
-    .eq("id", id);
 
   const [
     { data: comments },
@@ -152,7 +146,7 @@ export default async function BoardPostPage({
             nickname={post.author_nickname}
           />
           <span>{new Date(post.created_at).toLocaleString("ko-KR")}</span>
-          <span>조회 {nextViewCount}</span>
+          <ViewCounter postId={post.id} initialCount={Number(post.view_count || 0)} />
           <span>댓글 {comments?.length || 0}</span>
         </div>
 

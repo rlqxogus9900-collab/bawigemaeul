@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const latestUpdate = {
-  version: "1.3.7.12",
+  version: "1.3.7.13",
   title: "게시판 페이지와 새 글 표시 개선",
   summary: "게시글 15개 단위 페이지 이동, 검색 유지, 신규 글·공지 표시"
 };
