@@ -3035,3 +3035,60 @@ html,body{
 .auction-new-room-link{display:flex;width:max-content;margin:18px auto 0}
 @media(max-width:900px){.auction-settings-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.auction-settings-grid{grid-template-columns:1fr}}
+
+
+/* 1.3.8.5 실시간 경매 운영/방송 개선 */
+.captain-admin-panel{border:1px solid rgba(255,211,105,.35);background:linear-gradient(145deg,rgba(48,39,21,.96),rgba(17,22,25,.98))}
+.captain-admin-panel .dashboard-head>b{color:#ffd369}
+.captain-admin-team-select{margin:12px 0}
+.captain-admin-team-select label{display:grid;gap:7px;color:#cbd5df;font-weight:900}
+.captain-admin-team-select select{min-height:46px;padding:0 13px;border:1px solid rgba(255,255,255,.18);border-radius:12px;background:#11181d;color:#fff;font-weight:900}
+.captain-admin-controls{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:9px;margin:14px 0}
+.captain-admin-controls button,.captain-admin-nominate button{min-height:43px;border:1px solid rgba(255,255,255,.15);border-radius:11px;background:#26333b;color:#fff;font-weight:900}
+.captain-admin-controls button:hover:not(:disabled),.captain-admin-nominate button:hover:not(:disabled){transform:translateY(-1px);border-color:#ffd369}
+.captain-admin-controls button.danger{background:#8d2727;border-color:#d85858}
+.captain-admin-nominate>span{display:block;margin-bottom:8px;color:#ffd369;font-size:12px;font-weight:900}
+.captain-admin-nominate>div{display:flex;gap:7px;flex-wrap:wrap}
+.captain-admin-nominate button{min-height:36px;padding:0 12px}.captain-admin-nominate button.active{background:#8b6a1b;color:#fff1b8}
+
+.auction-modal-backdrop{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;padding:20px;background:rgba(0,0,0,.86);backdrop-filter:blur(8px)}
+.auction-finish-modal{width:min(520px,100%);padding:30px;border:2px solid #ffcc66;border-radius:20px;background:#f7f8fa;color:#101317;box-shadow:0 28px 90px rgba(0,0,0,.75),0 0 45px rgba(255,196,76,.2);text-align:center;animation:auctionModalIn .2s ease-out}
+.auction-finish-modal>span{display:block;color:#9a5d00;font-size:12px;font-weight:1000;letter-spacing:.16em}
+.auction-finish-modal h2{margin:10px 0 8px;color:#0d1115;font-size:28px}
+.auction-finish-modal p{margin:0;color:#3e4852;font-size:15px;line-height:1.65}
+.auction-finish-modal>div{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:24px}
+.auction-finish-modal button{min-height:50px;border-radius:12px;font-size:16px;font-weight:1000}
+.auction-finish-modal .cancel{border:1px solid #aeb6bf;background:#e8ebef;color:#1f2933}
+.auction-finish-modal .confirm{border:1px solid #176d3b;background:#138447;color:#fff;box-shadow:0 8px 24px rgba(19,132,71,.28)}
+@keyframes auctionModalIn{from{opacity:0;transform:translateY(16px) scale(.96)}to{opacity:1;transform:none}}
+
+.auction-event-flash{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;background:rgba(3,6,9,.84);text-align:center;overflow:hidden}
+.auction-event-flash:before{content:"";position:absolute;width:75vmin;height:75vmin;border-radius:50%;filter:blur(12px);opacity:.35;animation:eventHalo 1.5s ease-out forwards}
+.auction-event-flash span,.auction-event-flash strong,.auction-event-flash p{position:relative;z-index:1}
+.auction-event-flash span{font-size:clamp(16px,2vw,28px);font-weight:1000;letter-spacing:.34em}
+.auction-event-flash strong{margin:8px 0;font-size:clamp(62px,12vw,170px);line-height:.95;font-weight:1000;text-shadow:0 8px 40px rgba(0,0,0,.65)}
+.auction-event-flash p{font-size:clamp(20px,3vw,44px);font-weight:900}
+.auction-event-sold{color:#ffe08a;animation:soldFlashIn 2.6s ease both}.auction-event-sold:before{background:#d7a31e}
+.auction-event-unsold{color:#ff9a9a;animation:unsoldFlashIn 2.2s ease both}.auction-event-unsold:before{background:#d32f2f}
+.auction-event-finish{color:#e6f4ff;animation:finishFlashIn 3s ease both}.auction-event-finish:before{background:#3378b9}
+@keyframes eventHalo{0%{transform:scale(.25);opacity:0}35%{opacity:.55}100%{transform:scale(1.5);opacity:0}}
+@keyframes soldFlashIn{0%{opacity:0;transform:scale(.72)}15%{opacity:1;transform:scale(1.04)}28%{transform:scale(1)}82%{opacity:1}100%{opacity:0;transform:scale(1.08)}}
+@keyframes unsoldFlashIn{0%{opacity:0;transform:scale(.85) rotate(-1deg)}16%{opacity:1;transform:scale(1.04) rotate(1deg)}25%{transform:translateX(-8px)}32%{transform:translateX(8px)}40%{transform:translateX(0)}82%{opacity:1}100%{opacity:0;transform:scale(1.05)}}
+@keyframes finishFlashIn{0%{opacity:0;filter:blur(10px);transform:scale(.9)}20%{opacity:1;filter:blur(0);transform:scale(1)}76%{opacity:1}100%{opacity:0;transform:scale(1.06)}}
+
+.broadcast-header small,.broadcast-team-grid header small{display:block;margin-top:4px;color:#bac8d4;font-size:11px}
+.broadcast-budget-facts{display:flex!important;gap:6px!important;flex-wrap:wrap;margin:8px 0!important}
+.broadcast-budget-facts span{padding:4px 7px;border-radius:999px;background:rgba(255,255,255,.08);color:#c8d3dd;font-size:10px}
+.broadcast-final{min-height:100vh;padding:clamp(40px,6vw,90px);background:radial-gradient(circle at top,#223546 0,#080d12 58%);color:#fff}
+.broadcast-final>header{text-align:center;margin-bottom:32px}.broadcast-final>header span{color:#ffd369;font-weight:1000;letter-spacing:.22em}.broadcast-final>header h1{margin:8px 0;font-size:clamp(38px,6vw,76px)}.broadcast-final>header p{color:#b8c6d2}
+.broadcast-final-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;max-width:1500px;margin:0 auto}
+.broadcast-final-grid>article{padding:20px;border:1px solid rgba(255,255,255,.14);border-radius:18px;background:rgba(8,14,19,.86);box-shadow:0 14px 45px rgba(0,0,0,.35)}
+.broadcast-final-grid>article>header{display:flex;justify-content:space-between;gap:14px;padding-bottom:13px;border-bottom:1px solid rgba(255,255,255,.12)}
+.broadcast-final-grid>article>header span{color:#ffd369;font-size:12px;font-weight:1000}.broadcast-final-grid h2{margin:4px 0}.broadcast-final-grid>article>header>strong{color:#9ee8b5}
+.broadcast-final-players p{display:flex;justify-content:space-between;gap:10px;margin:9px 0;padding:8px 10px;border-radius:9px;background:rgba(255,255,255,.055)}
+.broadcast-final-players p span{color:#ffd369}.broadcast-final-players em{display:block;padding:20px 0;color:#8997a3;text-align:center}
+
+@media(max-width:760px){
+  .captain-admin-controls{grid-template-columns:1fr 1fr}
+  .auction-finish-modal{padding:24px 18px}
+}

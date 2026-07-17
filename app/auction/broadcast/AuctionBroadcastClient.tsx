@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 type Room = {
   id: string;
   title: string;
-  status: string;
+  status: "ready" | "live" | "finished";
   current_player_id: string | null;
   current_bid: number;
   current_team_id: string | null;
@@ -15,6 +15,11 @@ type Team = {
   id: string;
   name: string;
   captain_nickname: string;
+  captain_match_tier: number | null;
+  captain_average_tier: string | null;
+  base_budget: number;
+  tier_bonus: number;
+  starting_budget: number;
   budget: number;
 };
 
@@ -33,45 +38,79 @@ type Bid = {
   bidder_nickname: string;
 };
 
-export default function AuctionBroadcastClient() {
-  const [state, setState] = useState<{
-    room: Room | null;
-    teams: Team[];
-    players: Player[];
-    bids: Bid[];
-  }>({ room: null, teams: [], players: [], bids: [] });
+type Flash =
+  | { kind: "sold"; nickname: string; team: string; price: number }
+  | { kind: "unsold"; nickname: string }
+  | { kind: "finish" }
+  | null;
 
+type AuctionState = { room: Room | null; teams: Team[]; players: Player[]; bids: Bid[] };
+
+export default function AuctionBroadcastClient() {
+  const [state, setState] = useState<AuctionState>({ room: null, teams: [], players: [], bids: [] });
   const [safeArea, setSafeArea] = useState(true);
   const [uiHidden, setUiHidden] = useState(false);
   const [soundOn, setSoundOn] = useState(true);
-  const [soldFlash, setSoldFlash] = useState<{ nickname: string; team: string; price: number } | null>(null);
+  const [flash, setFlash] = useState<Flash>(null);
 
-  const previousSold = useRef(new Set<string>());
-  const soldStateReady = useRef(false);
+  const previousState = useRef<AuctionState | null>(null);
+  const stateReady = useRef(false);
   const previousBid = useRef(0);
+
+  const playTone = useCallback((frequency: number, duration: number, volume = 0.06) => {
+    if (!soundOn) return;
+    const AudioContextClass =
+      window.AudioContext ||
+      (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+    oscillator.frequency.value = frequency;
+    gain.gain.setValueAtTime(volume, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+    oscillator.start();
+    oscillator.stop(ctx.currentTime + duration);
+  }, [soundOn]);
 
   const load = useCallback(async () => {
     const response = await fetch("/api/auction/state", { cache: "no-store" });
     if (!response.ok) return;
-    const next = await response.json();
+    const next = (await response.json()) as AuctionState;
 
-    const soldPlayers = (next.players as Player[]).filter((player) => player.status === "sold");
-    const newlySold = soldPlayers.find((player) => !previousSold.current.has(player.id));
+    if (stateReady.current && previousState.current) {
+      const prev = previousState.current;
 
-    if (soldStateReady.current && newlySold) {
-      const team = (next.teams as Team[]).find((item) => item.id === newlySold.sold_team_id);
-      setSoldFlash({
-        nickname: newlySold.nickname,
-        team: team?.name || "팀",
-        price: newlySold.sold_price || 0
-      });
-      window.setTimeout(() => setSoldFlash(null), 2600);
+      if (prev.room?.status !== "finished" && next.room?.status === "finished") {
+        setFlash({ kind: "finish" });
+        playTone(380, 0.7, 0.09);
+        window.setTimeout(() => setFlash(null), 3000);
+      } else if (prev.room?.current_player_id && !next.room?.current_player_id) {
+        const changed = next.players.find((player) => player.id === prev.room?.current_player_id);
+        if (changed?.status === "sold") {
+          const team = next.teams.find((item) => item.id === changed.sold_team_id);
+          setFlash({
+            kind: "sold",
+            nickname: changed.nickname,
+            team: team?.name || "팀",
+            price: changed.sold_price || 0
+          });
+          playTone(880, 0.32, 0.08);
+          window.setTimeout(() => setFlash(null), 2600);
+        } else if (changed?.status === "unsold") {
+          setFlash({ kind: "unsold", nickname: changed.nickname });
+          playTone(180, 0.42, 0.1);
+          window.setTimeout(() => setFlash(null), 2200);
+        }
+      }
     }
 
-    previousSold.current = new Set(soldPlayers.map((player) => player.id));
-    soldStateReady.current = true;
+    previousState.current = next;
+    stateReady.current = true;
     setState(next);
-  }, []);
+  }, [playTone]);
 
   useEffect(() => {
     load();
@@ -81,25 +120,9 @@ export default function AuctionBroadcastClient() {
 
   useEffect(() => {
     const bid = state.room?.current_bid || 0;
-    if (soundOn && previousBid.current > 0 && bid > previousBid.current) {
-      const AudioContextClass =
-        window.AudioContext ||
-        (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-      if (AudioContextClass) {
-        const ctx = new AudioContextClass();
-        const oscillator = ctx.createOscillator();
-        const gain = ctx.createGain();
-        oscillator.frequency.value = 760;
-        gain.gain.setValueAtTime(0.06, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.16);
-        oscillator.connect(gain);
-        gain.connect(ctx.destination);
-        oscillator.start();
-        oscillator.stop(ctx.currentTime + 0.16);
-      }
-    }
+    if (previousBid.current > 0 && bid > previousBid.current) playTone(760, 0.16);
     previousBid.current = bid;
-  }, [state.room?.current_bid, soundOn]);
+  }, [state.room?.current_bid, playTone]);
 
   const room = state.room;
   const currentPlayer = state.players.find((player) => player.id === room?.current_player_id);
@@ -132,12 +155,48 @@ export default function AuctionBroadcastClient() {
           <span>BAWIGEMAEUL LIVE AUCTION</span>
           <h1>경매 시작 대기 중</h1>
         </section>
+      ) : room.status === "finished" ? (
+        <section className="broadcast-final">
+          <header>
+            <span>AUCTION RESULT</span>
+            <h1>경매 최종 결과</h1>
+            <p>새 경매가 시작되기 전까지 결과가 유지됩니다.</p>
+          </header>
+          <div className="broadcast-final-grid">
+            {state.teams.map((team) => (
+              <article key={team.id}>
+                <header>
+                  <div>
+                    <span>{team.name}</span>
+                    <h2>{team.captain_nickname}</h2>
+                    <small>
+                      내전 {team.captain_match_tier ? `${["", "Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ"][team.captain_match_tier]}티어` : "미정"}
+                      {" · "}{team.captain_average_tier || "롤 티어 미정"}
+                    </small>
+                  </div>
+                  <strong>{team.budget.toLocaleString()}점</strong>
+                </header>
+                <div className="broadcast-budget-facts">
+                  <span>시작 {team.starting_budget.toLocaleString()}</span>
+                  <span>보너스 +{team.tier_bonus.toLocaleString()}</span>
+                  <span>사용 {(team.starting_budget - team.budget).toLocaleString()}</span>
+                </div>
+                <div className="broadcast-final-players">
+                  {(teamPlayers[team.id] || []).map((player: Player) => (
+                    <p key={player.id}><b>{player.nickname}</b><span>{(player.sold_price || 0).toLocaleString()}점</span></p>
+                  ))}
+                  {!(teamPlayers[team.id] || []).length && <em>낙찰 선수 없음</em>}
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
       ) : (
         <>
           <header className="broadcast-header">
             <span>BAWIGEMAEUL · LIVE AUCTION</span>
             <h1>{room.title}</h1>
-            <b>{room.status === "live" ? "LIVE" : room.status.toUpperCase()}</b>
+            <b>{room.status === "live" ? "LIVE" : "READY"}</b>
           </header>
 
           <section className="broadcast-stage">
@@ -158,9 +217,18 @@ export default function AuctionBroadcastClient() {
                   <div>
                     <span>{team.name}</span>
                     <h3>{team.captain_nickname}</h3>
+                    <small>
+                      내전 {team.captain_match_tier ? `${["", "Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ"][team.captain_match_tier]}티어` : "미정"}
+                      {" · "}{team.captain_average_tier || "롤 티어 미정"}
+                    </small>
                   </div>
                   <strong>{team.budget.toLocaleString()}점</strong>
                 </header>
+                <div className="broadcast-budget-facts">
+                  <span>시작 {team.starting_budget.toLocaleString()}</span>
+                  <span>보너스 +{team.tier_bonus.toLocaleString()}</span>
+                  <span>사용 {(team.starting_budget - team.budget).toLocaleString()}</span>
+                </div>
                 <div>
                   {(teamPlayers[team.id] || []).map((player: Player) => (
                     <p key={player.id}>
@@ -186,11 +254,19 @@ export default function AuctionBroadcastClient() {
         </>
       )}
 
-      {soldFlash && (
-        <div className="sold-flash">
-          <span>SOLD</span>
-          <strong>{soldFlash.nickname}</strong>
-          <p>{soldFlash.team} · {soldFlash.price.toLocaleString()}점</p>
+      {flash?.kind === "sold" && (
+        <div className="auction-event-flash auction-event-sold">
+          <span>SOLD</span><strong>{flash.nickname}</strong><p>{flash.team} · {flash.price.toLocaleString()}점 낙찰</p>
+        </div>
+      )}
+      {flash?.kind === "unsold" && (
+        <div className="auction-event-flash auction-event-unsold">
+          <span>NO BID</span><strong>유찰</strong><p>{flash.nickname}</p>
+        </div>
+      )}
+      {flash?.kind === "finish" && (
+        <div className="auction-event-flash auction-event-finish">
+          <span>AUCTION COMPLETE</span><strong>경매 종료</strong><p>최종 결과를 집계합니다</p>
         </div>
       )}
     </main>

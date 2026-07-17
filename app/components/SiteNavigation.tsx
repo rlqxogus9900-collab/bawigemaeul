@@ -112,7 +112,9 @@ export default function SiteNavigation({
   const active = (href: string) => {
     if (href === "/") return pathname === "/";
     if (href === "/admin") return pathname === "/admin";
-    return pathname.startsWith(href);
+    if (href === "/auction") return pathname === "/auction" || pathname === "/auction/broadcast";
+    if (href === "/auction/captain") return pathname === "/auction/captain";
+    return pathname === href || pathname.startsWith(`${href}/`);
   };
 
   function toggleGroup(id: string) {

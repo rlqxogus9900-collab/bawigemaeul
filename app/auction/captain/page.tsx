@@ -11,7 +11,7 @@ export default async function CaptainAuctionPage() {
       <section className="feature-page-hero">
         <span>CAPTAIN ONLY</span>
         <h1>실시간 경매 팀장 전용</h1>
-        <p>지정된 팀장은 자기 팀으로만 입찰할 수 있습니다.</p>
+        <p>팀장은 자기 팀으로 입찰하고, 관리자는 이 화면에서 경매 시작·지명·낙찰·유찰·종료까지 진행할 수 있습니다.</p>
       </section>
       <CaptainAuctionClient
         currentUserId={user?.id || null}
