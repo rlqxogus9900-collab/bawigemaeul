@@ -7,9 +7,9 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const latestUpdate = {
-  version: "1.3.8.17",
-  title: "챔피언 선택형 대중 빌드",
-  summary: "챔피언을 선택하면 대중적인 룬·아이템·스킬 빌드를 바로 표시"
+  version: "1.3.8.18",
+  title: "패치 자동 감지와 포지션별 빌드",
+  summary: "최신 패치를 자동 감지하고 챔피언별 포지션 대중 빌드를 표시"
 };
 
 

@@ -4,6 +4,12 @@ export const dynamic = "force-dynamic";
 
 const updates = [
   {
+    version: "1.3.8.18",
+    date: "2026-07-18",
+    title: "패치 자동 감지와 포지션별 대중 빌드",
+    items: ["Data Dragon 최신 버전 자동 감지와 패치 표시", "챔피언 선택 후 가능한 포지션을 골라 빌드 전환", "현재 가장 많이 사용하는 빌드 배지와 모바일 화면 개선", "승률·픽률 프로덕션 데이터 연동 준비 안내"]
+  },
+  {
     version: "1.3.8.17",
     date: "2026-07-18",
     title: "전체 챔피언 목록 지원",
