@@ -1,5 +1,2 @@
-import FeaturePage from "@/app/components/FeaturePage";
-
-export default async function Page() {
-  return <FeaturePage eyebrow="ANONYMOUS REPORT" title="바위게 신문고" description="클랜원은 익명으로 작성하고 운영진만 작성자를 확인합니다." icon="📮" admin={false} />;
-}
+import { getSession } from "@/lib/session";
+export default async function Page({searchParams}:{searchParams:Promise<{sent?:string;error?:string}>}){const user=await getSession();const p=await searchParams;return <section className="card whistle-form-card"><div className="page-head"><div><span>ANONYMOUS REPORT</span><h1>📮 바위게 신문고</h1><p className="muted">운영진 화면에는 작성자 정보가 표시되지만 다른 클랜원에게는 공개되지 않습니다.</p></div></div>{p.sent&&<div className="flash">신문고가 접수되었습니다.</div>}{p.error&&<div className="error">제목과 내용을 입력하세요.</div>}{user?<form className="form" action="/api/whistle" method="post"><input name="title" placeholder="제목" required/><textarea name="content" rows={9} placeholder="내용을 자세히 적어주세요." required/><button className="button primary">익명으로 접수</button></form>:<div className="error">로그인 후 작성할 수 있습니다.</div>}</section>}

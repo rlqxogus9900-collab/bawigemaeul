@@ -1,7 +1,2 @@
-import FeaturePage from "@/app/components/FeaturePage";
-import { requireStaff } from "@/lib/session";
-
-export default async function Page() {
-  await requireStaff();
-  return <FeaturePage eyebrow="STAFF ONLY" title="신문고 관리" description="익명 신고 내용을 확인하고 답변합니다." icon="📮" admin={true} />;
-}
+import {requireStaff} from "@/lib/session";import {getSupabaseAdmin} from "@/lib/supabase-admin";export const dynamic="force-dynamic";
+export default async function Page({searchParams}:{searchParams:Promise<{saved?:string}>}){await requireStaff();const p=await searchParams;const {data:reports}=await getSupabaseAdmin().from("whistle_reports").select("*").order("created_at",{ascending:false});return <><section className="card"><div className="page-head"><div><span>STAFF ONLY</span><h1>신문고 관리</h1><p className="muted">작성자 확인, 처리 상태 변경과 운영진 답변을 관리합니다.</p></div></div>{p.saved&&<div className="flash">답변을 저장했습니다.</div>}</section><section className="feature-record-grid">{(reports||[]).map(r=><article className="card feature-record-card" key={r.id}><div><small>{new Date(r.created_at).toLocaleString("ko-KR")}</small><h2>{r.title}</h2></div><p><b>작성자:</b> {r.author_nickname}</p><p className="whistle-content">{r.content}</p><form className="form" action={`/api/admin/whistle/${r.id}`} method="post"><select name="status" defaultValue={r.status}><option value="open">접수</option><option value="reviewing">확인 중</option><option value="closed">처리 완료</option></select><textarea name="answer" rows={4} placeholder="운영진 답변" defaultValue={r.answer||""}/><button className="button primary">답변 저장</button></form></article>)}{!reports?.length&&<div className="card hall-empty">접수된 신문고가 없습니다.</div>}</section></>}

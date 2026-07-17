@@ -1,0 +1,2 @@
+import { NextResponse } from "next/server";import { requireStaff } from "@/lib/session";import { getSupabaseAdmin } from "@/lib/supabase-admin";
+export async function POST(request:Request,{params}:{params:Promise<{id:string}>}){await requireStaff();const {id}=await params;await getSupabaseAdmin().from("match_records").delete().eq("id",id);return NextResponse.redirect(new URL("/admin/match-records?deleted=1",request.url),303)}

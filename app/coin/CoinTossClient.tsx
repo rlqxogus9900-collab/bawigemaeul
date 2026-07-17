@@ -19,6 +19,13 @@ export default function CoinTossClient() {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem("bawi-coin-history");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) setHistory(parsed.filter((v): v is CoinSide => v === "smile" || v === "cry").slice(0, 10));
+      }
+    } catch {}
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
@@ -37,7 +44,11 @@ export default function CoinTossClient() {
 
     timeoutRef.current = setTimeout(() => {
       setResult(next);
-      setHistory(current => [next, ...current].slice(0, 10));
+      setHistory(current => {
+        const updated = [next, ...current].slice(0, 10);
+        try { window.localStorage.setItem("bawi-coin-history", JSON.stringify(updated)); } catch {}
+        return updated;
+      });
       setSpinning(false);
     }, SPIN_DURATION);
   }
@@ -45,6 +56,7 @@ export default function CoinTossClient() {
   function resetHistory() {
     if (spinning) return;
     setHistory([]);
+    try { window.localStorage.removeItem("bawi-coin-history"); } catch {}
     setResult(null);
   }
 
