@@ -2395,14 +2395,14 @@ td{padding:11px 10px;font-size:13px}
 }
 
 
-/* Online Beta 1.3.7.23 - homepage performance */
+/* Online Beta 1.3.7.24 - homepage performance */
 .hero-logo-area img{
   width:min(280px,100%);
   height:auto;
 }
 
 
-/* Online Beta 1.3.7.23 - admin dashboard */
+/* Online Beta 1.3.7.24 - admin dashboard */
 .admin-dashboard-hero{
   display:flex;
   justify-content:space-between;
@@ -2606,7 +2606,7 @@ td{padding:11px 10px;font-size:13px}
 }
 
 
-/* Online Beta 1.3.7.23 - notifications */
+/* Online Beta 1.3.7.24 - notifications */
 .notification-center{position:relative;z-index:40}
 .notification-bell{
   position:relative;display:grid;place-items:center;width:38px;height:38px;
@@ -2656,7 +2656,7 @@ td{padding:11px 10px;font-size:13px}
 }
 
 
-/* Online Beta 1.3.7.23 - stable home logo and notification archive */
+/* Online Beta 1.3.7.24 - stable home logo and notification archive */
 .hero-logo-fixed{
   position:relative;
   width:280px;
@@ -2842,7 +2842,7 @@ td{padding:11px 10px;font-size:13px}
 }
 
 
-/* Online Beta 1.3.7.23 - mobile viewport and home layout hotfix */
+/* Online Beta 1.3.7.24 - mobile viewport and home layout hotfix */
 html,body{
   width:100%;
   max-width:100%;
