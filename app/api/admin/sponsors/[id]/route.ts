@@ -1,3 +1,4 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { requireStaff } from "@/lib/session";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
@@ -28,5 +29,6 @@ export async function POST(
     }).eq("id", id);
   }
 
-  return NextResponse.redirect(new URL("/admin/sponsors?saved=1", request.url), 303);
+  revalidateTag("home-summary", "max");
+return NextResponse.redirect(new URL("/admin/sponsors?saved=1", request.url), 303);
 }

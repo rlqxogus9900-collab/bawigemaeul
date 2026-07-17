@@ -2294,7 +2294,7 @@ td{padding:11px 10px;font-size:13px}
   }
 }
 
-/* Online Beta 1.3.7.15 - board sorting and view protection */
+/* Online Beta 1.3.7.16 - board sorting and view protection */
 .board-sort-tabs{
   display:flex;
   flex-wrap:wrap;
@@ -2319,7 +2319,7 @@ td{padding:11px 10px;font-size:13px}
 }
 
 
-/* Online Beta 1.3.7.15 - board bookmarks */
+/* Online Beta 1.3.7.16 - board bookmarks */
 .board-list-head-actions{
   display:flex;
   align-items:center;
@@ -2392,4 +2392,11 @@ td{padding:11px 10px;font-size:13px}
     width:100%;
     text-align:center;
   }
+}
+
+
+/* Online Beta 1.3.7.17 - homepage performance */
+.hero-logo-area img{
+  width:min(280px,100%);
+  height:auto;
 }
