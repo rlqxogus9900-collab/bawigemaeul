@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const latestUpdate = {
-  version: "1.3.7.22",
+  version: "1.3.7.23",
   title: "홈 이미지 안정화 및 전체 알림",
   summary: "바위게 이미지 크기 변화 제거와 전체 알림 확인 페이지 추가"
 };
