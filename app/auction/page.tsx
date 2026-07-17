@@ -63,7 +63,7 @@ export default async function AuctionPage() {
         <article className="card">
           <span className="auction-sync-label">AUCTION SOURCE</span>
           <h2>{linkedPost?.title || "경매 연동 투표 미선택"}</h2>
-          <p>{poll?.match_at ? new Date(poll.match_at).toLocaleString("ko-KR") : "일정 없음"}</p>
+          <p>{poll?.match_at ? new Date(poll.match_at).toLocaleString("ko-KR", { timeZone: "Asia/Seoul", hour12: false }) : "일정 없음"}</p>
           <div className="auction-sync-number">
             <small>경매 대상</small>
             <strong>{players.length}</strong>

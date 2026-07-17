@@ -77,8 +77,7 @@ export default async function BoardPostPage({
         author_nickname,
         content,
         created_at,
-        updated_at,
-      post_type
+        updated_at
       `)
       .eq("post_id", id)
       .order("created_at", { ascending: true }),
