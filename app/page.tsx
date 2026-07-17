@@ -7,9 +7,9 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const latestUpdate = {
-  version: "1.3.8.15",
-  title: "챔피언 공략 페이지 활성화",
-  summary: "라인별 검색, 운영진 추천, 룬·아이템·스킬 순서와 핵심 팁 추가"
+  version: "1.3.8.16",
+  title: "챔피언 선택형 대중 빌드",
+  summary: "챔피언을 선택하면 대중적인 룬·아이템·스킬 빌드를 바로 표시"
 };
 
 
