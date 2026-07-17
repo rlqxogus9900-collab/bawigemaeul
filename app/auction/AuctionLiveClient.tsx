@@ -18,6 +18,11 @@ type Team = {
   name: string;
   captain_member_id: string | null;
   captain_nickname: string;
+  captain_match_tier: number | null;
+  captain_average_tier: string | null;
+  base_budget: number;
+  tier_bonus: number;
+  starting_budget: number;
   budget: number;
 };
 
@@ -227,12 +232,12 @@ export default function AuctionLiveClient({
             <div className="auction-final-grid">
               {state.teams.map((team) => (
                 <article key={team.id}>
-                  <header><div><span>{team.name}</span><b>{team.captain_nickname}</b></div><strong>잔여 {team.budget.toLocaleString()}점</strong></header>
+                  <header><div><span>{team.name}</span><b>{team.captain_nickname}</b><small>{team.captain_match_tier ? `내전 ${["","Ⅰ","Ⅱ","Ⅲ","Ⅳ","Ⅴ"][team.captain_match_tier]}티어` : "내전 티어 미정"} · {team.captain_average_tier || "롤 티어 미정"}</small></div><strong>잔여 {team.budget.toLocaleString()}점</strong></header>
                   <div>{(teamPlayers[team.id] || []).map((player: Player) => <p key={player.id}><b>{player.nickname}</b><span>{(player.sold_price || 0).toLocaleString()}점</span></p>)}</div>
                 </article>
               ))}
             </div>
-          </section>
+          {isStaff && <a className="button auction-new-room-link" href="/admin/auction">새 경매 시작</a>}</section>
         )}
 
         <div className="auction-control-row">
@@ -287,7 +292,7 @@ export default function AuctionLiveClient({
             <header>
               <div>
                 <span>{team.name}</span>
-                <h3>{team.captain_nickname}</h3>
+                <h3>{team.captain_nickname}</h3><small>{team.captain_match_tier ? `내전 ${["","Ⅰ","Ⅱ","Ⅲ","Ⅳ","Ⅴ"][team.captain_match_tier]}티어` : "내전 티어 미정"} · {team.captain_average_tier || "롤 티어 미정"}</small>
               </div>
               <strong>{team.budget.toLocaleString()}점</strong>
             </header>

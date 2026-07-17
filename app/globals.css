@@ -3014,3 +3014,24 @@ html,body{
   .auction-viewer-history p{grid-template-columns:65px 90px 1fr}.auction-viewer-history time{display:none}
   .captain-side-grid{grid-template-columns:1fr}.auction-hero-actions{width:100%}.auction-hero-actions a{flex:1}
 }
+
+/* 1.3.8.4 */
+.auction-settings-grid{grid-template-columns:repeat(4,minmax(150px,1fr))}
+.auction-tier-toggle{display:flex!important;flex-direction:column;justify-content:flex-end}
+.auction-tier-toggle button{min-height:44px;border:1px solid var(--line);border-radius:11px;background:#202522;color:var(--muted);font-weight:900}
+.auction-tier-toggle button.enabled{background:#244b34;color:#b9f0cb;border-color:#427c58}
+.auction-budget-example{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:14px 0;padding:12px 14px;border-radius:12px;background:#ffffff08}
+.auction-budget-example b{color:var(--gold)}.auction-budget-example span{color:var(--muted)}
+.auction-create-main-button{width:100%;justify-content:center}
+.auction-admin-captains{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:16px 0}
+.auction-admin-captains article{padding:15px;border:1px solid var(--line);border-radius:14px;background:#ffffff06}
+.auction-admin-captains header{display:flex;justify-content:space-between;gap:10px;padding-bottom:10px;margin-bottom:8px;border-bottom:1px solid var(--line)}
+.auction-admin-captains header span{color:var(--gold);font-size:12px;font-weight:900}
+.auction-admin-captains p{display:flex;justify-content:space-between;gap:10px;margin:7px 0}
+.auction-admin-captains p b{color:var(--muted)}.auction-admin-captains p span{font-weight:900}
+.auction-team-card header small,.auction-viewer-team-grid header small,.auction-final-grid header small{display:block;margin-top:4px;color:#aebbc8;font-size:11px}
+.auction-captain-budget{display:flex!important;gap:7px!important;flex-wrap:wrap!important;margin:10px 0!important}
+.auction-captain-budget span{padding:5px 8px;border-radius:999px;background:#ffffff0d;color:#c5d2df;font-size:11px}
+.auction-new-room-link{display:flex;width:max-content;margin:18px auto 0}
+@media(max-width:900px){.auction-settings-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.auction-settings-grid{grid-template-columns:1fr}}

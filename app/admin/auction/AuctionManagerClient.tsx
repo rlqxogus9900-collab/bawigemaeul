@@ -4,25 +4,27 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 type Room = {
-  id: string;
-  title: string;
-  status: "ready" | "live" | "finished";
-  starting_budget: number;
-  bid_step: number;
-  created_at: string;
+  id: string; title: string; status: "ready" | "live" | "finished";
+  starting_budget: number; bid_step: number; tier_balance_enabled: boolean; tier_bonus_per_tier: number;
 };
-
+type Team = {
+  id: string; name: string; captain_nickname: string; captain_match_tier: number | null;
+  captain_average_tier: string | null; base_budget: number; tier_bonus: number;
+  starting_budget: number; budget: number;
+};
 type AuctionState = {
-  room: Room | null;
-  teams: Array<{ id: string; name: string; captain_nickname: string; budget: number }>;
+  room: Room | null; teams: Team[];
   players: Array<{ id: string; nickname: string; status: string }>;
   bids: Array<{ id: number }>;
 };
+const roman: Record<number, string> = { 1: "Ⅰ", 2: "Ⅱ", 3: "Ⅲ", 4: "Ⅳ", 5: "Ⅴ" };
 
 export default function AuctionManagerClient() {
   const [state, setState] = useState<AuctionState>({ room: null, teams: [], players: [], bids: [] });
   const [startingBudget, setStartingBudget] = useState(1000);
   const [bidStep, setBidStep] = useState(10);
+  const [tierBalanceEnabled, setTierBalanceEnabled] = useState(true);
+  const [tierBonusPerTier, setTierBonusPerTier] = useState(100);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -30,7 +32,6 @@ export default function AuctionManagerClient() {
     const response = await fetch("/api/auction/state", { cache: "no-store" });
     if (response.ok) setState(await response.json());
   }, []);
-
   useEffect(() => {
     load();
     const timer = window.setInterval(load, 1500);
@@ -38,17 +39,14 @@ export default function AuctionManagerClient() {
   }, [load]);
 
   const createRoom = async () => {
-    setBusy(true);
-    setMessage("");
+    setBusy(true); setMessage("");
     const response = await fetch("/api/admin/auction/create", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ startingBudget, bidStep })
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ startingBudget, bidStep, tierBalanceEnabled, tierBonusPerTier })
     });
     const result = await response.json().catch(() => ({}));
-    setMessage(response.ok ? "경매방을 만들었습니다. 실시간 경매에 바로 표시됩니다." : result.error || "경매방 생성 실패");
-    await load();
-    setBusy(false);
+    setMessage(response.ok ? "새 경매방을 만들었습니다. 모든 경매 화면에 바로 표시됩니다." : result.error || "경매방 생성 실패");
+    await load(); setBusy(false);
   };
 
   const active = state.room && state.room.status !== "finished";
@@ -56,36 +54,46 @@ export default function AuctionManagerClient() {
   return (
     <div className="auction-admin-grid">
       <section className="card auction-admin-create">
-        <div className="dashboard-head">
-          <div><span>ROOM SETTINGS</span><h2>경매방 만들기</h2></div>
-        </div>
-        <p className="muted">경매 연동으로 지정한 정기내전 투표의 팀장과 참가자를 자동으로 불러옵니다. 팀장은 선수 명단에서 제외됩니다.</p>
-        <div className="auction-create-row auction-create-admin">
-          <label>팀별 시작 예산<input min={0} type="number" value={startingBudget} onChange={(e) => setStartingBudget(Number(e.target.value))} /></label>
+        <div className="dashboard-head"><div><span>ROOM SETTINGS</span><h2>{state.room?.status === "finished" ? "새 경매 시작" : "경매방 만들기"}</h2></div></div>
+        <p className="muted">팀장은 선수 명단에서 제외되며 내전 티어 차이에 따라 시작 예산이 자동 보정됩니다.</p>
+        <div className="auction-create-row auction-create-admin auction-settings-grid">
+          <label>기본 시작 예산<input min={0} type="number" value={startingBudget} onChange={(e) => setStartingBudget(Number(e.target.value))} /></label>
           <label>기본 입찰 단위<input min={1} type="number" value={bidStep} onChange={(e) => setBidStep(Number(e.target.value))} /></label>
-          <button className="button" disabled={busy || Boolean(active)} onClick={createRoom}>{busy ? "생성 중..." : active ? "진행 중인 방 있음" : "경매방 만들기"}</button>
+          <label>티어당 추가 점수<input min={0} type="number" disabled={!tierBalanceEnabled} value={tierBonusPerTier} onChange={(e) => setTierBonusPerTier(Number(e.target.value))} /></label>
+          <label className="auction-tier-toggle"><span>팀장 티어 보정</span><button type="button" className={tierBalanceEnabled ? "enabled" : ""} onClick={() => setTierBalanceEnabled(v => !v)}>{tierBalanceEnabled ? "사용 ON" : "사용 OFF"}</button></label>
         </div>
+        <div className="auction-budget-example"><b>계산 방식</b><span>가장 높은 팀장 기준 1티어 차이마다 +{tierBonusPerTier.toLocaleString()}점</span></div>
+        <button className="button auction-create-main-button" disabled={busy || Boolean(active)} onClick={createRoom}>
+          {busy ? "생성 중..." : active ? "진행 중인 경매가 있습니다" : state.room?.status === "finished" ? "결과 보관 후 새 경매 시작" : "경매방 만들기"}
+        </button>
         {message && <p className={message.includes("실패") || message.includes("없") ? "form-error" : "form-success"}>{message}</p>}
       </section>
 
       <section className="card auction-admin-status">
         <div className="dashboard-head"><div><span>CURRENT ROOM</span><h2>현재 경매 상태</h2></div></div>
-        {state.room ? (
-          <>
-            <div className="auction-admin-room-summary">
-              <div><span>방 이름</span><b>{state.room.title}</b></div>
-              <div><span>상태</span><b>{state.room.status === "ready" ? "시작 대기" : state.room.status === "live" ? "진행 중" : "종료"}</b></div>
-              <div><span>팀</span><b>{state.teams.length}팀</b></div>
-              <div><span>선수</span><b>{state.players.length}명</b></div>
-              <div><span>입찰</span><b>{state.bids.length}건</b></div>
-            </div>
-            <div className="auction-admin-links">
-              <Link className="button" href="/auction">관전 화면 열기</Link>
-              <Link className="button secondary" href="/auction/captain">팀장 전용 열기</Link>
-              <Link className="button secondary" href="/auction/broadcast" target="_blank">방송 화면 열기</Link>
-            </div>
-          </>
-        ) : <p className="empty-copy">아직 만들어진 경매방이 없습니다.</p>}
+        {state.room ? <>
+          <div className="auction-admin-room-summary">
+            <div><span>방 이름</span><b>{state.room.title}</b></div>
+            <div><span>상태</span><b>{state.room.status === "ready" ? "시작 대기" : state.room.status === "live" ? "진행 중" : "결과 표시 중"}</b></div>
+            <div><span>팀</span><b>{state.teams.length}팀</b></div><div><span>선수</span><b>{state.players.length}명</b></div><div><span>입찰</span><b>{state.bids.length}건</b></div>
+          </div>
+          <div className="auction-admin-captains">
+            {state.teams.map(team => <article key={team.id}>
+              <header><span>{team.name} 팀장</span><strong>{team.captain_nickname}</strong></header>
+              <p><b>내전 티어</b><span>{team.captain_match_tier ? `${roman[team.captain_match_tier]}티어` : "미정"}</span></p>
+              <p><b>롤 티어</b><span>{team.captain_average_tier || "미정"}</span></p>
+              <p><b>기본 예산</b><span>{team.base_budget.toLocaleString()}점</span></p>
+              <p><b>티어 보너스</b><span>+{team.tier_bonus.toLocaleString()}점</span></p>
+              <p><b>총 시작 예산</b><span>{team.starting_budget.toLocaleString()}점</span></p>
+              <p><b>현재 예산</b><span>{team.budget.toLocaleString()}점</span></p>
+            </article>)}
+          </div>
+          <div className="auction-admin-links">
+            <Link className="button" href="/auction">관전 화면 열기</Link>
+            <Link className="button secondary" href="/auction/captain">팀장 전용 열기</Link>
+            <Link className="button secondary" href="/auction/broadcast" target="_blank">방송 화면 열기</Link>
+          </div>
+        </> : <p className="empty-copy">아직 만들어진 경매방이 없습니다.</p>}
       </section>
     </div>
   );

@@ -11,7 +11,7 @@ type Room = {
   current_bid: number;
   current_team_id: string | null;
 };
-type Team = { id: string; name: string; captain_member_id: string | null; captain_nickname: string; budget: number };
+type Team = { id: string; name: string; captain_member_id: string | null; captain_nickname: string; captain_match_tier: number | null; captain_average_tier: string | null; base_budget: number; tier_bonus: number; starting_budget: number; budget: number };
 type Player = { id: string; nickname: string; status: string; sold_team_id: string | null; sold_price: number | null };
 type Bid = { id: number; team_id: string; amount: number; bidder_nickname: string; created_at: string };
 type State = { room: Room | null; teams: Team[]; players: Player[]; bids: Bid[] };

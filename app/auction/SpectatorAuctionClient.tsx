@@ -15,6 +15,11 @@ type Team = {
   id: string;
   name: string;
   captain_nickname: string;
+  captain_match_tier: number | null;
+  captain_average_tier: string | null;
+  base_budget: number;
+  tier_bonus: number;
+  starting_budget: number;
   budget: number;
 };
 
@@ -144,10 +149,10 @@ export default function SpectatorAuctionClient() {
             {state.teams.map((team) => (
               <article key={team.id}>
                 <header>
-                  <div><span>{team.name}</span><h3>{team.captain_nickname}</h3></div>
+                  <div><span>{team.name}</span><h3>{team.captain_nickname}</h3><small>{team.captain_match_tier ? `내전 ${["","Ⅰ","Ⅱ","Ⅲ","Ⅳ","Ⅴ"][team.captain_match_tier]}티어` : "내전 티어 미정"} · {team.captain_average_tier || "롤 티어 미정"}</small></div>
                   <strong>잔여 {team.budget.toLocaleString()}점</strong>
                 </header>
-                <div>
+                <div className="auction-captain-budget"><span>시작 {team.starting_budget.toLocaleString()}점</span><span>보너스 +{team.tier_bonus.toLocaleString()}점</span><span>사용 {(team.starting_budget-team.budget).toLocaleString()}점</span></div><div>
                   {(teamPlayers[team.id] || []).map((player: Player) => (
                     <p key={player.id}>
                       <b>{player.nickname}</b>
@@ -177,10 +182,10 @@ export default function SpectatorAuctionClient() {
             {state.teams.map((team) => (
               <article className={leadingTeam?.id === team.id ? "leading" : ""} key={team.id}>
                 <header>
-                  <div><span>{team.name}</span><h3>{team.captain_nickname}</h3></div>
+                  <div><span>{team.name}</span><h3>{team.captain_nickname}</h3><small>{team.captain_match_tier ? `내전 ${["","Ⅰ","Ⅱ","Ⅲ","Ⅳ","Ⅴ"][team.captain_match_tier]}티어` : "내전 티어 미정"} · {team.captain_average_tier || "롤 티어 미정"}</small></div>
                   <strong>{team.budget.toLocaleString()}점</strong>
                 </header>
-                <div>
+                <div className="auction-captain-budget"><span>시작 {team.starting_budget.toLocaleString()}점</span><span>보너스 +{team.tier_bonus.toLocaleString()}점</span><span>사용 {(team.starting_budget-team.budget).toLocaleString()}점</span></div><div>
                   {(teamPlayers[team.id] || []).map((player: Player) => (
                     <p key={player.id}>
                       <b>{player.nickname}</b>
