@@ -7,9 +7,9 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const latestUpdate = {
-  version: "1.3.7.18",
-  title: "관리자 대시보드 추가",
-  summary: "클랜원·투표·신문고·경매 현황과 빠른 관리 메뉴를 한곳에 추가"
+  version: "1.3.7.19",
+  title: "알림 시스템 추가",
+  summary: "새 공지·투표·댓글 알림과 읽음 처리 기능을 추가"
 };
 
 

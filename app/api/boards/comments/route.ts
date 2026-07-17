@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { notifyMember } from "@/lib/notifications";
 
 export async function POST(request: Request) {
   const user = await getSession();
@@ -24,7 +25,7 @@ export async function POST(request: Request) {
 
   const { data: post } = await db
     .from("board_posts")
-    .select("id,subcategory_id")
+    .select("id,subcategory_id,title,author_member_id")
     .eq("id", postId)
     .maybeSingle();
 
@@ -58,6 +59,16 @@ export async function POST(request: Request) {
       new URL(`/boards/${postId}?comment_error=1`, request.url),
       303
     );
+  }
+
+  if (post.author_member_id && post.author_member_id !== user.id) {
+    await notifyMember({
+      memberId: post.author_member_id,
+      type: "comment",
+      title: `${user.nickname}님이 댓글을 남겼습니다.`,
+      message: `${post.title}: ${content}`,
+      link: `/boards/${postId}#comments`
+    });
   }
 
   return NextResponse.redirect(

@@ -4,7 +4,7 @@ export const revalidate = 3600;
 
 const updates = [
   {
-    version: "1.3.7.18",
+    version: "1.3.7.19",
     date: "2026.07.17",
     title: "게시판 정렬과 조회수 중복 방지",
     items: [

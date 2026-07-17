@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { ensureStaff } from "@/lib/admin";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { notifyAllActiveMembers } from "@/lib/notifications";
 
 export async function POST(request: Request) {
   await ensureStaff();
@@ -10,11 +11,24 @@ export async function POST(request: Request) {
   const content = String(form.get("content") || "").trim();
 
   if (title && content) {
-    await getSupabaseAdmin().from("notices").insert({
-      title,
-      content,
-      is_pinned: form.get("is_pinned") === "on"
-    });
+    const { data: notice } = await getSupabaseAdmin()
+      .from("notices")
+      .insert({
+        title,
+        content,
+        is_pinned: form.get("is_pinned") === "on"
+      })
+      .select("id")
+      .single();
+
+    if (notice) {
+      await notifyAllActiveMembers({
+        type: "notice",
+        title: `새 공지: ${title}`,
+        message: content,
+        link: "/notices"
+      });
+    }
   }
 
   revalidatePath("/");

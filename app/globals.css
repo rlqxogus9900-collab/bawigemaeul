@@ -2395,14 +2395,14 @@ td{padding:11px 10px;font-size:13px}
 }
 
 
-/* Online Beta 1.3.7.18 - homepage performance */
+/* Online Beta 1.3.7.19 - homepage performance */
 .hero-logo-area img{
   width:min(280px,100%);
   height:auto;
 }
 
 
-/* Online Beta 1.3.7.18 - admin dashboard */
+/* Online Beta 1.3.7.19 - admin dashboard */
 .admin-dashboard-hero{
   display:flex;
   justify-content:space-between;
@@ -2603,4 +2603,54 @@ td{padding:11px 10px;font-size:13px}
   .admin-quick-grid{
     grid-template-columns:1fr;
   }
+}
+
+
+/* Online Beta 1.3.7.19 - notifications */
+.notification-center{position:relative;z-index:40}
+.notification-bell{
+  position:relative;display:grid;place-items:center;width:38px;height:38px;
+  border:1px solid #344c3d;border-radius:11px;background:#0d2118;
+  color:#fff;cursor:pointer
+}
+.notification-bell:hover,.notification-bell.active{border-color:#d6c06b;background:#152b20}
+.notification-bell>span{font-size:17px}
+.notification-bell>b{
+  position:absolute;top:-7px;right:-7px;display:grid;place-items:center;
+  min-width:19px;height:19px;padding:0 5px;border-radius:999px;
+  background:#d94a4a;color:white;font-size:10px;line-height:1
+}
+.notification-popover{
+  position:absolute;top:46px;right:0;width:min(390px,calc(100vw - 24px));
+  overflow:hidden;border:1px solid #355040;border-radius:16px;
+  background:#081a12;box-shadow:0 20px 55px rgba(0,0,0,.48)
+}
+.notification-popover>header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 17px;border-bottom:1px solid #263d30;background:#0e2419
+}
+.notification-popover header span{color:#d6c06b;font-size:10px;font-weight:900;letter-spacing:.12em}
+.notification-popover header h2{margin:3px 0 0;font-size:18px}
+.notification-popover header button{
+  border:0;background:transparent;color:#d6c06b;font-size:11px;font-weight:800;cursor:pointer
+}
+.notification-list{max-height:460px;overflow:auto}
+.notification-list>a,.notification-list>button{
+  position:relative;display:grid;grid-template-columns:34px minmax(0,1fr) 8px;
+  gap:10px;width:100%;padding:14px 15px;border:0;border-bottom:1px solid #21362a;
+  background:#0a1c14;color:inherit;text-align:left;text-decoration:none;cursor:pointer
+}
+.notification-list>a:hover,.notification-list>button:hover{background:#11271c}
+.notification-list .unread{background:#10271b}
+.notification-list i{font-style:normal;font-size:20px}
+.notification-list b{display:block;margin-bottom:4px;font-size:13px;color:#e7eee9}
+.notification-list p{margin:0 0 6px;color:#9eafa4;font-size:11px;line-height:1.45}
+.notification-list time{color:#687c70;font-size:10px}
+.notification-list em{
+  align-self:center;width:7px;height:7px;border-radius:50%;background:#d6c06b
+}
+.notification-empty{margin:0;padding:30px 18px!important;color:#819388;text-align:center;font-size:12px}
+@media(max-width:700px){
+  .notification-popover{position:fixed;top:68px;right:12px;left:12px;width:auto}
+  .topbar-account .account-pill{display:none}
 }

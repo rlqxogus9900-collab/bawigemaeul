@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { getCachedBoardMenu } from "@/lib/board-menu";
 import SiteNavigation from "@/app/components/SiteNavigation";
+import NotificationCenter from "@/app/components/NotificationCenter";
 
 export const metadata = {
   title: "바위게마을",
@@ -50,6 +51,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <div className="topbar-account">
               {user ? (
                 <>
+                  <NotificationCenter />
                   <span className={`account-pill ${user.role}`}>
                     {user.nickname} / {user.role === "staff" ? "운영진" : "클랜원"}
                   </span>
@@ -72,7 +74,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
           <footer className="site-footer">
             <div><b>BAWIGEMAEUL</b><span>Since 2026</span></div>
-            <small>Created for 바위게마을 · Online Beta 1.3.7.18</small>
+            <small>Created for 바위게마을 · Online Beta 1.3.7.19</small>
           </footer>
         </div>
       </body>
