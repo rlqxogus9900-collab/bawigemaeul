@@ -1944,3 +1944,38 @@ td{padding:11px 10px;font-size:13px}
     grid-template-columns:repeat(2,1fr);
   }
 }
+/* Online Beta 1.3.7.9.1 - optional direct time input */
+.datetime-select-grid input[type="number"]{
+  width:100%;
+  min-height:43px;
+  padding:8px 10px;
+  border:1px solid #345340;
+  border-radius:10px;
+  background:#0b2117;
+  color:#d9e3dd;
+}
+
+.datetime-direct-toggle{
+  display:grid;
+  grid-template-columns:auto 1fr;
+  align-items:center;
+  column-gap:8px;
+  row-gap:3px;
+  padding:10px 12px;
+  border:1px solid #345340;
+  border-radius:10px;
+  background:#0a2016;
+  color:#c3d1c9;
+  font-size:12px;
+  font-weight:800;
+}
+
+.datetime-direct-toggle input{
+  grid-row:1 / 3;
+}
+
+.datetime-direct-toggle small{
+  color:#7f9388;
+  font-size:9px;
+  font-weight:500;
+}

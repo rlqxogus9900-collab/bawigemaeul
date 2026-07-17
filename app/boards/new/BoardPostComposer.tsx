@@ -14,6 +14,9 @@ type DateTimeParts = {
   meridiem: Meridiem;
   hour: number;
   minute: number;
+  directTime: boolean;
+  directHour: string;
+  directMinute: string;
 };
 
 function getKoreaNow() {
@@ -50,12 +53,32 @@ function toDateValue(parts: DateTimeParts) {
   return `${parts.year}-${pad(parts.month)}-${pad(parts.day)}`;
 }
 
+function normalizedDirectTime(parts: DateTimeParts) {
+  const hour = Math.min(23, Math.max(0, Number(parts.directHour || 0)));
+  const minute = Math.min(59, Math.max(0, Number(parts.directMinute || 0)));
+  return { hour, minute };
+}
+
 function toTimeValue(parts: DateTimeParts) {
   const pad = (value: number) => String(value).padStart(2, "0");
+
+  if (parts.directTime) {
+    const direct = normalizedDirectTime(parts);
+    return `${pad(direct.hour)}:${pad(direct.minute)}`;
+  }
+
   return `${pad(to24Hour(parts.meridiem, parts.hour))}:${pad(parts.minute)}`;
 }
 
 function formatKorean(parts: DateTimeParts) {
+  if (parts.directTime) {
+    const direct = normalizedDirectTime(parts);
+    const meridiem = direct.hour < 12 ? "오전" : "오후";
+    const hour12 = direct.hour % 12 || 12;
+
+    return `${parts.year}년 ${parts.month}월 ${parts.day}일 ${meridiem} ${hour12}시 ${String(direct.minute).padStart(2, "0")}분`;
+  }
+
   return `${parts.year}년 ${parts.month}월 ${parts.day}일 ${
     parts.meridiem === "AM" ? "오전" : "오후"
   } ${parts.hour}시 ${String(parts.minute).padStart(2, "0")}분`;
@@ -133,45 +156,101 @@ function DateTimeSelect({
           </select>
         </label>
 
-        <label>
-          <span>오전/오후</span>
-          <select
-            value={value.meridiem}
-            onChange={event => patch({ meridiem: event.target.value as Meridiem })}
-          >
-            <option value="AM">오전</option>
-            <option value="PM">오후</option>
-          </select>
-        </label>
+        {!value.directTime && (
+          <>
+            <label>
+              <span>오전/오후</span>
+              <select
+                value={value.meridiem}
+                onChange={event => patch({ meridiem: event.target.value as Meridiem })}
+              >
+                <option value="AM">오전</option>
+                <option value="PM">오후</option>
+              </select>
+            </label>
 
-        <label>
-          <span>시</span>
-          <select
-            value={value.hour}
-            onChange={event => patch({ hour: Number(event.target.value) })}
-          >
-            {Array.from({ length: 12 }, (_, index) => index + 1).map(hour => (
-              <option value={hour} key={hour}>
-                {hour}시
-              </option>
-            ))}
-          </select>
-        </label>
+            <label>
+              <span>시</span>
+              <select
+                value={value.hour}
+                onChange={event => patch({ hour: Number(event.target.value) })}
+              >
+                {Array.from({ length: 12 }, (_, index) => index + 1).map(hour => (
+                  <option value={hour} key={hour}>
+                    {hour}시
+                  </option>
+                ))}
+              </select>
+            </label>
 
-        <label>
-          <span>분</span>
-          <select
-            value={value.minute}
-            onChange={event => patch({ minute: Number(event.target.value) })}
-          >
-            {[0, 10, 20, 30, 40, 50].map(minute => (
-              <option value={minute} key={minute}>
-                {String(minute).padStart(2, "0")}분
-              </option>
-            ))}
-          </select>
-        </label>
+            <label>
+              <span>분</span>
+              <select
+                value={value.minute}
+                onChange={event => patch({ minute: Number(event.target.value) })}
+              >
+                {[0, 10, 20, 30, 40, 50].map(minute => (
+                  <option value={minute} key={minute}>
+                    {String(minute).padStart(2, "0")}분
+                  </option>
+                ))}
+              </select>
+            </label>
+          </>
+        )}
+
+        {value.directTime && (
+          <>
+            <label>
+              <span>시(0~23)</span>
+              <input
+                type="number"
+                min="0"
+                max="23"
+                inputMode="numeric"
+                value={value.directHour}
+                onChange={event =>
+                  patch({
+                    directHour: event.target.value
+                      .replace(/[^0-9]/g, "")
+                      .slice(0, 2)
+                  })
+                }
+                placeholder="21"
+              />
+            </label>
+
+            <label>
+              <span>분(0~59)</span>
+              <input
+                type="number"
+                min="0"
+                max="59"
+                inputMode="numeric"
+                value={value.directMinute}
+                onChange={event =>
+                  patch({
+                    directMinute: event.target.value
+                      .replace(/[^0-9]/g, "")
+                      .slice(0, 2)
+                  })
+                }
+                placeholder="07"
+              />
+            </label>
+          </>
+        )}
       </div>
+
+      <label className="datetime-direct-toggle">
+        <input
+          type="checkbox"
+          checked={value.directTime}
+          onChange={event => patch({ directTime: event.target.checked })}
+        />
+        시간을 직접 입력
+        <small>직접 입력 시 24시간 형식으로 시·분을 자유롭게 적을 수 있습니다.</small>
+      </label>
 
       <div className="datetime-select-preview">{formatKorean(value)}</div>
     </section>
@@ -202,7 +281,10 @@ export default function BoardPostComposer({
     day: defaultDay,
     meridiem: "PM",
     hour: 9,
-    minute: 0
+    minute: 0,
+    directTime: false,
+    directHour: "21",
+    directMinute: "00"
   });
 
   const [deadline, setDeadline] = useState<DateTimeParts>({
@@ -211,7 +293,10 @@ export default function BoardPostComposer({
     day: defaultDay,
     meridiem: "PM",
     hour: 8,
-    minute: 0
+    minute: 0,
+    directTime: false,
+    directHour: "20",
+    directMinute: "00"
   });
 
   const isRegularBoard = useMemo(
