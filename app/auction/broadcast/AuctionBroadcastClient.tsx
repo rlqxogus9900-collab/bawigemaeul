@@ -47,6 +47,7 @@ export default function AuctionBroadcastClient() {
   const [soldFlash, setSoldFlash] = useState<{ nickname: string; team: string; price: number } | null>(null);
 
   const previousSold = useRef(new Set<string>());
+  const soldStateReady = useRef(false);
   const previousBid = useRef(0);
 
   const load = useCallback(async () => {
@@ -57,7 +58,7 @@ export default function AuctionBroadcastClient() {
     const soldPlayers = (next.players as Player[]).filter((player) => player.status === "sold");
     const newlySold = soldPlayers.find((player) => !previousSold.current.has(player.id));
 
-    if (newlySold && previousSold.current.size > 0) {
+    if (soldStateReady.current && newlySold) {
       const team = (next.teams as Team[]).find((item) => item.id === newlySold.sold_team_id);
       setSoldFlash({
         nickname: newlySold.nickname,
@@ -68,6 +69,7 @@ export default function AuctionBroadcastClient() {
     }
 
     previousSold.current = new Set(soldPlayers.map((player) => player.id));
+    soldStateReady.current = true;
     setState(next);
   }, []);
 

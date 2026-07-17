@@ -1,7 +1,18 @@
-import FeaturePage from "@/app/components/FeaturePage";
 import { requireStaff } from "@/lib/session";
+import AuctionManagerClient from "./AuctionManagerClient";
+
+export const dynamic = "force-dynamic";
 
 export default async function Page() {
   await requireStaff();
-  return <FeaturePage eyebrow="STAFF ONLY" title="경매 관리" description="경매 설정·선수 명단·낙찰·종료·방송 화면을 관리합니다." icon="🔨" admin={true} />;
+  return (
+    <>
+      <section className="feature-page-hero">
+        <span>STAFF ONLY</span>
+        <h1>경매 관리</h1>
+        <p>여기서 경매방을 만들면 실시간 경매와 방송 화면에 바로 표시됩니다.</p>
+      </section>
+      <AuctionManagerClient />
+    </>
+  );
 }

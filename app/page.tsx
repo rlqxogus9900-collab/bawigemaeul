@@ -7,9 +7,9 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const latestUpdate = {
-  version: "1.3.7.25",
-  title: "홈 이미지 안정화 및 전체 알림",
-  summary: "바위게 이미지 크기 변화 제거와 전체 알림 확인 페이지 추가"
+  version: "1.3.8.2",
+  title: "실시간 경매 진행 구조 완성",
+  summary: "경매 관리 방 생성, 입찰·낙찰 애니메이션, 종료 결과와 입찰 기록 표시 개선"
 };
 
 

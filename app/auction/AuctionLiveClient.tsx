@@ -61,16 +61,28 @@ export default function AuctionLiveClient({
   });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [budget, setBudget] = useState(1000);
-  const [step, setStep] = useState(10);
   const [soundOn, setSoundOn] = useState(true);
   const previousBid = useRef(0);
+  const previousSoldIds = useRef(new Set<string>());
+  const soldStateReady = useRef(false);
+  const [bidPulse, setBidPulse] = useState(0);
+  const [soldFlash, setSoldFlash] = useState<{ nickname: string; team: string; price: number } | null>(null);
 
   const load = useCallback(async () => {
     const r = await fetch("/api/auction/state", { cache: "no-store" });
-    if (r.ok) setState(await r.json());
+    if (!r.ok) return;
+    const next: AuctionState = await r.json();
+    const soldPlayers = next.players.filter((player) => player.status === "sold");
+    const newlySold = soldPlayers.find((player) => !previousSoldIds.current.has(player.id));
+    if (soldStateReady.current && newlySold) {
+      const team = next.teams.find((item) => item.id === newlySold.sold_team_id);
+      setSoldFlash({ nickname: newlySold.nickname, team: team?.name || "팀", price: newlySold.sold_price || 0 });
+      window.setTimeout(() => setSoldFlash(null), 2200);
+    }
+    previousSoldIds.current = new Set(soldPlayers.map((player) => player.id));
+    soldStateReady.current = true;
+    setState(next);
   }, []);
-
   useEffect(() => {
     load();
     const timer = window.setInterval(load, 1200);
@@ -79,7 +91,9 @@ export default function AuctionLiveClient({
 
   useEffect(() => {
     const bid = state.room?.current_bid || 0;
-    if (soundOn && previousBid.current > 0 && bid > previousBid.current) {
+    if (previousBid.current > 0 && bid > previousBid.current) {
+      setBidPulse((value) => value + 1);
+      if (soundOn) {
       const AudioContextClass =
         window.AudioContext ||
         (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
@@ -94,6 +108,7 @@ export default function AuctionLiveClient({
         gain.connect(ctx.destination);
         oscillator.start();
         oscillator.stop(ctx.currentTime + 0.12);
+      }
       }
     }
     previousBid.current = bid;
@@ -133,21 +148,6 @@ export default function AuctionLiveClient({
     setBusy(false);
   };
 
-  const create = async () => {
-    setBusy(true);
-    setError("");
-
-    const r = await fetch("/api/admin/auction/create", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ startingBudget: budget, bidStep: step })
-    });
-
-    const result = await r.json().catch(() => ({}));
-    if (!r.ok) setError(result.error || "생성 실패");
-    await load();
-    setBusy(false);
-  };
 
   const room = state.room;
   const currentPlayer = state.players.find((player) => player.id === room?.current_player_id);
@@ -171,36 +171,9 @@ export default function AuctionLiveClient({
   if (!room) {
     return (
       <section className="card auction-empty">
-        <h2>진행 중인 경매가 없습니다</h2>
-        <p>경매 연동 정기내전 투표의 참가자와 팀장을 자동으로 불러옵니다.</p>
-
-        {isStaff && (
-          <div className="auction-create-row">
-            <label>
-              팀 예산
-              <input
-                min={0}
-                type="number"
-                value={budget}
-                onChange={(e) => setBudget(Number(e.target.value))}
-              />
-            </label>
-            <label>
-              입찰 단위
-              <input
-                min={1}
-                type="number"
-                value={step}
-                onChange={(e) => setStep(Number(e.target.value))}
-              />
-            </label>
-            <button className="button" disabled={busy} onClick={create}>
-              {busy ? "생성 중..." : "경매방 생성"}
-            </button>
-          </div>
-        )}
-
-        {error && <p className="form-error">{error}</p>}
+        <h2>표시할 경매방이 없습니다</h2>
+        <p>운영진이 <b>경매 관리</b>에서 방을 만들면 이 화면에 자동으로 표시됩니다.</p>
+        {isStaff && <a className="button" href="/admin/auction">경매 관리로 이동</a>}
       </section>
     );
   }
@@ -221,12 +194,12 @@ export default function AuctionLiveClient({
           </div>
         </div>
 
-        <div className="auction-current">
+        <div key={`${room.current_player_id || "none"}-${bidPulse}`} className="auction-current auction-current-animated">
           <small>현재 선수</small>
           <strong>{currentPlayer?.nickname || "선수를 선택하세요"}</strong>
           <div>
             <span>현재가</span>
-            <b>{room.current_bid.toLocaleString()}점</b>
+            <b className="auction-price-pulse">{room.current_bid.toLocaleString()}점</b>
           </div>
           <em>
             {leadingTeam
@@ -246,6 +219,20 @@ export default function AuctionLiveClient({
                   : "관전 모드"}
             </b>
           </div>
+        )}
+
+        {room.status === "finished" && (
+          <section className="auction-final-result">
+            <div className="auction-final-title"><span>AUCTION RESULT</span><h3>경매 최종 결과</h3></div>
+            <div className="auction-final-grid">
+              {state.teams.map((team) => (
+                <article key={team.id}>
+                  <header><div><span>{team.name}</span><b>{team.captain_nickname}</b></div><strong>잔여 {team.budget.toLocaleString()}점</strong></header>
+                  <div>{(teamPlayers[team.id] || []).map((player: Player) => <p key={player.id}><b>{player.nickname}</b><span>{(player.sold_price || 0).toLocaleString()}점</span></p>)}</div>
+                </article>
+              ))}
+            </div>
+          </section>
         )}
 
         <div className="auction-control-row">
@@ -353,18 +340,18 @@ export default function AuctionLiveClient({
 
           <div className="auction-bid-history">
             {state.bids.map((auctionBid) => (
-              <div key={auctionBid.id}>
-                <b>
-                  {state.teams.find((team) => team.id === auctionBid.team_id)?.name || "팀"}
-                </b>
+              <div className="auction-bid-row" key={auctionBid.id}>
+                <b>{state.teams.find((team) => team.id === auctionBid.team_id)?.name || "팀"}</b>
                 <span>{auctionBid.amount.toLocaleString()}점</span>
-                <small>{auctionBid.bidder_nickname}</small>
+                <small>{auctionBid.bidder_nickname || "입찰자"}</small>
+                <time>{new Date(auctionBid.created_at).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</time>
               </div>
             ))}
             {!state.bids.length && <p className="muted">입찰 기록이 없습니다.</p>}
           </div>
         </article>
       </section>
+      {soldFlash && <div className="auction-sold-flash"><span>SOLD</span><strong>{soldFlash.nickname}</strong><p>{soldFlash.team} · {soldFlash.price.toLocaleString()}점</p></div>}
     </div>
   );
 }
