@@ -7,9 +7,9 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const latestUpdate = {
-  version: "1.3.8.13",
-  title: "명예의 전당 페이지 강화",
-  summary: "역대 우승 순위, MVP, 세트 스코어, 우승 멤버 검색과 필터 추가"
+  version: "1.3.8.14",
+  title: "바위게 신문고 활성화",
+  summary: "익명 제보, 분류·상태 필터, 운영진 답변과 처리 관리 기능 추가"
 };
 
 

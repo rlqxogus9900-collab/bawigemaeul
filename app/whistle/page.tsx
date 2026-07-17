@@ -1,5 +1,18 @@
-import FeaturePage from "@/app/components/FeaturePage";
+import { getSession } from "@/lib/session";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import WhistleClient from "./WhistleClient";
 
-export default async function Page() {
-  return <FeaturePage eyebrow="ANONYMOUS REPORT" title="바위게 신문고" description="클랜원은 익명으로 작성하고 운영진만 작성자를 확인합니다." icon="📮" admin={false} />;
+export const dynamic = "force-dynamic";
+
+export default async function WhistlePage() {
+  const [user, result] = await Promise.all([
+    getSession(),
+    getSupabaseAdmin()
+      .from("whistle_reports")
+      .select("id,category,title,content,is_anonymous,display_name,image_url,status,staff_reply,created_at")
+      .order("created_at", { ascending: false })
+      .limit(100)
+  ]);
+
+  return <WhistleClient reports={result.data || []} loggedIn={!!user} />;
 }
