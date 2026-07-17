@@ -6,29 +6,44 @@ export const dynamic = "force-dynamic";
 export default async function AuctionPage() {
   const db = getSupabaseAdmin();
 
-  const { data: event } = await db
-    .from("regular_match_events")
-    .select("id,title,status,match_at")
-    .order("created_at", { ascending: false })
-    .limit(1)
+  const { data: poll } = await db
+    .from("board_polls")
+    .select(`
+      id,
+      post_id,
+      match_at,
+      board_posts (title)
+    `)
+    .eq("poll_type", "regular_match")
+    .eq("is_auction_source", true)
     .maybeSingle();
 
-  const [{ data: votes }, { data: captains }] = event
-    ? await Promise.all([
-        db
-          .from("regular_match_votes")
-          .select("member_id,member_nickname")
-          .eq("event_id", event.id)
-          .eq("choice", "attending"),
-        db
-          .from("regular_match_captains")
-          .select("member_id,member_nickname")
-          .eq("event_id", event.id)
-      ])
-    : [{ data: [] }, { data: [] }];
+  const { data: attendingOption } = poll
+    ? await db
+        .from("board_poll_options")
+        .select("id")
+        .eq("poll_id", poll.id)
+        .eq("label", "참가")
+        .maybeSingle()
+    : { data: null };
 
-  const captainIds = new Set((captains || []).map(captain => captain.member_id));
-  const auctionPlayers = (votes || []).filter(vote => !captainIds.has(vote.member_id));
+  const { data: votes } = attendingOption
+    ? await db
+        .from("board_poll_votes")
+        .select("member_id,member_nickname")
+        .eq("poll_id", poll!.id)
+        .eq("option_id", attendingOption.id)
+    : { data: [] };
+
+  const { data: captains } = poll
+    ? await db
+        .from("board_poll_captains")
+        .select("member_id,member_nickname")
+        .eq("poll_id", poll.id)
+    : { data: [] };
+
+  const captainIds = new Set((captains || []).map(item => item.member_id));
+  const players = (votes || []).filter(item => !captainIds.has(item.member_id));
 
   return (
     <>
@@ -36,19 +51,19 @@ export default async function AuctionPage() {
         <div>
           <span>LIVE AUCTION</span>
           <h1>실시간 경매</h1>
-          <p>정기내전 참가 명단에서 팀장을 제외한 선수만 경매 대상으로 표시됩니다.</p>
+          <p>관리자가 선택한 정기내전 투표의 참가자에서 팀장을 제외한 명단입니다.</p>
         </div>
-        <Link className="button" href="/normal-match">정기내전 모집 보기</Link>
+        <Link className="button" href="/admin/polls">투표 연동 관리</Link>
       </section>
 
       <section className="auction-sync-grid">
         <article className="card">
-          <span className="auction-sync-label">LATEST EVENT</span>
-          <h2>{event?.title || "정기내전 미등록"}</h2>
-          <p>{event?.match_at ? new Date(event.match_at).toLocaleString("ko-KR") : "일정 없음"}</p>
+          <span className="auction-sync-label">AUCTION SOURCE</span>
+          <h2>{poll?.board_posts?.title || "경매 연동 투표 미선택"}</h2>
+          <p>{poll?.match_at ? new Date(poll.match_at).toLocaleString("ko-KR") : "일정 없음"}</p>
           <div className="auction-sync-number">
             <small>경매 대상</small>
-            <strong>{auctionPlayers.length}</strong>
+            <strong>{players.length}</strong>
             <b>명</b>
           </div>
         </article>
@@ -70,19 +85,17 @@ export default async function AuctionPage() {
             <span>AUCTION PLAYER ROSTER</span>
             <h2>경매 참가 선수</h2>
           </div>
-          <small>팀장 자동 제외 적용</small>
+          <small>팀장 자동 제외</small>
         </div>
 
         <div className="auction-player-grid">
-          {auctionPlayers.map((player, index) => (
+          {players.map((player, index) => (
             <div key={player.member_id}>
               <span>{String(index + 1).padStart(2, "0")}</span>
               <b>{player.member_nickname}</b>
             </div>
           ))}
-          {!auctionPlayers.length && (
-            <p className="muted">경매 대상 선수가 없습니다.</p>
-          )}
+          {!players.length && <p className="muted">경매 대상 선수가 없습니다.</p>}
         </div>
       </section>
     </>

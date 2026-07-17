@@ -29,6 +29,7 @@ type Post = {
   view_count: number;
   comment_count: number;
   like_count: number;
+  post_type: string;
   created_at: string;
   subcategory_id: string;
 };
@@ -154,7 +155,7 @@ export default function BoardBrowser({
                   key={post.id}
                   className={post.is_pinned ? "pinned-row" : ""}
                 >
-                  <td>{post.is_pinned ? "📌 고정" : "일반"}</td>
+                  <td>{post.is_pinned ? "📌 고정" : post.post_type === "poll" ? "📊 투표" : "일반"}</td>
                   <td>
                     <Link
                       className="board-post-link"

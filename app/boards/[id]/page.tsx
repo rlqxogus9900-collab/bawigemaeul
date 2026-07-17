@@ -5,6 +5,7 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import MemberProfileLink from "@/app/components/MemberProfileLink";
 import CommentActions from "./CommentActions";
 import PostLikeButton from "./PostLikeButton";
+import PollBlock from "./PollBlock";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +34,8 @@ export default async function BoardPostPage({
       view_count,
       comment_count,
       created_at,
-      updated_at
+      updated_at,
+      post_type
     `)
     .eq("id", id)
     .maybeSingle();
@@ -75,7 +77,8 @@ export default async function BoardPostPage({
         author_nickname,
         content,
         created_at,
-        updated_at
+        updated_at,
+      post_type
       `)
       .eq("post_id", id)
       .order("created_at", { ascending: true }),
@@ -97,6 +100,38 @@ export default async function BoardPostPage({
     user &&
       (user.role === "staff" ||
         user.id === post.author_member_id)
+  );
+
+  const { data: poll } = post.post_type === "poll"
+    ? await db
+        .from("board_polls")
+        .select("id,poll_type,allow_multiple,status,match_at,vote_deadline,is_auction_source")
+        .eq("post_id", id)
+        .maybeSingle()
+    : { data: null };
+
+  const { data: pollOptions } = poll
+    ? await db
+        .from("board_poll_options")
+        .select("id,label,sort_order,vote_count")
+        .eq("poll_id", poll.id)
+        .order("sort_order", { ascending: true })
+    : { data: [] };
+
+  const { data: myPollVotes } = poll && user
+    ? await db
+        .from("board_poll_votes")
+        .select("option_id")
+        .eq("poll_id", poll.id)
+        .eq("member_id", user.id)
+    : { data: [] };
+
+  const pollDisabled = Boolean(
+    poll &&
+      (
+        poll.status !== "open" ||
+        (poll.vote_deadline && new Date(poll.vote_deadline).getTime() <= Date.now())
+      )
   );
 
   return (
@@ -123,6 +158,20 @@ export default async function BoardPostPage({
         </div>
 
         <div className="board-post-content">{post.content}</div>
+
+        {poll && (
+          <PollBlock
+            postId={post.id}
+            pollId={poll.id}
+            pollType={poll.poll_type}
+            options={(pollOptions || []) as never[]}
+            selectedOptionIds={(myPollVotes || []).map(vote => vote.option_id)}
+            allowMultiple={poll.allow_multiple}
+            disabled={pollDisabled}
+            loggedIn={Boolean(user)}
+            isAuctionSource={Boolean(poll.is_auction_source)}
+          />
+        )}
 
         <div className="board-post-reaction">
           <PostLikeButton
