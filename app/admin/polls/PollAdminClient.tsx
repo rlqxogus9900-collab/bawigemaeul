@@ -79,10 +79,10 @@ export default function PollAdminClient({
               <span>{poll.is_auction_source ? "🔨 경매 연동 중" : "정기내전 투표"}</span>
               <h2>{poll.board_posts?.title || "제목 없음"}</h2>
               <p>
-                내전 · {poll.match_at ? new Date(poll.match_at).toLocaleString("ko-KR") : "일정 미정"}
+                내전 · {poll.match_at ? new Date(poll.match_at).toLocaleString("ko-KR", { timeZone: "Asia/Seoul", hour12: false }) : "일정 미정"}
               </p>
               <p>
-                마감 · {poll.vote_deadline ? new Date(poll.vote_deadline).toLocaleString("ko-KR") : "마감 미정"}
+                마감 · {poll.vote_deadline ? new Date(poll.vote_deadline).toLocaleString("ko-KR", { timeZone: "Asia/Seoul", hour12: false }) : "마감 미정"}
               </p>
             </div>
             <div className="poll-admin-actions">

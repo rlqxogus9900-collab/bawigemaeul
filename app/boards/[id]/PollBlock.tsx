@@ -11,12 +11,14 @@ type Option = {
 function formatDateTime(value: string | null) {
   if (!value) return "미정";
   return new Date(value).toLocaleString("ko-KR", {
+    timeZone: "Asia/Seoul",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
     weekday: "short",
     hour: "2-digit",
-    minute: "2-digit"
+    minute: "2-digit",
+    hour12: false
   });
 }
 

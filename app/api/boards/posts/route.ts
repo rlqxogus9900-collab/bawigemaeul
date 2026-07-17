@@ -90,12 +90,12 @@ export async function POST(request: Request) {
 
     const matchAt =
       isRegularMatch && matchDate && matchTime
-        ? new Date(`${matchDate}T${matchTime}:00`).toISOString()
+        ? new Date(`${matchDate}T${matchTime}:00+09:00`).toISOString()
         : null;
 
     const voteDeadline =
       isRegularMatch && deadlineDate && deadlineTime
-        ? new Date(`${deadlineDate}T${deadlineTime}:00`).toISOString()
+        ? new Date(`${deadlineDate}T${deadlineTime}:00+09:00`).toISOString()
         : null;
 
     if (

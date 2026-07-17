@@ -5,22 +5,23 @@ import { useMemo, useState } from "react";
 
 type PostMode = "normal" | "poll";
 type PollMode = "general" | "regular_match";
-type DeadlinePreset = "30" | "60" | "120" | "custom";
-
-function pad(value: number) {
-  return String(value).padStart(2, "0");
-}
 
 function formatPreview(date: string, time: string) {
   if (!date || !time) return "미정";
-  const target = new Date(`${date}T${time}:00`);
-  if (Number.isNaN(target.getTime())) return "미정";
+
+  const [year, month, day] = date.split("-").map(Number);
+  const [hour, minute] = time.split(":").map(Number);
+
+  const target = new Date(year, month - 1, day, hour, minute);
+
   return target.toLocaleString("ko-KR", {
+    year: "numeric",
     month: "2-digit",
     day: "2-digit",
     weekday: "short",
     hour: "2-digit",
-    minute: "2-digit"
+    minute: "2-digit",
+    hour12: false
   });
 }
 
@@ -36,60 +37,38 @@ export default function BoardPostComposer({
   const [postMode, setPostMode] = useState<PostMode>("normal");
   const [pollMode, setPollMode] = useState<PollMode>("general");
   const [options, setOptions] = useState(["선택지 1", "선택지 2"]);
+
   const [matchDate, setMatchDate] = useState("");
-  const [matchTime, setMatchTime] = useState("21:00");
-  const [deadlinePreset, setDeadlinePreset] = useState<DeadlinePreset>("60");
-  const [customDeadlineDate, setCustomDeadlineDate] = useState("");
-  const [customDeadlineTime, setCustomDeadlineTime] = useState("");
+  const [matchTime, setMatchTime] = useState("");
+  const [deadlineDate, setDeadlineDate] = useState("");
+  const [deadlineTime, setDeadlineTime] = useState("");
 
   const isRegularBoard = useMemo(
     () => boardName.includes("정기") || boardName.includes("내전"),
     [boardName]
   );
 
-  const deadlineValue = useMemo(() => {
-    if (deadlinePreset === "custom") {
-      return {
-        date: customDeadlineDate,
-        time: customDeadlineTime
-      };
-    }
-
-    if (!matchDate || !matchTime) {
-      return { date: "", time: "" };
-    }
-
-    const target = new Date(`${matchDate}T${matchTime}:00`);
-    if (Number.isNaN(target.getTime())) return { date: "", time: "" };
-
-    target.setMinutes(target.getMinutes() - Number(deadlinePreset));
-
-    return {
-      date: `${target.getFullYear()}-${pad(target.getMonth() + 1)}-${pad(target.getDate())}`,
-      time: `${pad(target.getHours())}:${pad(target.getMinutes())}`
-    };
-  }, [
-    matchDate,
-    matchTime,
-    deadlinePreset,
-    customDeadlineDate,
-    customDeadlineTime
-  ]);
-
   function updateOption(index: number, value: string) {
     setOptions(current =>
-      current.map((item, itemIndex) => itemIndex === index ? value : item)
+      current.map((item, itemIndex) =>
+        itemIndex === index ? value : item
+      )
     );
   }
 
   function addOption() {
     if (options.length >= 10) return;
-    setOptions(current => [...current, `선택지 ${current.length + 1}`]);
+    setOptions(current => [
+      ...current,
+      `선택지 ${current.length + 1}`
+    ]);
   }
 
   function removeOption(index: number) {
     if (options.length <= 2) return;
-    setOptions(current => current.filter((_, itemIndex) => itemIndex !== index));
+    setOptions(current =>
+      current.filter((_, itemIndex) => itemIndex !== index)
+    );
   }
 
   return (
@@ -97,7 +76,11 @@ export default function BoardPostComposer({
       <input type="hidden" name="subcategory_id" value={boardId} />
       <input type="hidden" name="post_type" value={postMode} />
       <input type="hidden" name="poll_type" value={pollMode} />
-      <input type="hidden" name="poll_options_json" value={JSON.stringify(options)} />
+      <input
+        type="hidden"
+        name="poll_options_json"
+        value={JSON.stringify(options)}
+      />
 
       <div className="post-type-picker">
         <button
@@ -151,12 +134,22 @@ export default function BoardPostComposer({
 
       <label>
         제목
-        <input name="title" maxLength={120} required placeholder="게시글 제목" />
+        <input
+          name="title"
+          maxLength={120}
+          required
+          placeholder="게시글 제목"
+        />
       </label>
 
       <label>
         내용
-        <textarea name="content" rows={12} required placeholder="내용을 입력하세요." />
+        <textarea
+          name="content"
+          rows={12}
+          required
+          placeholder="내용을 입력하세요."
+        />
       </label>
 
       {postMode === "poll" && pollMode === "general" && (
@@ -176,7 +169,9 @@ export default function BoardPostComposer({
               <span>{index + 1}</span>
               <input
                 value={option}
-                onChange={event => updateOption(index, event.target.value)}
+                onChange={event =>
+                  updateOption(index, event.target.value)
+                }
                 maxLength={80}
                 required
               />
@@ -199,13 +194,13 @@ export default function BoardPostComposer({
       )}
 
       {postMode === "poll" && pollMode === "regular_match" && (
-        <section className="regular-poll-editor regular-poll-editor-v3">
+        <section className="regular-poll-editor regular-poll-editor-direct">
           <div className="regular-poll-info">
             <b>정기내전 일정</b>
-            <p>날짜 한 번, 시작시간 한 번, 마감 간격 한 번만 고르면 됩니다.</p>
+            <p>원하는 날짜와 시간을 직접 입력하세요.</p>
           </div>
 
-          <div className="regular-schedule-simple-grid">
+          <div className="regular-direct-time-grid">
             <label>
               내전 날짜
               <input
@@ -217,20 +212,8 @@ export default function BoardPostComposer({
               />
             </label>
 
-            <div className="quick-time-block">
-              <span>내전 시작 시간</span>
-              <div className="quick-time-buttons">
-                {["20:00", "21:00", "22:00"].map(time => (
-                  <button
-                    type="button"
-                    key={time}
-                    className={matchTime === time ? "active" : ""}
-                    onClick={() => setMatchTime(time)}
-                  >
-                    {time}
-                  </button>
-                ))}
-              </div>
+            <label>
+              내전 시작 시간
               <input
                 type="time"
                 name="match_time"
@@ -238,64 +221,39 @@ export default function BoardPostComposer({
                 onChange={event => setMatchTime(event.target.value)}
                 required
               />
-            </div>
+            </label>
+
+            <label>
+              투표 마감 날짜
+              <input
+                type="date"
+                name="deadline_date"
+                value={deadlineDate}
+                onChange={event => setDeadlineDate(event.target.value)}
+                required
+              />
+            </label>
+
+            <label>
+              투표 마감 시간
+              <input
+                type="time"
+                name="deadline_time"
+                value={deadlineTime}
+                onChange={event => setDeadlineTime(event.target.value)}
+                required
+              />
+            </label>
           </div>
-
-          <div className="deadline-preset-block">
-            <span>투표 마감</span>
-            <div className="deadline-preset-buttons">
-              {[
-                ["30", "내전 30분 전"],
-                ["60", "내전 1시간 전"],
-                ["120", "내전 2시간 전"],
-                ["custom", "직접 설정"]
-              ].map(([value, label]) => (
-                <button
-                  type="button"
-                  key={value}
-                  className={deadlinePreset === value ? "active" : ""}
-                  onClick={() => setDeadlinePreset(value as DeadlinePreset)}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {deadlinePreset === "custom" && (
-            <div className="regular-poll-date-grid-v3">
-              <label>
-                마감 날짜
-                <input
-                  type="date"
-                  value={customDeadlineDate}
-                  onChange={event => setCustomDeadlineDate(event.target.value)}
-                  required
-                />
-              </label>
-              <label>
-                마감 시간
-                <input
-                  type="time"
-                  value={customDeadlineTime}
-                  onChange={event => setCustomDeadlineTime(event.target.value)}
-                  required
-                />
-              </label>
-            </div>
-          )}
-
-          <input type="hidden" name="deadline_date" value={deadlineValue.date} />
-          <input type="hidden" name="deadline_time" value={deadlineValue.time} />
 
           <div className="regular-time-preview">
             <div>
-              <span>내전</span>
+              <span>내전 일정</span>
               <b>{formatPreview(matchDate, matchTime)}</b>
             </div>
             <div>
               <span>투표 마감</span>
-              <b>{formatPreview(deadlineValue.date, deadlineValue.time)}</b>
+              <b>{formatPreview(deadlineDate, deadlineTime)}</b>
             </div>
           </div>
         </section>

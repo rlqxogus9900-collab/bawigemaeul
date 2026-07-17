@@ -20,7 +20,7 @@ export async function POST(
     );
   }
 
-  const deadline = new Date(`${deadlineDate}T${deadlineTime}:00`);
+  const deadline = new Date(`${deadlineDate}T${deadlineTime}:00+09:00`);
 
   if (Number.isNaN(deadline.getTime())) {
     return NextResponse.json(
