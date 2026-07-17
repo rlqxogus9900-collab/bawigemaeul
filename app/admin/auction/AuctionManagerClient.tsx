@@ -80,7 +80,8 @@ export default function AuctionManagerClient() {
               <div><span>입찰</span><b>{state.bids.length}건</b></div>
             </div>
             <div className="auction-admin-links">
-              <Link className="button" href="/auction">실시간 경매 열기</Link>
+              <Link className="button" href="/auction">관전 화면 열기</Link>
+              <Link className="button secondary" href="/auction/captain">팀장 전용 열기</Link>
               <Link className="button secondary" href="/auction/broadcast" target="_blank">방송 화면 열기</Link>
             </div>
           </>

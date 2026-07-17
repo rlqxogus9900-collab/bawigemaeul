@@ -41,6 +41,7 @@ const fixedGroups: FixedGroup[] = [
       ["/reference", "☷", "내전 참고 명단"],
       ["/normal-match", "⚔", "일반 내전"],
       ["/auction", "📡", "실시간 경매"],
+      ["/auction/captain", "👑", "실시간 경매 팀장 전용"],
       ["/stats", "▥", "정기내전 통계"],
       ["/coin", "◉", "코인토스"]
     ]
