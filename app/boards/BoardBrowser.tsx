@@ -128,18 +128,25 @@ export default function BoardBrowser({
             <h2>{selected?.name || "게시판"}</h2>
           </div>
 
-          {canWrite ? (
-            <Link
-              className="button primary"
-              href={`/boards/new?board=${selected?.id || ""}`}
-            >
-              글쓰기
-            </Link>
-          ) : (
-            <Link className="button" href="/login">
-              로그인 후 글쓰기
-            </Link>
-          )}
+          <div className="board-list-head-actions">
+            {canWrite && (
+              <Link className="button" href="/boards/bookmarks">
+                ★ 내 즐겨찾기
+              </Link>
+            )}
+            {canWrite ? (
+              <Link
+                className="button primary"
+                href={`/boards/new?board=${selected?.id || ""}`}
+              >
+                글쓰기
+              </Link>
+            ) : (
+              <Link className="button" href="/login">
+                로그인 후 글쓰기
+              </Link>
+            )}
+          </div>
         </div>
 
         <nav className="board-sort-tabs" aria-label="게시글 정렬">

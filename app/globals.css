@@ -2294,7 +2294,7 @@ td{padding:11px 10px;font-size:13px}
   }
 }
 
-/* Online Beta 1.3.7.13 - board sorting and view protection */
+/* Online Beta 1.3.7.15 - board sorting and view protection */
 .board-sort-tabs{
   display:flex;
   flex-wrap:wrap;
@@ -2316,4 +2316,80 @@ td{padding:11px 10px;font-size:13px}
   border-color:#d6c06b;
   color:#f2dd85;
   background:#183323;
+}
+
+
+/* Online Beta 1.3.7.15 - board bookmarks */
+.board-list-head-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+
+.board-post-reaction{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  flex-wrap:wrap;
+}
+
+.post-bookmark-button{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  min-height:42px;
+  padding:9px 15px;
+  border:1px solid #496052;
+  border-radius:999px;
+  background:#0a1d15;
+  color:#bdcbc2;
+  cursor:pointer;
+  font:inherit;
+}
+
+.post-bookmark-button span{
+  color:#d9c56d;
+  font-size:18px;
+  line-height:1;
+}
+
+.post-bookmark-button b{
+  font-size:12px;
+}
+
+.post-bookmark-button:hover,
+.post-bookmark-button.bookmarked{
+  border-color:#d9c56d;
+  background:#30290d;
+  color:#f2dd85;
+}
+
+.post-bookmark-button:disabled{
+  opacity:.55;
+  cursor:wait;
+}
+
+.board-bookmark-list-link{
+  min-height:42px;
+  border-radius:999px;
+}
+
+@media(max-width:620px){
+  .board-list-head-actions{
+    width:100%;
+    justify-content:stretch;
+  }
+
+  .board-list-head-actions .button{
+    flex:1;
+    text-align:center;
+  }
+
+  .board-bookmark-list-link{
+    width:100%;
+    text-align:center;
+  }
 }

@@ -5,6 +5,7 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import MemberProfileLink from "@/app/components/MemberProfileLink";
 import CommentActions from "./CommentActions";
 import PostLikeButton from "./PostLikeButton";
+import PostBookmarkButton from "./PostBookmarkButton";
 import ViewCounter from "./ViewCounter";
 import PollBlock from "./PollBlock";
 
@@ -60,7 +61,8 @@ export default async function BoardPostPage({
   const [
     { data: comments },
     { count: likeCount },
-    { data: myLike }
+    { data: myLike },
+    { data: myBookmark }
   ] = await Promise.all([
     db
       .from("board_comments")
@@ -82,6 +84,14 @@ export default async function BoardPostPage({
     user
       ? db
           .from("board_post_likes")
+          .select("id")
+          .eq("post_id", id)
+          .eq("member_id", user.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    user
+      ? db
+          .from("board_post_bookmarks")
           .select("id")
           .eq("post_id", id)
           .eq("member_id", user.id)
@@ -176,6 +186,16 @@ export default async function BoardPostPage({
             initialLiked={Boolean(myLike)}
             loggedIn={Boolean(user)}
           />
+          <PostBookmarkButton
+            postId={post.id}
+            initialBookmarked={Boolean(myBookmark)}
+            loggedIn={Boolean(user)}
+          />
+          {user && (
+            <Link className="button board-bookmark-list-link" href="/boards/bookmarks">
+              내 즐겨찾기
+            </Link>
+          )}
         </div>
 
         {canManagePost && (
