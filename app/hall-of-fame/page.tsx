@@ -13,14 +13,13 @@ function text(value: unknown, fallback = "-") {
 export default async function HallOfFamePage() {
   const db = getSupabaseAdmin();
 
-  const [{ data: regular }, { data: detailed }] = await Promise.all([
-    db.from("regular_match_results").select("*").order("played_at", { ascending: false }).limit(30),
-    db.from("match_records").select("*").order("played_at", { ascending: false }).limit(30)
-  ]);
+  const { data } = await db
+    .from("regular_match_results")
+    .select("*")
+    .order("played_at", { ascending: false })
+    .limit(30);
 
-  const matches = ([...(regular || []), ...(detailed || [])] as MatchResult[])
-    .sort((a,b) => new Date(String(b.played_at || 0)).getTime() - new Date(String(a.played_at || 0)).getTime())
-    .slice(0, 30);
+  const matches = (data || []) as MatchResult[];
 
   const winnerCounts = new Map<string, number>();
 

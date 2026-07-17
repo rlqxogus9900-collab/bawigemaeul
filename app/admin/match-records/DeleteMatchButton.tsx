@@ -1,0 +1,1 @@
+"use client";export default function DeleteMatchButton({id}:{id:string}){return <button className="button danger" onClick={async()=>{if(!confirm("이 기록을 삭제할까요?"))return;const r=await fetch(`/api/admin/match-records/${id}`,{method:"DELETE"});if(r.ok)location.reload();else alert("삭제 실패")}}>삭제</button>}

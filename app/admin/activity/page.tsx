@@ -10,8 +10,8 @@ export default async function ActivityPage() {
 
   return (
     <section className="card">
-      <h1>활동 관리</h1><div className="api-ready-badge">RIOT API 연동 준비 완료 · Riot ID 기준</div>
-      <p className="muted">온라인 Beta 1에서는 상태와 제외 사유를 DB에 저장합니다. Riot API 승인 후 자동 활동 집계를 연결할 수 있도록 Riot ID와 마지막 클랜 게임 시각을 유지합니다.</p>
+      <h1>활동 관리</h1>
+      <p className="muted">온라인 Beta 1에서는 상태와 제외 사유를 DB에 저장합니다. Riot API 승인 후 자동 활동 집계 작업을 연결합니다.</p>
       <div className="table-wrap">
         <table>
           <thead><tr><th>닉네임</th><th>Riot ID</th><th>상태</th><th>마지막 클랜 게임</th><th>제외 사유</th><th>관리</th></tr></thead>

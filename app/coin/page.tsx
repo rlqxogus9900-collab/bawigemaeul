@@ -1,5 +1,2 @@
 import CoinTossClient from "./CoinTossClient";
-
-export default function CoinPage() {
-  return <CoinTossClient />;
-}
+export default function Page(){return <CoinTossClient/>}
