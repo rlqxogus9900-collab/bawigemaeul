@@ -4,7 +4,16 @@ export const revalidate = 3600;
 
 const updates = [
   {
-    version: "1.3.7.25",
+    version: "1.3.7.26",
+    date: "2026.07.17",
+    title: "업데이트 내역 누적 수정",
+    items: [
+      "새 버전이 기존 업데이트 목록을 덮어쓰지 않도록 수정",
+      "이후 버전부터 업데이트 내역이 계속 누적됨"
+    ]
+  },
+  {
+    version: "1.3.7.26",
     date: "2026.07.17",
     title: "게시판 정렬과 조회수 중복 방지",
     items: [
