@@ -1,19 +1,21 @@
-import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import BoardBrowser from "./BoardBrowser";
 
 export const dynamic = "force-dynamic";
 
+const POSTS_PER_PAGE = 15;
+
 export default async function BoardsPage({
   searchParams
 }: {
-  searchParams: Promise<{ board?: string; q?: string }>
+  searchParams: Promise<{ board?: string; q?: string; page?: string }>
 }) {
   const user = await getSession();
   const params = await searchParams;
   const db = getSupabaseAdmin();
-  const query = String(params.q || "").trim();
+  const query = String(params.q || "").trim().slice(0, 50);
+  const requestedPage = Math.max(1, Number.parseInt(String(params.page || "1"), 10) || 1);
 
   const canSee = (level: string | null) =>
     level !== "staff" || user?.role === "staff";
@@ -46,27 +48,59 @@ export default async function BoardsPage({
       ? params.board
       : normalized[0]?.board_subcategories?.[0]?.id || "";
 
-  let postsQuery = db
-    .from("board_posts")
-    .select("id,title,author_member_id,author_nickname,is_pinned,view_count,comment_count,like_count,post_type,created_at,subcategory_id")
-    .eq("subcategory_id", selectedBoardId)
-    .order("is_pinned", { ascending: false })
-    .order("created_at", { ascending: false });
+  let totalCount = 0;
+  let posts: unknown[] = [];
+  let currentPage = requestedPage;
 
-  if (query) {
-    postsQuery = postsQuery.or(`title.ilike.%${query}%,author_nickname.ilike.%${query}%`);
+  if (selectedBoardId) {
+    const safeQuery = query.replace(/[,%]/g, " ").trim();
+    let countQuery = db
+      .from("board_posts")
+      .select("id", { count: "exact", head: true })
+      .eq("subcategory_id", selectedBoardId);
+
+    if (safeQuery) {
+      countQuery = countQuery.or(
+        `title.ilike.%${safeQuery}%,author_nickname.ilike.%${safeQuery}%`
+      );
+    }
+
+    const { count } = await countQuery;
+    totalCount = count || 0;
+    const totalPages = Math.max(1, Math.ceil(totalCount / POSTS_PER_PAGE));
+    currentPage = Math.min(requestedPage, totalPages);
+    const from = (currentPage - 1) * POSTS_PER_PAGE;
+    const to = from + POSTS_PER_PAGE - 1;
+
+    let postsQuery = db
+      .from("board_posts")
+      .select("id,title,author_member_id,author_nickname,is_pinned,view_count,comment_count,like_count,post_type,created_at,subcategory_id")
+      .eq("subcategory_id", selectedBoardId)
+      .order("is_pinned", { ascending: false })
+      .order("created_at", { ascending: false })
+      .range(from, to);
+
+    if (safeQuery) {
+      postsQuery = postsQuery.or(
+        `title.ilike.%${safeQuery}%,author_nickname.ilike.%${safeQuery}%`
+      );
+    }
+
+    const result = await postsQuery;
+    posts = result.data || [];
   }
-
-  const { data: posts } = selectedBoardId ? await postsQuery : { data: [] };
 
   return (
     <BoardBrowser
       categories={normalized as never[]}
-      posts={(posts || []) as never[]}
+      posts={posts as never[]}
       selectedBoardId={selectedBoardId}
       query={query}
       canWrite={Boolean(user)}
       isStaff={user?.role === "staff"}
+      currentPage={currentPage}
+      totalCount={totalCount}
+      postsPerPage={POSTS_PER_PAGE}
     />
   );
 }

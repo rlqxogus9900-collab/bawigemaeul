@@ -5,9 +5,9 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const latestUpdate = {
-  version: "1.3.7.1",
-  title: "홈 화면 배치 및 메뉴 반응 개선",
-  summary: "후원 목록 위치 변경, 최신 업데이트 카드 추가, 같은 탭 재클릭 로딩바 제거"
+  version: "1.3.7.12",
+  title: "게시판 페이지와 새 글 표시 개선",
+  summary: "게시글 15개 단위 페이지 이동, 검색 유지, 신규 글·공지 표시"
 };
 
 async function getHomeData() {
@@ -155,6 +155,9 @@ export default async function HomePage() {
               <div key={notice.id}>
                 <span>{notice.is_pinned ? "필독" : "공지"}</span>
                 <b>{notice.title}</b>
+                {Date.now() - new Date(notice.created_at).getTime() < 24 * 60 * 60 * 1000 && (
+                  <i className="home-notice-new">NEW</i>
+                )}
                 <time>{new Date(notice.created_at).toLocaleDateString("ko-KR")}</time>
               </div>
             )) : (

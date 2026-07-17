@@ -41,7 +41,10 @@ export default function BoardBrowser({
   selectedBoardId,
   query,
   canWrite,
-  isStaff
+  isStaff,
+  currentPage,
+  totalCount,
+  postsPerPage
 }: {
   categories: Category[];
   posts: Post[];
@@ -49,6 +52,9 @@ export default function BoardBrowser({
   query: string;
   canWrite: boolean;
   isStaff: boolean;
+  currentPage: number;
+  totalCount: number;
+  postsPerPage: number;
 }) {
   const router = useRouter();
 
@@ -62,6 +68,22 @@ export default function BoardBrowser({
 
   const selected =
     all.find(item => item.id === selectedBoardId) || all[0];
+
+  const totalPages = Math.max(1, Math.ceil(totalCount / postsPerPage));
+  const pageNumbers = Array.from({ length: totalPages }, (_, index) => index + 1)
+    .filter(page =>
+      page === 1 ||
+      page === totalPages ||
+      Math.abs(page - currentPage) <= 2
+    );
+
+  function boardUrl(page: number) {
+    const params = new URLSearchParams();
+    if (selected?.id) params.set("board", selected.id);
+    if (query) params.set("q", query);
+    if (page > 1) params.set("page", String(page));
+    return `/boards?${params.toString()}`;
+  }
 
   return (
     <>
@@ -165,6 +187,9 @@ export default function BoardBrowser({
                       href={`/boards/${post.id}`}
                     >
                       <b>{post.title}</b>
+                      {Date.now() - new Date(post.created_at).getTime() < 24 * 60 * 60 * 1000 && (
+                        <span className="board-new-badge">NEW</span>
+                      )}
                     </Link>
                   </td>
                   <td>
@@ -202,6 +227,47 @@ export default function BoardBrowser({
             </tbody>
           </table>
         </div>
+
+        {totalPages > 1 && (
+          <nav className="board-pagination" aria-label="게시판 페이지 이동">
+            <Link
+              className={`button ${currentPage === 1 ? "disabled" : ""}`}
+              href={currentPage === 1 ? boardUrl(1) : boardUrl(currentPage - 1)}
+              aria-disabled={currentPage === 1}
+            >
+              이전
+            </Link>
+
+            <div className="board-page-numbers">
+              {pageNumbers.map((page, index) => {
+                const previous = pageNumbers[index - 1];
+                return (
+                  <span key={page}>
+                    {previous && page - previous > 1 && <i>…</i>}
+                    <Link
+                      className={page === currentPage ? "active" : ""}
+                      href={boardUrl(page)}
+                    >
+                      {page}
+                    </Link>
+                  </span>
+                );
+              })}
+            </div>
+
+            <Link
+              className={`button ${currentPage === totalPages ? "disabled" : ""}`}
+              href={currentPage === totalPages ? boardUrl(totalPages) : boardUrl(currentPage + 1)}
+              aria-disabled={currentPage === totalPages}
+            >
+              다음
+            </Link>
+          </nav>
+        )}
+
+        <p className="board-result-count">
+          전체 {totalCount}개 · {currentPage}/{totalPages} 페이지
+        </p>
       </section>
     </>
   );
