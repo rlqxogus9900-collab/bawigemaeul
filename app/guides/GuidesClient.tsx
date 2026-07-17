@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type Role = "탑" | "정글" | "미드" | "원딜" | "서폿";
 type ChampionBuild = {
@@ -20,10 +20,20 @@ type ChampionBuild = {
   skillOrder: string;
   combo: string;
   tips: string[];
+  imageName?: string;
+};
+
+type DataDragonChampion = {
+  id: string;
+  name: string;
+  tags: string[];
+  image: { full: string };
 };
 
 const PATCH = "26.14";
-const DDRAGON = "https://ddragon.leagueoflegends.com/cdn/16.14.1/img/champion";
+const DDRAGON_VERSION = "16.14.1";
+const DDRAGON = `https://ddragon.leagueoflegends.com/cdn/${DDRAGON_VERSION}/img/champion`;
+const DDRAGON_DATA = `https://ddragon.leagueoflegends.com/cdn/${DDRAGON_VERSION}/data/ko_KR/champion.json`;
 
 const builds: ChampionBuild[] = [
   { id:"aatrox", champion:"아트록스", englishName:"Aatrox", role:"탑", tier:"대중픽", patch:PATCH, spells:["점멸","텔레포트"], runes:["정복자","승전보","전설: 가속","최후의 저항","재생의 바람","소생"], startItems:["도란의 방패","체력 물약"], coreItems:["월식","갈라진 하늘","죽음의 무도"], boots:"판금 장화 / 헤르메스의 발걸음", situationalItems:["스테락의 도전","수호 천사","정령의 형상"], skillOrder:"Q → E → W", combo:"W → Q1 → E+Q2 → 평타 → Q3", tips:["Q 끝자락을 맞히는 것이 핵심입니다.","궁극기는 교전 시작 직전에 사용하세요.","상대 조합에 따라 방어 신발을 빠르게 올리세요."] },
@@ -39,23 +49,73 @@ const builds: ChampionBuild[] = [
   { id:"thresh", champion:"쓰레쉬", englishName:"Thresh", role:"서폿", tier:"대중픽", patch:PATCH, spells:["점멸","점화"], runes:["여진","생명의 샘","뼈 방패","불굴의 의지","비스킷 배달","우주적 통찰력"], startItems:["세계 지도집","체력 물약"], coreItems:["천상의 이의","강철의 솔라리 펜던트","기사의 맹세"], boots:"기동력의 장화", situationalItems:["구원","미카엘의 축복","지크의 융합"], skillOrder:"Q → E → W", combo:"E → Q → Q → R", tips:["E로 밀거나 당긴 뒤 Q를 맞히세요.","랜턴을 아군 이동 경로에 미리 놓으세요.","무리한 진입보다 시야 장악이 우선입니다."] }
 ];
 
+
+const JUNGLE_IDS = new Set(["Amumu","Belveth","Briar","Diana","Ekko","Elise","Evelynn","Fiddlesticks","Graves","Hecarim","Ivern","JarvanIV","Karthus","Kayn","Khazix","Kindred","LeeSin","Lillia","MasterYi","Nidalee","Nocturne","Nunu","Rammus","RekSai","Rengar","Sejuani","Shaco","Shyvana","Skarner","Taliyah","Udyr","Vi","Viego","Volibear","Warwick","MonkeyKing","XinZhao","Zac"]);
+const SUPPORT_IDS = new Set(["Alistar","Bard","Blitzcrank","Braum","Janna","Karma","Leona","Lulu","Lux","Milio","Morgana","Nami","Nautilus","Pyke","Rakan","Rell","Renata","Senna","Seraphine","Sona","Soraka","TahmKench","Taric","Thresh","Yuumi","Zilean","Zyra"]);
+const ADC_IDS = new Set(["Aphelios","Ashe","Caitlyn","Corki","Draven","Ezreal","Jhin","Jinx","Kaisa","Kalista","KogMaw","Lucian","MissFortune","Nilah","Samira","Sivir","Smolder","Tristana","Twitch","Varus","Vayne","Xayah","Yunara","Zeri"]);
+const MID_IDS = new Set(["Ahri","Akali","Akshan","Anivia","Annie","AurelionSol","Aurora","Azir","Cassiopeia","Fizz","Galio","Hwei","Kassadin","Katarina","Leblanc","Lissandra","Malzahar","Mel","Neeko","Orianna","Ryze","Swain","Sylas","Syndra","Talon","TwistedFate","Veigar","Velkoz","Vex","Viktor","Vladimir","Xerath","Yasuo","Yone","Zed","Ziggs","Zoe"]);
+
+function inferRole(champion: DataDragonChampion): Role {
+  if (JUNGLE_IDS.has(champion.id)) return "정글";
+  if (SUPPORT_IDS.has(champion.id) || champion.tags.includes("Support")) return "서폿";
+  if (ADC_IDS.has(champion.id)) return "원딜";
+  if (MID_IDS.has(champion.id) || champion.tags.includes("Mage") || champion.tags.includes("Assassin")) return "미드";
+  return "탑";
+}
+
+function createFallbackBuild(champion: DataDragonChampion): ChampionBuild {
+  const role = inferRole(champion);
+  const isAp = champion.tags.includes("Mage");
+  const byRole: Record<Role, Omit<ChampionBuild,"id"|"champion"|"englishName"|"imageName"|"role"|"patch"|"tier">> = {
+    "탑": { spells:["점멸","텔레포트"], runes:["정복자","승전보","전설: 가속","최후의 저항","재생의 바람","불굴의 의지"], startItems:["도란의 방패","체력 물약"], coreItems: isAp ? ["균열 생성기","리안드리의 고통","존야의 모래시계"] : ["갈라진 하늘","스테락의 도전","죽음의 무도"], boots:"판금 장화 / 헤르메스의 발걸음", situationalItems:["수호 천사","정령의 형상","가시 갑옷"], skillOrder:"주력기 → 보조기 → 유틸기", combo:"주력 스킬 적중 → 평타 연계 → 궁극기", tips:["상대 조합에 맞춰 방어 신발을 선택하세요.","첫 핵심 아이템 완성 타이밍에 교전을 노리세요.","정확한 패치별 빌드는 Riot API 연동 후 자동 갱신됩니다."] },
+    "정글": { spells:["점멸","강타"], runes:["정복자","승전보","전설: 민첩함","최후의 일격","돌발 일격","보물 사냥꾼"], startItems:["정글 동료","체력 물약"], coreItems: isAp ? ["리안드리의 고통","그림자불꽃","존야의 모래시계"] : ["월식","칠흑의 양날 도끼","죽음의 무도"], boots:"판금 장화 / 헤르메스의 발걸음", situationalItems:["수호 천사","스테락의 도전","대자연의 힘"], skillOrder:"주력기 → 이동기 → 보조기", combo:"진입기 → 주력기 → 평타 → 궁극기", tips:["첫 바위게와 오브젝트 타이밍을 우선 확인하세요.","아군 라인 주도권이 있는 쪽으로 동선을 잡으세요.","정확한 패치별 빌드는 Riot API 연동 후 자동 갱신됩니다."] },
+    "미드": { spells:["점멸","텔레포트 / 점화"], runes:[isAp?"신비로운 유성":"감전","마나순환 팔찌","깨달음","주문 작열","비스킷 배달","우주적 통찰력"], startItems:[isAp?"도란의 반지":"도란의 검","체력 물약"], coreItems: isAp ? ["루덴의 동반자","그림자불꽃","라바돈의 죽음모자"] : ["월식","요우무의 유령검","세릴다의 원한"], boots:isAp?"마법사의 신발":"명석함의 아이오니아 장화", situationalItems:["존야의 모래시계","밴시의 장막","수호 천사"], skillOrder:"주력기 → 견제기 → 이동/방어기", combo:"CC 또는 견제기 → 주력기 → 궁극기", tips:["라인을 밀고 시야와 로밍 주도권을 잡으세요.","상대 핵심 스킬이 빠진 뒤 진입하세요.","정확한 패치별 빌드는 Riot API 연동 후 자동 갱신됩니다."] },
+    "원딜": { spells:["점멸","방어막 / 회복"], runes:["치명적 속도","침착","전설: 민첩함","최후의 일격","마법의 신발","비스킷 배달"], startItems:["도란의 검","체력 물약"], coreItems:["크라켄 학살자","무한의 대검","도미닉 경의 인사"], boots:"광전사의 군화", situationalItems:["피바라기","수호 천사","헤르메스의 시미터"], skillOrder:"주력 딜 스킬 → 생존기 → 보조기", combo:"평타 → 주력기 → 평타 → 궁극기", tips:["한타에서는 최대 사거리를 유지하며 앞라인부터 공격하세요.","생존기는 상대 진입 스킬을 확인한 뒤 사용하세요.","정확한 패치별 빌드는 Riot API 연동 후 자동 갱신됩니다."] },
+    "서폿": { spells:["점멸","점화 / 탈진"], runes:["여진 / 수호자","생명의 샘","뼈 방패","불굴의 의지","비스킷 배달","우주적 통찰력"], startItems:["세계 지도집","체력 물약"], coreItems:["강철의 솔라리 펜던트","기사의 맹세","구원"], boots:"기동력의 장화 / 명석함의 아이오니아 장화", situationalItems:["미카엘의 축복","지크의 융합","가시 갑옷"], skillOrder:"CC기 → 보호기 → 보조기", combo:"CC기 → 평타/보조기 → 궁극기", tips:["라인보다 시야와 아군 딜러 보호를 우선하세요.","오브젝트 1분 전부터 시야를 정리하세요.","정확한 패치별 빌드는 Riot API 연동 후 자동 갱신됩니다."] }
+  };
+  return { id:champion.id.toLowerCase(), champion:champion.name, englishName:champion.id, imageName:champion.image.full, role, tier:"전체 챔피언 기본형", patch:PATCH, ...byRole[role] };
+}
+
 const roles = ["전체", "탑", "정글", "미드", "원딜", "서폿"] as const;
 
 export default function GuidesClient() {
   const [query, setQuery] = useState("");
   const [role, setRole] = useState<(typeof roles)[number]>("전체");
+  const [allBuilds, setAllBuilds] = useState<ChampionBuild[]>(builds);
   const [selected, setSelected] = useState<ChampionBuild>(builds[0]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    fetch(DDRAGON_DATA)
+      .then(response => { if (!response.ok) throw new Error("champion data load failed"); return response.json(); })
+      .then((payload: { data: Record<string, DataDragonChampion> }) => {
+        if (!active) return;
+        const detailed = new Map(builds.map(build => [build.englishName, build]));
+        const merged = Object.values(payload.data)
+          .map(champion => {
+            const saved = detailed.get(champion.id);
+            return saved ? { ...saved, champion: champion.name, imageName: champion.image.full } : createFallbackBuild(champion);
+          })
+          .sort((a,b) => a.champion.localeCompare(b.champion, "ko"));
+        setAllBuilds(merged);
+        setSelected(current => merged.find(item => item.englishName === current.englishName) ?? merged[0]);
+      })
+      .catch(() => setAllBuilds(builds))
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
 
   const filtered = useMemo(() => {
     const keyword = query.trim().toLowerCase();
-    return builds.filter(build => (role === "전체" || build.role === role) && (!keyword || `${build.champion} ${build.englishName}`.toLowerCase().includes(keyword)));
-  }, [query, role]);
+    return allBuilds.filter(build => (role === "전체" || build.role === role) && (!keyword || `${build.champion} ${build.englishName}`.toLowerCase().includes(keyword)));
+  }, [allBuilds, query, role]);
 
   return (
     <div className="guides-shell champion-build-shell">
       <section className="guides-hero">
         <div><span>POPULAR BUILDS</span><h1>챔피언 빌드</h1><p>챔피언을 누르면 가장 대중적으로 사용하는 룬·아이템·스킬 빌드를 바로 확인할 수 있습니다.</p></div>
-        <div className="guides-hero-badge"><b>{builds.length}</b><small>챔피언</small></div>
+        <div className="guides-hero-badge"><b>{loading ? "…" : allBuilds.length}</b><small>전체 챔피언</small></div>
       </section>
 
       <section className="card guides-toolbar">
@@ -68,7 +128,7 @@ export default function GuidesClient() {
         <div className="champion-portrait-grid">
           {filtered.map(build => (
             <button key={build.id} type="button" className={`champion-portrait-card ${selected.id === build.id ? "selected" : ""}`} onClick={() => setSelected(build)}>
-              <div className="champion-image-wrap"><Image src={`${DDRAGON}/${build.englishName}.png`} alt={build.champion} width={96} height={96} unoptimized /></div>
+              <div className="champion-image-wrap"><Image src={`${DDRAGON}/${build.imageName ?? `${build.englishName}.png`}`} alt={build.champion} width={96} height={96} unoptimized /></div>
               <strong>{build.champion}</strong><span>{build.role}</span>
             </button>
           ))}
@@ -78,7 +138,7 @@ export default function GuidesClient() {
 
       <section className="card popular-build-detail">
         <header className="popular-build-head">
-          <div className="popular-build-champion"><Image src={`${DDRAGON}/${selected.englishName}.png`} alt={selected.champion} width={118} height={118} unoptimized /></div>
+          <div className="popular-build-champion"><Image src={`${DDRAGON}/${selected.imageName ?? `${selected.englishName}.png`}`} alt={selected.champion} width={118} height={118} unoptimized /></div>
           <div><span>{selected.role} · PATCH {selected.patch}</span><h2>{selected.champion}</h2><p><b>{selected.tier}</b> 기준 대중적인 기본 빌드</p></div>
         </header>
 
@@ -98,7 +158,7 @@ export default function GuidesClient() {
         <div className="guide-detail-block build-tips"><b>간단 핵심 팁</b><ul>{selected.tips.map(item => <li key={item}>{item}</li>)}</ul></div>
       </section>
 
-      <section className="card guides-notice"><span>POPULAR STANDARD</span><div><h2>복잡한 공략 대신 바로 쓰는 빌드</h2><p>현재는 대표 인기 챔피언의 대중적인 기본 빌드를 제공하며, Riot API 연결 후 전체 챔피언과 패치별 통계를 자동 갱신할 예정입니다.</p></div></section>
+      <section className="card guides-notice"><span>POPULAR STANDARD</span><div><h2>복잡한 공략 대신 바로 쓰는 빌드</h2><p>전체 챔피언을 Data Dragon에서 자동으로 불러옵니다. 현재 상세 데이터가 없는 챔피언은 포지션별 기본 빌드를 표시하며, Riot API 연결 후 패치별 실제 통계 빌드로 자동 갱신됩니다.</p></div></section>
     </div>
   );
 }

@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const latestUpdate = {
-  version: "1.3.8.16",
+  version: "1.3.8.17",
   title: "챔피언 선택형 대중 빌드",
   summary: "챔피언을 선택하면 대중적인 룬·아이템·스킬 빌드를 바로 표시"
 };

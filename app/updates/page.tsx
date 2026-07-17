@@ -4,6 +4,12 @@ export const dynamic = "force-dynamic";
 
 const updates = [
   {
+    version: "1.3.8.17",
+    date: "2026-07-18",
+    title: "전체 챔피언 목록 지원",
+    items: ["Data Dragon 기반 전체 챔피언 자동 불러오기", "모든 챔피언 초상화·검색 지원", "상세 빌드 미등록 챔피언 포지션별 기본 빌드 제공"]
+  },
+  {
     version: "1.3.8.16",
     date: "2026.07.18",
     title: "챔피언 선택형 대중 빌드로 개편",
