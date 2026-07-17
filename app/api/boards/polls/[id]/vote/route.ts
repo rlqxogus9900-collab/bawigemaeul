@@ -42,7 +42,7 @@ export async function POST(
 
   if (normalized.length) {
     const { error } = await db.from("board_poll_votes").insert(
-      normalized.map(optionId => ({
+      normalized.map((optionId: string) => ({
         poll_id: pollId,
         option_id: optionId,
         member_id: user.id,
