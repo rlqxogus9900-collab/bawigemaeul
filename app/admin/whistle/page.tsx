@@ -1,3 +1,7 @@
-import {requireStaff} from "@/lib/session";import {getSupabaseAdmin} from "@/lib/supabase-admin";
-export const dynamic="force-dynamic";
-export default async function Page(){await requireStaff();const {data}=await getSupabaseAdmin().from("whistle_reports").select("*").order("created_at",{ascending:false});const rows=data||[];return <section className="card"><div className="page-head"><div><span>STAFF ONLY</span><h1>신문고 관리</h1><p className="muted">운영진만 작성자를 확인하고 답변·처리 상태를 저장합니다.</p></div></div><div className="whistle-admin-list">{rows.map((r:any)=><article key={r.id}><header><div><small>{new Date(r.created_at).toLocaleString("ko-KR")}</small><h3>{r.title}</h3></div><b>작성자 · {r.author_nickname}</b></header><p>{r.content}</p><form action={`/api/admin/whistle/${r.id}`} method="post"><select name="status" defaultValue={r.status}><option value="received">접수</option><option value="reviewing">확인 중</option><option value="done">처리 완료</option></select><textarea name="answer" rows={4} defaultValue={r.answer||""} placeholder="답변 입력"/><button className="button primary">답변 저장</button></form></article>)}</div></section>}
+import FeaturePage from "@/app/components/FeaturePage";
+import { requireStaff } from "@/lib/session";
+
+export default async function Page() {
+  await requireStaff();
+  return <FeaturePage eyebrow="STAFF ONLY" title="신문고 관리" description="익명 신고 내용을 확인하고 답변합니다." icon="📮" admin={true} />;
+}

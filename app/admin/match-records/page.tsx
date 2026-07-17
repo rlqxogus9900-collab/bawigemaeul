@@ -1,3 +1,7 @@
-import {requireStaff} from "@/lib/session";import {getSupabaseAdmin} from "@/lib/supabase-admin";import DeleteMatchButton from "./DeleteMatchButton";
-export const dynamic="force-dynamic";
-export default async function Page(){await requireStaff();const {data}=await getSupabaseAdmin().from("regular_match_results").select("*").order("played_at",{ascending:false}).limit(100);const rows=data||[];return <><section className="card"><div className="page-head"><div><span>STAFF ONLY</span><h1>내전 기록</h1><p className="muted">세트 스코어·참가자·MVP를 저장합니다.</p></div></div><form className="record-form" action="/api/admin/match-records" method="post"><input name="title" placeholder="대회명" defaultValue="정기내전"/><input name="played_at" type="date" required/><input name="team_a_name" placeholder="A팀 이름" required/><input name="team_a_sets" type="number" min="0" defaultValue="0" required/><input name="team_b_name" placeholder="B팀 이름" required/><input name="team_b_sets" type="number" min="0" defaultValue="0" required/><input name="mvp_name" placeholder="MVP"/><textarea name="participants" placeholder="참가자 쉼표 구분"/><button className="button primary">기록 저장</button></form></section><section className="card"><div className="dashboard-head"><div><span>HISTORY</span><h2>등록 기록</h2></div><small>{rows.length}건</small></div><div className="record-list">{rows.map((m:any)=><article key={m.id}><div><small>{m.played_at?new Date(m.played_at).toLocaleDateString("ko-KR"):"-"}</small><h3>{m.title||"정기내전"}</h3><b>{m.team_a_name} {m.team_a_sets} : {m.team_b_sets} {m.team_b_name}</b><p>우승 · {m.winner_name||"-"} / MVP · {m.mvp_name||"-"}</p><p>참가자 · {Array.isArray(m.participants)?m.participants.join(", "):"-"}</p></div><DeleteMatchButton id={m.id}/></article>)}</div></section></>}
+import FeaturePage from "@/app/components/FeaturePage";
+import { requireStaff } from "@/lib/session";
+
+export default async function Page() {
+  await requireStaff();
+  return <FeaturePage eyebrow="STAFF ONLY" title="정기내전 상세 기록" description="세트 결과와 선수별 경기 기록을 관리합니다." icon="📝" admin={true} />;
+}

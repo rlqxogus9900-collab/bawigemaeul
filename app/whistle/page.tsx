@@ -1,3 +1,5 @@
-import {getSession} from "@/lib/session";import {getSupabaseAdmin} from "@/lib/supabase-admin";
-export const dynamic="force-dynamic";
-export default async function Page(){const u=await getSession();const {data=[]}=u?await getSupabaseAdmin().from("whistle_reports").select("id,title,status,answer,created_at").eq("author_member_id",u.id).order("created_at",{ascending:false}):{data:[]};const rows=data||[];return <><section className="card"><div className="page-head"><div><span>ANONYMOUS REPORT</span><h1>바위게 신문고</h1><p className="muted">다른 클랜원에게는 익명이며 작성자는 운영진만 확인합니다.</p></div></div>{u?<form action="/api/whistle" method="post" className="whistle-form"><input name="title" placeholder="제목" required/><textarea name="content" rows={7} placeholder="내용" required/><button className="button primary">익명 접수</button></form>:<p>로그인 후 작성할 수 있습니다.</p>}</section>{u&&<section className="card"><h2>내 접수 내역</h2><div className="record-list">{rows.map((r:any)=><article key={r.id}><div><small>{new Date(r.created_at).toLocaleString("ko-KR")}</small><h3>{r.title}</h3><p>상태 · {r.status==="done"?"처리 완료":r.status==="reviewing"?"확인 중":"접수"}</p>{r.answer&&<p><b>운영진 답변</b><br/>{r.answer}</p>}</div></article>)}</div></section>}</>}
+import FeaturePage from "@/app/components/FeaturePage";
+
+export default async function Page() {
+  return <FeaturePage eyebrow="ANONYMOUS REPORT" title="바위게 신문고" description="클랜원은 익명으로 작성하고 운영진만 작성자를 확인합니다." icon="📮" admin={false} />;
+}
