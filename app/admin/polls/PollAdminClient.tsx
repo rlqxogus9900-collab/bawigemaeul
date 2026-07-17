@@ -28,6 +28,27 @@ export default function PollAdminClient({
     window.location.reload();
   }
 
+  async function updateDeadline(pollId: string) {
+    const deadlineDate = window.prompt("새 투표 마감 날짜를 입력하세요. 예: 2026-07-25");
+    if (!deadlineDate) return;
+    const deadlineTime = window.prompt("새 투표 마감 시간을 입력하세요. 예: 19:30");
+    if (!deadlineTime) return;
+
+    const response = await fetch(`/api/admin/polls/${pollId}/deadline`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ deadlineDate, deadlineTime })
+    });
+
+    if (!response.ok) {
+      const result = await response.json().catch(() => null);
+      window.alert(result?.message || "마감시간 변경에 실패했습니다.");
+      return;
+    }
+
+    window.location.reload();
+  }
+
   async function toggleStatus(pollId: string, status: string) {
     const response = await fetch(`/api/admin/polls/${pollId}/status`, {
       method: "POST",
@@ -58,7 +79,10 @@ export default function PollAdminClient({
               <span>{poll.is_auction_source ? "🔨 경매 연동 중" : "정기내전 투표"}</span>
               <h2>{poll.board_posts?.title || "제목 없음"}</h2>
               <p>
-                {poll.match_at ? new Date(poll.match_at).toLocaleString("ko-KR") : "일정 미정"}
+                내전 · {poll.match_at ? new Date(poll.match_at).toLocaleString("ko-KR") : "일정 미정"}
+              </p>
+              <p>
+                마감 · {poll.vote_deadline ? new Date(poll.vote_deadline).toLocaleString("ko-KR") : "마감 미정"}
               </p>
             </div>
             <div className="poll-admin-actions">
@@ -67,6 +91,12 @@ export default function PollAdminClient({
                 onClick={() => setAuctionSource(poll.id)}
               >
                 경매에 사용
+              </button>
+              <button
+                className="button"
+                onClick={() => updateDeadline(poll.id)}
+              >
+                마감시간 변경
               </button>
               <button
                 className="button"

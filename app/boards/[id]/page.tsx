@@ -170,6 +170,9 @@ export default async function BoardPostPage({
             disabled={pollDisabled}
             loggedIn={Boolean(user)}
             isAuctionSource={Boolean(poll.is_auction_source)}
+            matchAt={poll.match_at}
+            voteDeadline={poll.vote_deadline}
+            isStaff={user?.role === "staff"}
           />
         )}
 

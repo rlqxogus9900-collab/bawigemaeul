@@ -83,8 +83,35 @@ export async function POST(request: Request) {
       );
     }
 
-    const matchAt = String(form.get("match_at") || "");
-    const voteDeadline = String(form.get("vote_deadline") || "");
+    const matchDate = String(form.get("match_date") || "");
+    const matchTime = String(form.get("match_time") || "");
+    const deadlineDate = String(form.get("deadline_date") || "");
+    const deadlineTime = String(form.get("deadline_time") || "");
+
+    const matchAt =
+      isRegularMatch && matchDate && matchTime
+        ? new Date(`${matchDate}T${matchTime}:00`).toISOString()
+        : null;
+
+    const voteDeadline =
+      isRegularMatch && deadlineDate && deadlineTime
+        ? new Date(`${deadlineDate}T${deadlineTime}:00`).toISOString()
+        : null;
+
+    if (
+      isRegularMatch &&
+      (
+        !matchAt ||
+        !voteDeadline ||
+        new Date(voteDeadline).getTime() >= new Date(matchAt).getTime()
+      )
+    ) {
+      await db.from("board_posts").delete().eq("id", post.id);
+      return NextResponse.redirect(
+        new URL(`/boards/new?board=${subcategoryId}&error=1`, request.url),
+        303
+      );
+    }
 
     const { data: poll, error: pollError } = await db
       .from("board_polls")
@@ -92,8 +119,8 @@ export async function POST(request: Request) {
         post_id: post.id,
         poll_type: isRegularMatch ? "regular_match" : "general",
         allow_multiple: !isRegularMatch && form.get("allow_multiple") === "on",
-        match_at: isRegularMatch && matchAt ? new Date(matchAt).toISOString() : null,
-        vote_deadline: isRegularMatch && voteDeadline ? new Date(voteDeadline).toISOString() : null,
+        match_at: matchAt,
+        vote_deadline: voteDeadline,
         status: "open"
       })
       .select("id")

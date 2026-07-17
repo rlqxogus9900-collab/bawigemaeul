@@ -152,14 +152,22 @@ export default function BoardPostComposer({
             <p>참가·불참·미정으로 자동 생성되며, 운영진이 경매 연동 대상으로 선택할 수 있습니다.</p>
           </div>
 
-          <div className="regular-poll-date-grid">
+          <div className="regular-poll-date-grid regular-poll-date-grid-v2">
             <label>
-              내전 일정
-              <input type="datetime-local" name="match_at" required />
+              내전 날짜
+              <input type="date" name="match_date" required />
             </label>
             <label>
-              투표 마감
-              <input type="datetime-local" name="vote_deadline" required />
+              내전 시작 시간
+              <input type="time" name="match_time" required />
+            </label>
+            <label>
+              투표 마감 날짜
+              <input type="date" name="deadline_date" required />
+            </label>
+            <label>
+              투표 마감 시간
+              <input type="time" name="deadline_time" required />
             </label>
           </div>
         </section>
