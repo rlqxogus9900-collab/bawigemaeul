@@ -7,9 +7,9 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const latestUpdate = {
-  version: "1.3.8.12",
-  title: "클랜 통계 페이지 활성화",
-  summary: "라인 필터, 클랜원 검색, 평균·최고 경매가와 낙찰 횟수 자동 집계"
+  version: "1.3.8.13",
+  title: "명예의 전당 페이지 강화",
+  summary: "역대 우승 순위, MVP, 세트 스코어, 우승 멤버 검색과 필터 추가"
 };
 
 

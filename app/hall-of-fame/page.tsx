@@ -1,41 +1,72 @@
+import Link from "next/link";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import HallOfFameClient from "./HallOfFameClient";
 
 export const dynamic = "force-dynamic";
 
 type MatchResult = Record<string, unknown>;
 
-function text(value: unknown, fallback = "-") {
-  if (typeof value === "string" && value.trim()) return value;
+function text(value: unknown, fallback = "") {
+  if (typeof value === "string" && value.trim()) return value.trim();
   if (typeof value === "number") return String(value);
   return fallback;
 }
 
+function list(value: unknown) {
+  if (Array.isArray(value)) return value.map(item => text(item)).filter(Boolean);
+  if (typeof value !== "string" || !value.trim()) return [];
+  try {
+    const parsed = JSON.parse(value);
+    if (Array.isArray(parsed)) return parsed.map(item => text(item)).filter(Boolean);
+  } catch {}
+  return value.split(/[,/|·\n]/).map(item => item.trim()).filter(Boolean);
+}
+
 export default async function HallOfFamePage() {
   const db = getSupabaseAdmin();
-
   const { data } = await db
     .from("regular_match_results")
     .select("*")
     .order("played_at", { ascending: false })
-    .limit(30);
+    .limit(100);
 
   const matches = (data || []) as MatchResult[];
 
-  const winnerCounts = new Map<string, number>();
-
-  matches.forEach(match => {
-    const winner = text(
-      match.winner_name ?? match.winner_team ?? match.winner,
-      ""
+  const records = matches.map((match, index) => {
+    const playedAt = text(match.played_at ?? match.created_at);
+    const winner = text(match.winner_name ?? match.winner_team ?? match.winner, "우승팀 미등록");
+    const teamA = text(match.team_a_name, "A팀");
+    const teamB = text(match.team_b_name, "B팀");
+    const setsA = text(match.team_a_sets);
+    const setsB = text(match.team_b_sets);
+    const members = list(
+      match.winner_members ?? match.winner_players ?? match.team_members ?? match.members
     );
-    if (winner) {
-      winnerCounts.set(winner, (winnerCounts.get(winner) || 0) + 1);
-    }
+
+    return {
+      id: text(match.id, String(index)),
+      winner,
+      playedAt,
+      playedAtLabel: playedAt ? new Date(playedAt).toLocaleDateString("ko-KR") : "날짜 미등록",
+      mvp: text(match.mvp_name ?? match.mvp),
+      eventTitle: text(match.title ?? match.event_title ?? match.match_title, "정기내전"),
+      eventType: text(match.event_type ?? match.match_type, "정기내전"),
+      score: setsA && setsB ? `${teamA} ${setsA} : ${setsB} ${teamB}` : "",
+      members
+    };
+  });
+
+  const winnerCounts = new Map<string, { wins: number; mvps: number }>();
+  records.forEach(record => {
+    const current = winnerCounts.get(record.winner) || { wins: 0, mvps: 0 };
+    current.wins += 1;
+    if (record.mvp) current.mvps += 1;
+    winnerCounts.set(record.winner, current);
   });
 
   const rankings = [...winnerCounts.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5);
+    .map(([name, value]) => ({ name, ...value }))
+    .sort((a, b) => b.wins - a.wins || b.mvps - a.mvps || a.name.localeCompare(b.name, "ko"));
 
   return (
     <>
@@ -43,70 +74,15 @@ export default async function HallOfFamePage() {
         <div>
           <span>HALL OF FAME</span>
           <h1>명예의 전당</h1>
-          <p>바위게마을 정기내전의 우승팀과 기록을 확인합니다.</p>
+          <p>바위게마을의 역대 우승팀, MVP, 대회 기록을 한눈에 확인합니다.</p>
+          <Link className="button hall-admin-link" href="/admin/match-records" prefetch={false}>
+            운영진 기록 관리
+          </Link>
         </div>
         <div className="hall-trophy">🏆</div>
       </section>
 
-      <section className="hall-ranking-grid">
-        {rankings.map(([name, wins], index) => (
-          <article className="hall-ranking-card" key={name}>
-            <span>{index + 1}</span>
-            <div>
-              <small>누적 우승</small>
-              <h2>{name}</h2>
-            </div>
-            <strong>{wins}회</strong>
-          </article>
-        ))}
-
-        {!rankings.length && (
-          <div className="card hall-empty">
-            아직 등록된 우승 기록이 없습니다.
-          </div>
-        )}
-      </section>
-
-      <section className="card hall-history-card">
-        <div className="dashboard-head">
-          <div>
-            <span>WINNER HISTORY</span>
-            <h2>최근 우승 기록</h2>
-          </div>
-          <small>최근 {matches.length}건</small>
-        </div>
-
-        <div className="hall-history-list">
-          {matches.map((match, index) => {
-            const winner = text(
-              match.winner_name ?? match.winner_team ?? match.winner,
-              "우승팀 미등록"
-            );
-            const playedAt = match.played_at
-              ? new Date(String(match.played_at)).toLocaleDateString("ko-KR")
-              : "날짜 미등록";
-            const mvp = text(match.mvp_name ?? match.mvp, "");
-
-            return (
-              <article key={text(match.id, String(index))}>
-                <div className="hall-history-medal">🏆</div>
-                <div>
-                  <small>{playedAt}</small>
-                  <h3>{winner}</h3>
-                  {mvp && <p>MVP · {mvp}</p>}
-                </div>
-                <span>WINNER</span>
-              </article>
-            );
-          })}
-
-          {!matches.length && (
-            <div className="hall-empty">
-              대회·내전 기록에서 결과를 등록하면 여기에 표시됩니다.
-            </div>
-          )}
-        </div>
-      </section>
+      <HallOfFameClient records={records} rankings={rankings} />
     </>
   );
 }
