@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { unstable_cache } from "next/cache";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 const latestUpdate = {
   version: "1.3.7.1",
@@ -10,56 +10,51 @@ const latestUpdate = {
   summary: "후원 목록 위치 변경, 최신 업데이트 카드 추가, 같은 탭 재클릭 로딩바 제거"
 };
 
-const getHomeData = unstable_cache(
-  async () => {
-    const db = getSupabaseAdmin();
+async function getHomeData() {
+  const db = getSupabaseAdmin();
 
-    const [
-      { data: notices },
-      { data: rules },
-      { data: matches },
-      { data: members },
-      { data: sponsors }
-    ] = await Promise.all([
-      db
-        .from("notices")
-        .select("id,title,is_pinned,created_at")
-        .order("is_pinned", { ascending: false })
-        .order("created_at", { ascending: false })
-        .limit(5),
-      db
-        .from("clan_rules")
-        .select("id,content,sort_order")
-        .order("sort_order", { ascending: true })
-        .limit(5),
-      db
-        .from("regular_match_results")
-        .select("*")
-        .order("played_at", { ascending: false })
-        .limit(1),
-      db
-        .from("members")
-        .select("id,nickname,main_line,is_active")
-        .eq("is_active", true),
-      db
-        .from("sponsors")
-        .select("id,display_name")
-        .eq("is_visible", true)
-        .order("sort_order", { ascending: true })
-        .limit(10)
-    ]);
+  const [
+    { data: notices },
+    { data: rules },
+    { data: matches },
+    { data: members },
+    { data: sponsors }
+  ] = await Promise.all([
+    db
+      .from("notices")
+      .select("id,title,is_pinned,created_at")
+      .order("created_at", { ascending: false })
+      .limit(5),
+    db
+      .from("clan_rules")
+      .select("id,content,sort_order")
+      .order("sort_order", { ascending: true })
+      .limit(5),
+    db
+      .from("regular_match_results")
+      .select("*")
+      .order("played_at", { ascending: false })
+      .limit(1),
+    db
+      .from("members")
+      .select("id,nickname,main_line,is_active")
+      .eq("is_active", true),
+    db
+      .from("sponsors")
+      .select("id,display_name")
+      .eq("is_visible", true)
+      .order("sort_order", { ascending: true })
+      .limit(10)
+  ]);
 
-    return {
-      notices: notices || [],
-      rules: rules || [],
-      latest: matches?.[0] || null,
-      members: members || [],
-      sponsors: sponsors || []
-    };
-  },
-  ["home-dashboard-v4"],
-  { revalidate: 60, tags: ["home-dashboard"] }
-);
+  return {
+    notices: notices || [],
+    rules: rules || [],
+    latest: matches?.[0] || null,
+    members: members || [],
+    sponsors: sponsors || []
+  };
+}
 
 export default async function HomePage() {
   const { notices, rules, latest, members, sponsors } = await getHomeData();

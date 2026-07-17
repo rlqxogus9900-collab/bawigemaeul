@@ -2084,3 +2084,95 @@ td{padding:11px 10px;font-size:13px}
     grid-template-columns:1fr;
   }
 }
+/* Online Beta 1.3.7.11 - board order buttons */
+.board-order-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  margin-bottom:9px;
+  padding:8px 10px;
+  border:1px solid #355441;
+  border-radius:10px;
+  background:#091d14;
+}
+
+.board-order-head>b{
+  color:#d6c06b;
+  font-size:11px;
+}
+
+.board-order-buttons{
+  display:flex;
+  gap:5px;
+}
+
+.board-order-buttons form{
+  margin:0;
+}
+
+.board-move-button{
+  min-width:38px;
+  min-height:34px;
+  padding:5px 10px;
+  font-size:12px;
+  font-weight:900;
+}
+
+.board-move-button:disabled{
+  opacity:.28;
+  cursor:not-allowed;
+}
+
+.board-sub-edit-row{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  align-items:center;
+  gap:8px;
+}
+
+.board-sub-order-buttons{
+  flex-direction:column;
+}
+
+.board-create-without-number{
+  grid-template-columns:minmax(70px,.6fr) minmax(180px,2fr) minmax(130px,1fr) auto auto !important;
+}
+
+.board-sub-create.board-create-without-number{
+  grid-template-columns:minmax(150px,1fr) minmax(180px,1.4fr) minmax(130px,1fr) auto auto !important;
+}
+
+.board-edit-without-number{
+  grid-template-columns:minmax(60px,.5fr) minmax(150px,1.5fr) minmax(130px,1fr) auto auto auto !important;
+}
+
+.board-sub-edit.board-edit-without-number{
+  grid-template-columns:minmax(140px,1fr) minmax(170px,1.5fr) minmax(130px,1fr) auto auto auto !important;
+}
+
+@media(max-width:900px){
+  .board-create-without-number,
+  .board-sub-create.board-create-without-number,
+  .board-edit-without-number,
+  .board-sub-edit.board-edit-without-number{
+    grid-template-columns:1fr 1fr !important;
+  }
+}
+
+@media(max-width:560px){
+  .board-sub-edit-row{
+    grid-template-columns:1fr;
+  }
+
+  .board-sub-order-buttons{
+    flex-direction:row;
+  }
+
+  .board-create-without-number,
+  .board-sub-create.board-create-without-number,
+  .board-edit-without-number,
+  .board-sub-edit.board-edit-without-number{
+    grid-template-columns:1fr !important;
+  }
+}
