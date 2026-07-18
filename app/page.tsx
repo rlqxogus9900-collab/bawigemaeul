@@ -7,9 +7,9 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const latestUpdate = {
-  version: "1.3.8.37",
-  title: "경매 선수 정보 자동 입력",
-  summary: "닉네임으로 주라인·부라인·내전티어 자동 입력, 경매별 참고사항 별도 저장"
+  version: "1.3.8.39",
+  title: "게시판 이미지와 업데이트 표시 수정",
+  summary: "커뮤니티 이미지 첨부 추가 및 업데이트 페이지·홈 최신 업데이트 카드 동기화"
 };
 
 
@@ -65,7 +65,7 @@ const getCachedHomeSummary = unstable_cache(
       sponsors: sponsors || []
     };
   },
-  ["home-summary-v13717"],
+  ["home-summary-v13839"],
   {
     revalidate: 120,
     tags: ["home-summary"]
