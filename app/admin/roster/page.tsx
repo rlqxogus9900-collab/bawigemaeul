@@ -1,5 +1,6 @@
 import { requireStaff } from "@/lib/session";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import RosterActivitySync from "./RosterActivitySync";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +30,11 @@ export default async function AdminRosterPage() {
       role,
       activity_status,
       activity_excluded,
-      is_active
+      is_active,
+      riot_sync_status,
+      riot_sync_error,
+      last_riot_sync_at,
+      last_game_at
     `)
     .order("nickname", { ascending: true });
 
@@ -46,6 +51,8 @@ export default async function AdminRosterPage() {
         </div>
       </section>
 
+      <RosterActivitySync />
+
       <section className="card">
         <div className="table-wrap">
           <table className="full-roster-table">
@@ -61,18 +68,35 @@ export default async function AdminRosterPage() {
                 <th>부라인</th>
                 <th>권한</th>
                 <th>활동여부</th>
+                <th>마지막 활동</th>
+                <th>API 집계</th>
               </tr>
             </thead>
             <tbody>
               {members?.map(member => {
+                const syncStatus = String(member.riot_sync_status || "not_synced");
                 const activityText =
                   !member.is_active
                     ? "계정 비활성"
                     : member.activity_excluded
                       ? "활동 제외"
-                      : member.activity_status === "active"
-                        ? "활동"
-                        : "비활동";
+                      : syncStatus === "missing_riot_id"
+                        ? "집계 안 됨"
+                        : member.activity_status === "active"
+                          ? "활동"
+                          : "비활동";
+                const lastGameText = member.last_game_at
+                  ? new Date(member.last_game_at).toLocaleString("ko-KR", { dateStyle: "short", timeStyle: "short" })
+                  : "기록 없음";
+                const syncText = syncStatus === "synced"
+                  ? "집계 완료"
+                  : syncStatus === "missing_riot_id"
+                    ? "API ID 미등록 · 집계 안 됨"
+                    : syncStatus === "riot_id_not_found"
+                      ? "Riot ID 확인 필요"
+                      : syncStatus === "api_error"
+                        ? "API 오류"
+                        : "아직 집계 안 됨";
 
                 return (
                   <tr key={member.id}>
@@ -100,11 +124,17 @@ export default async function AdminRosterPage() {
                         {activityText}
                       </span>
                     </td>
+                    <td><span className="last-activity-cell">{lastGameText}</span></td>
+                    <td>
+                      <span className={`riot-sync-status ${syncStatus}`}>{syncText}</span>
+                      {member.last_riot_sync_at && <small className="riot-sync-time">확인 {new Date(member.last_riot_sync_at).toLocaleString("ko-KR", { dateStyle: "short", timeStyle: "short" })}</small>}
+                      {member.riot_sync_error && syncStatus !== "missing_riot_id" && <small className="riot-sync-error">{member.riot_sync_error}</small>}
+                    </td>
                   </tr>
                 );
               })}
               {!members?.length && (
-                <tr><td colSpan={10} className="muted">등록된 클랜원이 없습니다.</td></tr>
+                <tr><td colSpan={12} className="muted">등록된 클랜원이 없습니다.</td></tr>
               )}
             </tbody>
           </table>

@@ -3,9 +3,9 @@ import "server-only";
 export type RiotRegion = "asia" | "americas" | "europe" | "sea";
 export type RiotPlatform = "kr" | "jp1" | "na1" | "euw1" | "eun1" | "oc1";
 
-const API_KEY = process.env.RIOT_API_KEY?.trim();
-const DEFAULT_REGION = (process.env.RIOT_ROUTING_REGION?.trim() || "asia") as RiotRegion;
-const DEFAULT_PLATFORM = (process.env.RIOT_PLATFORM_REGION?.trim() || "kr") as RiotPlatform;
+function apiKey() { return process.env.RIOT_API_KEY?.trim() || ""; }
+function defaultRegion() { return (process.env.RIOT_ROUTING_REGION?.trim() || "asia") as RiotRegion; }
+function defaultPlatform() { return (process.env.RIOT_PLATFORM_REGION?.trim() || "kr") as RiotPlatform; }
 const REQUEST_TIMEOUT_MS = 8_000;
 const MAX_RETRIES = 2;
 
@@ -22,13 +22,13 @@ export class RiotApiError extends Error {
 }
 
 export function isRiotConfigured() {
-  return Boolean(API_KEY);
+  return Boolean(apiKey());
 }
 
 function baseUrl(kind: "regional" | "platform") {
   return kind === "regional"
-    ? `https://${DEFAULT_REGION}.api.riotgames.com`
-    : `https://${DEFAULT_PLATFORM}.api.riotgames.com`;
+    ? `https://${defaultRegion()}.api.riotgames.com`
+    : `https://${defaultPlatform()}.api.riotgames.com`;
 }
 
 async function sleep(ms: number) {
@@ -36,7 +36,8 @@ async function sleep(ms: number) {
 }
 
 async function riotFetch<T>(path: string, kind: "regional" | "platform" = "regional"): Promise<T> {
-  if (!API_KEY) throw new RiotApiError("RIOT_API_KEY가 설정되지 않았습니다.", 503);
+  const key = apiKey();
+  if (!key) throw new RiotApiError("RIOT_API_KEY가 설정되지 않았습니다.", 503);
 
   let lastError: unknown;
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
@@ -45,7 +46,7 @@ async function riotFetch<T>(path: string, kind: "regional" | "platform" = "regio
 
     try {
       const response = await fetch(`${baseUrl(kind)}${path}`, {
-        headers: { "X-Riot-Token": API_KEY },
+        headers: { "X-Riot-Token": key },
         signal: controller.signal,
         cache: "no-store"
       });

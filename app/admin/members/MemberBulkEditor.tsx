@@ -16,6 +16,10 @@ type MemberRow = {
   activity_status: string | null;
   activity_excluded: boolean;
   is_active: boolean;
+  riot_sync_status: string | null;
+  riot_sync_error: string | null;
+  last_riot_sync_at: string | null;
+  last_game_at: string | null;
 };
 
 const lines = ["미정", "탑", "정글", "미드", "원딜", "서폿"];
@@ -167,7 +171,7 @@ export default function MemberBulkEditor({
                 </select>
               </label>
               <label>
-                활동여부
+                활동여부 (API 자동)
                 <select
                   value={
                     !row.is_active
@@ -186,13 +190,18 @@ export default function MemberBulkEditor({
                     updateRow(row.id, "activity_status", value === "active" ? "active" : "inactive");
                   }}
                 >
-                  <option value="active">활동</option>
-                  <option value="inactive">비활동</option>
+                  <option value="active">활동 (최근 7일)</option>
+                  <option value="inactive">비활동 (7일 초과)</option>
                   <option value="excluded">활동 제외</option>
                   <option value="disabled">계정 비활성</option>
                 </select>
               </label>
             </div>
+              <div className="member-api-summary">
+                <span>마지막 활동</span>
+                <b>{row.last_game_at ? new Date(row.last_game_at).toLocaleString("ko-KR") : "기록 없음"}</b>
+                <small>{!row.riot_id || !row.riot_id.includes("#") ? "API ID 미등록 · 집계 안 됨" : row.riot_sync_status === "synced" ? "Riot API 집계 완료" : row.riot_sync_status === "riot_id_not_found" ? "Riot ID 확인 필요" : row.riot_sync_status === "api_error" ? "API 오류" : "아직 집계 안 됨"}</small>
+              </div>
             <div className="member-card-danger-zone">
               <button
                 className="button danger member-delete-button"

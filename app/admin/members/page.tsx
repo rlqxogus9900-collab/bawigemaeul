@@ -29,7 +29,11 @@ export default async function MembersPage({
       role,
       activity_status,
       activity_excluded,
-      is_active
+      is_active,
+      riot_sync_status,
+      riot_sync_error,
+      last_riot_sync_at,
+      last_game_at
     `)
     .order("nickname", { ascending: true });
 

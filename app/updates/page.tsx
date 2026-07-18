@@ -4,6 +4,12 @@ export const dynamic = "force-dynamic";
 
 const updates = [
   {
+    version: "1.3.8.27",
+    date: "2026-07-18",
+    title: "Riot API 활동 자동 집계와 전적 화면 개선",
+    items: ["전적 검색 카드의 흰색 배경을 어두운 저자극 디자인으로 변경", "관리자 명단 진입 시 클랜원 최근 활동 자동 집계", "Riot ID 미등록 시 API ID 미등록·집계 안 됨 표시", "마지막 게임과 마지막 API 확인 시각 표시", "최근 7일 기준 활동·비활동 자동 판정", "Vercel 환경 변수 런타임 감지 보강"]
+  },
+  {
     version: "1.3.8.26",
     date: "2026-07-18",
     title: "Riot API 실시간 전적 조회 1차",
