@@ -7,9 +7,9 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const latestUpdate = {
-  version: "1.3.8.25",
-  title: "최신 업데이트 표기 누락 수정",
-  summary: "업데이트 페이지와 홈 화면 최신 버전 표기를 함께 갱신"
+  version: "1.3.8.26",
+  title: "Riot API 실시간 전적 조회 1차",
+  summary: "Riot ID로 계정과 최근 경기 데이터를 직접 조회"
 };
 
 

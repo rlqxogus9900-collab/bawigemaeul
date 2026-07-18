@@ -4,6 +4,12 @@ export const dynamic = "force-dynamic";
 
 const updates = [
   {
+    version: "1.3.8.26",
+    date: "2026-07-18",
+    title: "Riot API 실시간 전적 조회 1차",
+    items: ["Riot ID 닉네임#태그 계정 조회", "최근 5경기 승패·KDA·CS·아이템 표시", "API 키 연결 상태와 만료·오류 안내", "Riot API 키를 서버 환경 변수에서만 사용"]
+  },
+  {
     version: "1.3.8.25",
     date: "2026-07-18",
     title: "최신 업데이트 표기 누락 수정",

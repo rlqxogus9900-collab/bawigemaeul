@@ -50,7 +50,7 @@ const fixedGroups: FixedGroup[] = [
     id: "game",
     name: "게임 정보",
     icon: "◆",
-    items: [["/guides", "◆", "챔피언 공략"]]
+    items: [["/guides", "◆", "챔피언 공략"], ["/riot-search", "🔎", "롤 전적 조회"]]
   },
   {
     id: "support",
