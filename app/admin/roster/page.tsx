@@ -68,7 +68,7 @@ export default async function AdminRosterPage() {
                 <th>부라인</th>
                 <th>권한</th>
                 <th>활동여부</th>
-                <th>마지막 활동</th>
+                <th>마지막 클랜 활동</th>
                 <th>API 집계</th>
               </tr>
             </thead>

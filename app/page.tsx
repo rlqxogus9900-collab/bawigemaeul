@@ -7,9 +7,9 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const latestUpdate = {
-  version: "1.3.8.27",
-  title: "Riot API 활동 자동 집계",
-  summary: "Riot ID로 계정과 최근 경기 데이터를 직접 조회"
+  version: "1.3.8.28",
+  title: "클랜원 동반 경기 활동 집계",
+  summary: "클랜원끼리 함께 플레이한 경기만 활동으로 인정"
 };
 
 

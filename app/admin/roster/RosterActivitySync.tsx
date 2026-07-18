@@ -7,7 +7,7 @@ export default function RosterActivitySync() {
   const router = useRouter();
   const started = useRef(false);
   const [state, setState] = useState<"idle" | "syncing" | "done" | "error">("idle");
-  const [message, setMessage] = useState("명단에 들어오면 Riot API 활동 집계를 자동 실행합니다.");
+  const [message, setMessage] = useState("명단에 들어오면 다른 클랜원과 함께한 경기만 활동으로 자동 집계합니다.");
 
   async function sync() {
     if (state === "syncing") return;
