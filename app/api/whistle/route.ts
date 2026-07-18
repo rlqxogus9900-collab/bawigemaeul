@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     return NextResponse.redirect(new URL("/whistle?error=empty", request.url), 303);
   }
 
-  await getSupabaseAdmin().from("whistle_reports").insert({
+  const { error } = await getSupabaseAdmin().from("whistle_reports").insert({
     category,
     title,
     content,
@@ -30,6 +30,11 @@ export async function POST(request: Request) {
     author_member_id: user?.id || null,
     status: "pending"
   });
+
+  if (error) {
+    console.error("whistle insert failed", error);
+    return NextResponse.redirect(new URL("/whistle?error=save", request.url), 303);
+  }
 
   revalidatePath("/whistle");
   revalidatePath("/admin");

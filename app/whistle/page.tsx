@@ -4,7 +4,8 @@ import WhistleClient from "./WhistleClient";
 
 export const dynamic = "force-dynamic";
 
-export default async function WhistlePage() {
+export default async function WhistlePage({ searchParams }: { searchParams: Promise<{ submitted?: string; error?: string }> }) {
+  const params = await searchParams;
   const [user, result] = await Promise.all([
     getSession(),
     getSupabaseAdmin()
@@ -14,5 +15,5 @@ export default async function WhistlePage() {
       .limit(100)
   ]);
 
-  return <WhistleClient reports={result.data || []} loggedIn={!!user} />;
+  return <WhistleClient reports={result.data || []} loggedIn={!!user} submitted={params.submitted === "1"} error={params.error || null} />;
 }
