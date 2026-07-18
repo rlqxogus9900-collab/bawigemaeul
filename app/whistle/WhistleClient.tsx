@@ -56,6 +56,8 @@ export default function WhistleClient({ reports, loggedIn }: { reports: Report[]
     event.preventDefault();
     if (submitting) return;
 
+    const form = event.currentTarget;
+
     setSubmitting(true);
     setSubmitMessage("");
     setSubmitError("");
@@ -63,13 +65,13 @@ export default function WhistleClient({ reports, loggedIn }: { reports: Report[]
     try {
       const response = await fetch("/api/whistle", {
         method: "POST",
-        body: new FormData(event.currentTarget),
+        body: new FormData(form),
         headers: { Accept: "application/json", "X-Requested-With": "fetch" }
       });
       const result = await response.json().catch(() => null) as { ok?: boolean; error?: string } | null;
       if (!response.ok || !result?.ok) throw new Error(result?.error || "신문고 저장에 실패했습니다.");
 
-      event.currentTarget.reset();
+      form.reset();
       setSubmitMessage("신문고가 정상적으로 접수되었습니다.");
       setShowForm(false);
       router.refresh();
