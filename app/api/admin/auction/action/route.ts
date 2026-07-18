@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireStaff } from "@/lib/session";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { getTierMinimumBid } from "@/lib/auction-min-bid";
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,7 +20,9 @@ export async function POST(req: NextRequest) {
     } else if (body.action === "bid") {
       const { data: team } = await db.from("auction_teams").select("*").eq("id", body.teamId).eq("room_id", room.id).single();
       if (!team || !room.current_player_id) return NextResponse.json({ error: "선수 또는 팀이 선택되지 않았습니다." }, { status: 400 });
-      const amount = room.current_bid > 0 ? room.current_bid + room.bid_step : room.bid_step;
+      const { data: player } = await db.from("auction_players").select("match_tier").eq("id", room.current_player_id).single();
+      const minimumBid = getTierMinimumBid(room, player);
+      const amount = room.current_bid > 0 ? room.current_bid + room.bid_step : minimumBid;
       if (amount > team.budget) return NextResponse.json({ error: "팀 예산이 부족합니다." }, { status: 400 });
       await db.from("auction_bids").insert({ room_id: room.id, player_id: room.current_player_id, team_id: team.id, amount, bidder_member_id: user.id, bidder_nickname: user.nickname });
       await db.from("auction_rooms").update({ current_bid: amount, current_team_id: team.id, updated_at: new Date().toISOString() }).eq("id", room.id);

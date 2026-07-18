@@ -8,6 +8,8 @@ type Room = {
   status: "ready" | "live" | "finished";
   current_player_id: string | null;
   current_bid: number;
+  bid_step: number;
+  tier_min_bids?: Record<string, number> | null;
   current_team_id: string | null;
 };
 
@@ -147,6 +149,9 @@ export default function AuctionBroadcastClient() {
 
   const room = state.room;
   const currentPlayer = state.players.find((player) => player.id === room?.current_player_id);
+  const currentMinimumBid = currentPlayer?.match_tier
+    ? Math.max(Number(state.room?.bid_step || 1), Number(state.room?.tier_min_bids?.[String(currentPlayer.match_tier)] || 0))
+    : Number(state.room?.bid_step || 1);
   const leadingTeam = state.teams.find((team) => team.id === room?.current_team_id);
 
   const teamPlayers = useMemo(
@@ -229,7 +234,7 @@ export default function AuctionBroadcastClient() {
             </div>
             <div className="broadcast-price">
               <span>현재가</span>
-              <strong>{room.current_bid.toLocaleString()}</strong>
+              <strong>{room.current_bid.toLocaleString()}</strong><small className="auction-minimum-bid-copy">최소 입찰 {currentMinimumBid.toLocaleString()}점</small>
               <em>점</em>
             </div>
             <p>{leadingTeam ? `${leadingTeam.name} · ${leadingTeam.captain_nickname}` : "첫 입찰을 기다리는 중"}</p>

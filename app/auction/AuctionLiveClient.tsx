@@ -10,6 +10,7 @@ type Room = {
   bid_step: number;
   current_player_id: string | null;
   current_bid: number;
+  tier_min_bids?: Record<string, number> | null;
   current_team_id: string | null;
 };
 
@@ -160,6 +161,9 @@ export default function AuctionLiveClient({
 
   const room = state.room;
   const currentPlayer = state.players.find((player) => player.id === room?.current_player_id);
+  const currentMinimumBid = currentPlayer?.match_tier
+    ? Math.max(Number(state.room?.bid_step || 1), Number(state.room?.tier_min_bids?.[String(currentPlayer.match_tier)] || 0))
+    : Number(state.room?.bid_step || 1);
   const leadingTeam = state.teams.find((team) => team.id === room?.current_team_id);
   const myTeam = state.teams.find((team) => team.captain_member_id === currentUserId);
   const waiting = state.players.filter(
@@ -207,6 +211,7 @@ export default function AuctionLiveClient({
           <small>현재 선수</small>
           <strong>{currentPlayer?.nickname || "선수를 선택하세요"}</strong>
           {currentPlayer && <small className="auction-player-profile-line">{currentPlayer.main_line || "미정"} / {currentPlayer.sub_line || "미정"} · {currentPlayer.match_tier ? `${["", "Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ"][currentPlayer.match_tier]}티어` : "티어 미정"}{currentPlayer.note ? ` · ${currentPlayer.note}` : ""}</small>}
+          {currentPlayer && <small className="auction-minimum-bid-copy">최소 입찰 {currentMinimumBid.toLocaleString()}점</small>}
           <div>
             <span>현재가</span>
             <b className="auction-price-pulse">{room.current_bid.toLocaleString()}점</b>

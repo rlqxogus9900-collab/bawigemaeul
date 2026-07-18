@@ -9,6 +9,7 @@ type Room = {
   bid_step: number;
   current_player_id: string | null;
   current_bid: number;
+  tier_min_bids?: Record<string, number> | null;
   current_team_id: string | null;
 };
 type Team = {
@@ -159,6 +160,9 @@ export default function CaptainAuctionClient({
     ? state.teams.find((team) => team.id === staffTeamId) || myTeam || state.teams[0]
     : myTeam;
   const currentPlayer = state.players.find((player) => player.id === room?.current_player_id);
+  const currentMinimumBid = currentPlayer?.match_tier
+    ? Math.max(Number(state.room?.bid_step || 1), Number(state.room?.tier_min_bids?.[String(currentPlayer.match_tier)] || 0))
+    : Number(state.room?.bid_step || 1);
   const leadingTeam = state.teams.find((team) => team.id === room?.current_team_id);
   const activePlayers = useMemo(
     () => state.players.filter((player) => player.sold_team_id === activeTeam?.id),
@@ -287,6 +291,7 @@ export default function CaptainAuctionClient({
           <small>현재 선수</small>
           <h1 className="captain-player-nickname">{currentPlayer?.nickname || (room.status === "finished" ? "경매 종료" : "선수 지명 대기")}</h1>
           {currentPlayer && <p className="auction-player-profile-line">주라인 {currentPlayer.main_line || "미정"} · 부라인 {currentPlayer.sub_line || "미정"} · 내전티어 {currentPlayer.match_tier ? `${["", "Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ"][currentPlayer.match_tier]}티어` : "미정"}{currentPlayer.note ? ` · ${currentPlayer.note}` : ""}</p>}
+          {currentPlayer && <p className="auction-minimum-bid-copy">최소 입찰 {currentMinimumBid.toLocaleString()}점</p>}
           {room.status === "live" && currentPlayer && (
             <div className={`captain-countdown ${timeLeft <= 5 ? "urgent" : ""} ${timeLeft === 0 ? "expired" : ""}`}>
               <span>{timeLeft === 0 ? "시간 종료" : "남은 시간"}</span><strong>{timeLeft}</strong><em>초</em>

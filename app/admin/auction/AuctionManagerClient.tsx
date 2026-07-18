@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 type Room = {
   id: string; title: string; status: "ready" | "live" | "finished";
   starting_budget: number; bid_step: number; tier_balance_enabled: boolean; tier_bonus_per_tier: number;
+  tier_min_bids?: Record<string, number> | null; current_player_id?: string | null; current_bid?: number;
 };
 type Team = {
   id: string; name: string; captain_nickname: string; captain_match_tier: number | null;
@@ -25,6 +26,7 @@ export default function AuctionManagerClient() {
   const [bidStep, setBidStep] = useState(10);
   const [tierBalanceEnabled, setTierBalanceEnabled] = useState(true);
   const [tierBonusPerTier, setTierBonusPerTier] = useState(100);
+  const [tierMinBids, setTierMinBids] = useState<Record<string, number>>({ "1": 300, "2": 250, "3": 200, "4": 150, "5": 100 });
   const [busy, setBusy] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [message, setMessage] = useState("");
@@ -55,7 +57,7 @@ export default function AuctionManagerClient() {
     const response = await fetch("/api/admin/auction/create", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        startingBudget, bidStep, tierBalanceEnabled, tierBonusPerTier, mode: createMode,
+        startingBudget, bidStep, tierBalanceEnabled, tierBonusPerTier, tierMinBids, mode: createMode,
         title: manualTitle,
         captains: manualCaptains.split(/[\n,]/).map(v => v.trim()).filter(Boolean),
         players: manualPlayers.split(/[\n,]/).map(v => v.trim()).filter(Boolean)
@@ -139,6 +141,16 @@ export default function AuctionManagerClient() {
           <label className="auction-tier-toggle"><span>팀장 티어 보정</span><button type="button" className={tierBalanceEnabled ? "enabled" : ""} onClick={() => setTierBalanceEnabled(v => !v)}>{tierBalanceEnabled ? "사용 ON" : "사용 OFF"}</button></label>
         </div>
         <div className="auction-budget-example"><b>계산 방식</b><span>가장 높은 팀장 기준 1티어 차이마다 +{tierBonusPerTier.toLocaleString()}점</span></div>
+        <div className="auction-tier-minimum-settings">
+          <div><b>내전티어별 최소 입찰가</b><span>선수의 내전티어에 따라 첫 입찰 금액이 자동 적용됩니다.</span></div>
+          <div className="auction-tier-minimum-grid">
+            {[1, 2, 3, 4, 5].map(tier => (
+              <label key={tier}>{roman[tier]}티어
+                <input type="number" min={0} step={bidStep} value={tierMinBids[String(tier)] ?? 0} onChange={(e) => setTierMinBids(prev => ({ ...prev, [String(tier)]: Math.max(0, Number(e.target.value) || 0) }))} />
+              </label>
+            ))}
+          </div>
+        </div>
         <div className="auction-room-setting-actions">
           <button className="button auction-create-main-button" disabled={busy || deleting || Boolean(active)} onClick={createRoom}>
             {busy ? "생성 중..." : active ? "진행 중인 경매가 있습니다" : state.room?.status === "finished" ? "결과 보관 후 새 경매 시작" : "경매방 만들기"}
@@ -159,6 +171,7 @@ export default function AuctionManagerClient() {
             <div><span>방 이름</span><b>{state.room.title}</b></div>
             <div><span>상태</span><b>{state.room.status === "ready" ? "시작 대기" : state.room.status === "live" ? "진행 중" : "결과 표시 중"}</b></div>
             <div><span>팀</span><b>{state.teams.length}팀</b></div><div><span>선수</span><b>{state.players.length}명</b></div><div><span>입찰</span><b>{state.bids.length}건</b></div>
+            <div className="auction-tier-min-summary"><span>티어별 최소 입찰</span><b>{[1,2,3,4,5].map(t => `${roman[t]} ${Number(state.room?.tier_min_bids?.[String(t)] || 0).toLocaleString()}`).join(" · ")}점</b></div>
           </div>
           <div className="auction-admin-captains">
             {state.teams.map(team => <article key={team.id}>

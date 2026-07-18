@@ -3313,3 +3313,12 @@ html,body{
 .auction-player-add-fields button{min-height:44px;white-space:nowrap}
 @media(max-width:1100px){.auction-player-add-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.auction-player-note-field{grid-column:1/-1}.auction-player-add-fields button{grid-column:1/-1}}
 .auction-player-profile-line{display:block;margin-top:8px;color:#c8d4cc;font-size:13px;font-weight:700;line-height:1.5}
+
+/* Online Beta 1.3.8.37 - tier minimum auction bids */
+.auction-tier-minimum-settings{margin-top:14px;padding:14px;border:1px solid rgba(211,173,67,.28);border-radius:12px;background:rgba(211,173,67,.04)}
+.auction-tier-minimum-settings>div:first-child{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin-bottom:10px}.auction-tier-minimum-settings span{font-size:12px;color:var(--muted)}
+.auction-tier-minimum-grid{display:grid;grid-template-columns:repeat(5,minmax(90px,1fr));gap:10px}.auction-tier-minimum-grid label{font-size:12px;font-weight:700}.auction-tier-minimum-grid input{width:100%;margin-top:6px}
+.auction-tier-min-summary{grid-column:1/-1}.auction-tier-min-summary b{font-size:12px!important;white-space:normal}
+@media(max-width:900px){.auction-tier-minimum-grid{grid-template-columns:repeat(2,minmax(120px,1fr))}}
+
+.auction-minimum-bid-copy{display:block;margin-top:5px;color:#d7b85c;font-weight:700;font-size:12px}

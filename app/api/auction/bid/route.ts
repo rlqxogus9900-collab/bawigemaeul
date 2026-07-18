@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { getTierMinimumBid } from "@/lib/auction-min-bid";
 
 export async function POST(req: NextRequest) {
   try {
@@ -38,9 +39,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "본인이 팀장인 팀으로만 입찰할 수 있습니다." }, { status: 403 });
     }
 
+    const { data: player } = await db
+      .from("auction_players")
+      .select("match_tier")
+      .eq("id", room.current_player_id)
+      .single();
+
+    const minimumBid = getTierMinimumBid(room, player);
     const amount = room.current_bid > 0
       ? room.current_bid + room.bid_step
-      : room.bid_step;
+      : minimumBid;
 
     if (amount > team.budget) {
       return NextResponse.json({ error: "남은 예산이 부족합니다." }, { status: 400 });
