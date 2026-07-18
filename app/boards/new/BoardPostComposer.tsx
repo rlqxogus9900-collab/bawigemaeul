@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useMemo, useRef, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 
 type PostMode = "normal" | "poll";
 type PollMode = "general" | "regular_match";
@@ -272,10 +272,9 @@ export default function BoardPostComposer({
   const defaultDay = koreaNow.day;
 
   const [postMode, setPostMode] = useState<PostMode>("normal");
+  const [submitting, setSubmitting] = useState(false);
   const [pollMode, setPollMode] = useState<PollMode>("general");
   const [options, setOptions] = useState(["선택지 1", "선택지 2"]);
-  const submitLock = useRef(false);
-  const [submitting, setSubmitting] = useState(false);
 
   const [match, setMatch] = useState<DateTimeParts>({
     year: defaultYear,
@@ -330,12 +329,10 @@ export default function BoardPostComposer({
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    if (submitLock.current) {
+    if (submitting) {
       event.preventDefault();
       return;
     }
-
-    submitLock.current = true;
     setSubmitting(true);
   }
 

@@ -3259,3 +3259,7 @@ html,body{
 .guides-name-search input{width:100%}
 .champion-portrait-card>strong{margin-bottom:2px}
 @media(max-width:760px){.guides-toolbar-simple{padding:12px}.guides-name-search{width:100%}}
+
+/* 1.3.8.23 - 신문고 저장 상태 */
+.whistle-submit-notice{margin:10px 0 0;font-size:13px;font-weight:700}.whistle-submit-notice.success{color:#7ee2a8}.whistle-submit-notice.error{color:#ff6b6b}
+button:disabled{cursor:not-allowed;opacity:.65}
