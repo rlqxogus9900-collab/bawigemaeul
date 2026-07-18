@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
 type Report = {
   id: string;
@@ -27,21 +28,50 @@ const statusLabel: Record<string, string> = {
   completed: "완료"
 };
 
-export default function WhistleClient({ reports, loggedIn, submitted, error }: { reports: Report[]; loggedIn: boolean; submitted: boolean; error: string | null }) {
+export default function WhistleClient({ reports, loggedIn }: { reports: Report[]; loggedIn: boolean }) {
+  const router = useRouter();
+  const submitLock = useRef(false);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [status, setStatus] = useState("all");
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const submittingRef = useRef(false);
+  const [submitMessage, setSubmitMessage] = useState("");
+  const [submitError, setSubmitError] = useState("");
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    if (submittingRef.current) {
-      event.preventDefault();
-      return;
-    }
-    submittingRef.current = true;
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (submitLock.current) return;
+
+    submitLock.current = true;
     setSubmitting(true);
+    setSubmitMessage("");
+    setSubmitError("");
+
+    const form = event.currentTarget;
+
+    try {
+      const response = await fetch("/api/whistle", {
+        method: "POST",
+        body: new FormData(form),
+        headers: { Accept: "application/json" }
+      });
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(payload?.error || "신문고 접수에 실패했습니다.");
+      }
+
+      form.reset();
+      setSubmitMessage("신문고가 정상적으로 접수되었습니다.");
+      setShowForm(false);
+      router.refresh();
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "신문고 접수에 실패했습니다.");
+    } finally {
+      submitLock.current = false;
+      setSubmitting(false);
+    }
   }
 
   const filtered = useMemo(() => {
@@ -71,13 +101,10 @@ export default function WhistleClient({ reports, loggedIn, submitted, error }: {
         </button>
       </section>
 
-      {submitted && <div className="flash">신문고가 정상적으로 접수되었습니다.</div>}
-      {error && <div className="error">{error === "save" ? "신문고 저장에 실패했습니다. 잠시 후 다시 시도해주세요." : "제목과 내용을 입력해주세요."}</div>}
-
       {showForm && (
         <section className="card whistle-compose-card">
           <div className="dashboard-head"><div><span>NEW REPORT</span><h2>신문고 작성</h2></div></div>
-          <form className="form whistle-form" action="/api/whistle" method="post" onSubmit={handleSubmit}>
+          <form className="form whistle-form" onSubmit={handleSubmit}>
             <div className="whistle-form-row">
               <label>분류<select name="category" defaultValue="suggestion"><option value="suggestion">건의</option><option value="bug">버그</option><option value="report">신고</option><option value="other">기타</option></select></label>
               <label>공개 방식<select name="is_anonymous" defaultValue="true"><option value="true">익명</option>{loggedIn && <option value="false">닉네임 공개</option>}</select></label>
@@ -86,9 +113,12 @@ export default function WhistleClient({ reports, loggedIn, submitted, error }: {
             <label>내용<textarea name="content" rows={7} maxLength={2000} placeholder="운영진이 확인할 수 있도록 자세히 적어주세요" required /></label>
             <label>이미지 주소 <small>(선택)</small><input name="image_url" type="url" placeholder="https://... 이미지 링크" /></label>
             <div className="whistle-submit-row"><small>욕설·허위 신고는 처리되지 않을 수 있습니다.</small><button className="button primary" type="submit" disabled={submitting}>{submitting ? "접수 중..." : "신문고 접수"}</button></div>
+            {submitError && <p role="alert" className="form-error">{submitError}</p>}
           </form>
         </section>
       )}
+
+      {submitMessage && <div className="card form-success" role="status">{submitMessage}</div>}
 
       <section className="whistle-summary-grid">
         <article className="card"><span>접수</span><strong>{pending}</strong><small>운영진 확인 전</small></article>

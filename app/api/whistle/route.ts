@@ -5,6 +5,10 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 const allowedCategories = new Set(["suggestion", "bug", "report", "other"]);
 
+function wantsJson(request: Request) {
+  return request.headers.get("accept")?.includes("application/json") ?? false;
+}
+
 export async function POST(request: Request) {
   const form = await request.formData();
   const user = await getSession();
@@ -17,10 +21,13 @@ export async function POST(request: Request) {
   const isAnonymous = !user || requestedAnonymous;
 
   if (!title || !content) {
+    if (wantsJson(request)) {
+      return NextResponse.json({ error: "제목과 내용을 입력해주세요." }, { status: 400 });
+    }
     return NextResponse.redirect(new URL("/whistle?error=empty", request.url), 303);
   }
 
-  const { error } = await getSupabaseAdmin().from("whistle_reports").insert({
+  const { data, error } = await getSupabaseAdmin().from("whistle_reports").insert({
     category,
     title,
     content,
@@ -29,15 +36,21 @@ export async function POST(request: Request) {
     display_name: isAnonymous ? null : user?.nickname || null,
     author_member_id: user?.id || null,
     status: "pending"
-  });
+  }).select("id").single();
 
-  if (error) {
+  if (error || !data) {
     console.error("whistle insert failed", error);
+    if (wantsJson(request)) {
+      return NextResponse.json({ error: "신문고 저장에 실패했습니다. 잠시 후 다시 시도해주세요." }, { status: 500 });
+    }
     return NextResponse.redirect(new URL("/whistle?error=save", request.url), 303);
   }
 
   revalidatePath("/whistle");
   revalidatePath("/admin");
   revalidatePath("/admin/whistle");
+  if (wantsJson(request)) {
+    return NextResponse.json({ ok: true, id: data.id });
+  }
   return NextResponse.redirect(new URL("/whistle?submitted=1", request.url), 303);
 }

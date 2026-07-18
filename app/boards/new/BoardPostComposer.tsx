@@ -274,6 +274,8 @@ export default function BoardPostComposer({
   const [postMode, setPostMode] = useState<PostMode>("normal");
   const [pollMode, setPollMode] = useState<PollMode>("general");
   const [options, setOptions] = useState(["선택지 1", "선택지 2"]);
+  const submitLock = useRef(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const [match, setMatch] = useState<DateTimeParts>({
     year: defaultYear,
@@ -298,18 +300,6 @@ export default function BoardPostComposer({
     directHour: "20",
     directMinute: "00"
   });
-
-  const [submitting, setSubmitting] = useState(false);
-  const submittingRef = useRef(false);
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    if (submittingRef.current) {
-      event.preventDefault();
-      return;
-    }
-    submittingRef.current = true;
-    setSubmitting(true);
-  }
 
   const isRegularBoard = useMemo(
     () => boardName.includes("정기") || boardName.includes("내전"),
@@ -337,6 +327,16 @@ export default function BoardPostComposer({
     setOptions(current =>
       current.filter((_, itemIndex) => itemIndex !== index)
     );
+  }
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    if (submitLock.current) {
+      event.preventDefault();
+      return;
+    }
+
+    submitLock.current = true;
+    setSubmitting(true);
   }
 
   return (
