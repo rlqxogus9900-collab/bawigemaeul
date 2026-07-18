@@ -4,6 +4,12 @@ export const dynamic = "force-dynamic";
 
 const updates = [
   {
+    version: "1.3.8.30",
+    date: "2026-07-18",
+    title: "수동 경매 생성 및 선수 추가",
+    items: ["경매 삭제 후 현재 상태가 남는 문제 수정", "투표 없이 팀장·선수를 직접 입력해 경매 생성", "진행 중인 경매에 선수 수동 추가 기능 추가"]
+  },
+  {
     version: "1.3.8.29",
     date: "2026-07-18",
     title: "경매 삭제와 최종 결과 화면 개선",
