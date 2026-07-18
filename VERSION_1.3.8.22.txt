@@ -1,0 +1,6 @@
+바위게마을 Online Beta 1.3.8.22
+- Riot API 서버 전용 연동 모듈
+- Riot ID/PUUID/최근 경기/경기 상세 API 라우트
+- 타임아웃, 재시도, 429 처리
+- Data Dragon 캐시 및 Next.js 이미지 최적화
+- 추가 SQL 없음

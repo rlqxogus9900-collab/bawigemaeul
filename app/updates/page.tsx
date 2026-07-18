@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 
 const updates = [
   {
-    version: "1.3.8.20",
+    version: "1.3.8.22",
     date: "2026-07-18",
     title: "챔피언 공략 화면 간소화",
     items: ["역할군 필터와 역할 표시 제거", "챔피언 이름 검색만 남겨 선택 과정을 단순화", "승률·픽률 안내 문구 제거", "챔피언 선택 시 대중적인 빌드 바로 표시"]

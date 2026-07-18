@@ -112,12 +112,12 @@ export default function GuidesClient() {
     let active = true;
     async function loadChampions() {
       try {
-        const versionsResponse = await fetch(DDRAGON_VERSIONS);
+        const versionsResponse = await fetch(DDRAGON_VERSIONS, { cache: "force-cache" });
         const versions: string[] = versionsResponse.ok ? await versionsResponse.json() : [FALLBACK_DDRAGON_VERSION];
         const latestVersion = versions[0] || FALLBACK_DDRAGON_VERSION;
         const patchLabel = latestVersion.split(".").slice(0, 2).join(".");
         const dataUrl = `https://ddragon.leagueoflegends.com/cdn/${latestVersion}/data/ko_KR/champion.json`;
-        const response = await fetch(dataUrl);
+        const response = await fetch(dataUrl, { cache: "force-cache" });
         if (!response.ok) throw new Error("champion data load failed");
         const payload: { data: Record<string, DataDragonChampion> } = await response.json();
         if (!active) return;
@@ -212,11 +212,11 @@ export default function GuidesClient() {
       <section className="guide-quick-sections">
         <article className="card guide-quick-card">
           <div className="guides-section-head"><div><span>POPULAR TOP 10</span><h2>인기 챔피언</h2></div><small>대중적으로 많이 찾는 챔피언</small></div>
-          <div className="guide-mini-list">{popularBuilds.map((build, index) => <button key={build.id} type="button" onClick={() => selectChampion(build)}><b>{index + 1}</b><Image src={`${championImageBase}/${build.imageName ?? `${build.englishName}.png`}`} alt={build.champion} width={42} height={42} unoptimized /><span>{build.champion}</span></button>)}</div>
+          <div className="guide-mini-list">{popularBuilds.map((build, index) => <button key={build.id} type="button" onClick={() => selectChampion(build)}><b>{index + 1}</b><Image src={`${championImageBase}/${build.imageName ?? `${build.englishName}.png`}`} alt={build.champion} width={42} height={42} /><span>{build.champion}</span></button>)}</div>
         </article>
         <article className="card guide-quick-card">
           <div className="guides-section-head"><div><span>RECENTLY VIEWED</span><h2>최근 본 챔피언</h2></div><small>최대 6명 저장</small></div>
-          {recentBuilds.length ? <div className="guide-mini-list recent">{recentBuilds.map(build => <button key={build.id} type="button" onClick={() => selectChampion(build)}><Image src={`${championImageBase}/${build.imageName ?? `${build.englishName}.png`}`} alt={build.champion} width={42} height={42} unoptimized /><span>{build.champion}</span></button>)}</div> : <p className="guide-recent-empty">챔피언을 선택하면 최근 목록에 저장됩니다.</p>}
+          {recentBuilds.length ? <div className="guide-mini-list recent">{recentBuilds.map(build => <button key={build.id} type="button" onClick={() => selectChampion(build)}><Image src={`${championImageBase}/${build.imageName ?? `${build.englishName}.png`}`} alt={build.champion} width={42} height={42} /><span>{build.champion}</span></button>)}</div> : <p className="guide-recent-empty">챔피언을 선택하면 최근 목록에 저장됩니다.</p>}
         </article>
       </section>
 
