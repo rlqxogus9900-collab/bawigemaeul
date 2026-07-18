@@ -7,9 +7,9 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const latestUpdate = {
-  version: "1.3.8.32",
-  title: "관리 기능 활성화와 기록 초기화 수정",
-  summary: "일정·홈·내전 기록 관리 활성화, 통계 초기화와 경매 잔존 기록 제거"
+  version: "1.3.8.34",
+  title: "경매 선수 정보 자동 입력",
+  summary: "닉네임으로 주라인·부라인·내전티어 자동 입력, 경매별 참고사항 별도 저장"
 };
 
 

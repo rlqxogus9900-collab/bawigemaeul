@@ -32,6 +32,10 @@ type Player = {
   status: string;
   sold_team_id: string | null;
   sold_price: number | null;
+  main_line?: string | null;
+  sub_line?: string | null;
+  match_tier?: number | null;
+  note?: string | null;
 };
 
 type Bid = {
@@ -202,6 +206,7 @@ export default function AuctionLiveClient({
         <div key={`${room.current_player_id || "none"}-${bidPulse}`} className="auction-current auction-current-animated">
           <small>현재 선수</small>
           <strong>{currentPlayer?.nickname || "선수를 선택하세요"}</strong>
+          {currentPlayer && <small className="auction-player-profile-line">{currentPlayer.main_line || "미정"} / {currentPlayer.sub_line || "미정"} · {currentPlayer.match_tier ? `${["", "Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ"][currentPlayer.match_tier]}티어` : "티어 미정"}{currentPlayer.note ? ` · ${currentPlayer.note}` : ""}</small>}
           <div>
             <span>현재가</span>
             <b className="auction-price-pulse">{room.current_bid.toLocaleString()}점</b>

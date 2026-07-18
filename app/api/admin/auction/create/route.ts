@@ -16,18 +16,18 @@ export async function POST(req: NextRequest) {
     let pollId: string | null = null;
     let title = String(body.title || "").trim() || "수동 실시간 경매";
     let captainRows: Array<{ member_id: string | null; member_nickname: string }> = [];
-    let playerRows: Array<{ member_id: string | null; member_nickname: string }> = [];
+    let playerRows: Array<{ member_id: string | null; member_nickname: string; main_line?: string | null; sub_line?: string | null; match_tier?: number | null }> = [];
 
     if (mode === "manual") {
       const captainNames: string[] = Array.from(new Set<string>((Array.isArray(body.captains) ? body.captains : []).map((v: unknown) => String(v).trim()).filter((v: string) => Boolean(v))));
       const playerNames: string[] = Array.from(new Set<string>((Array.isArray(body.players) ? body.players : []).map((v: unknown) => String(v).trim()).filter((v: string) => Boolean(v))));
       if (captainNames.length < 2) return NextResponse.json({ error: "수동 경매는 팀장을 2명 이상 입력하세요." }, { status: 400 });
       const allNames = Array.from(new Set([...captainNames, ...playerNames]));
-      const { data: members } = allNames.length ? await db.from("members").select("id,nickname,match_tier,average_tier,current_tier").in("nickname", allNames) : { data: [] };
+      const { data: members } = allNames.length ? await db.from("members").select("id,nickname,match_tier,average_tier,current_tier,main_line,sub_line").in("nickname", allNames) : { data: [] };
       const memberByName = new Map((members || []).map(m => [m.nickname, m]));
       captainRows = captainNames.map(name => ({ member_id: memberByName.get(name)?.id || null, member_nickname: name }));
       const captainSet = new Set(captainNames);
-      playerRows = playerNames.filter(name => !captainSet.has(name)).map(name => ({ member_id: memberByName.get(name)?.id || null, member_nickname: name }));
+      playerRows = playerNames.filter(name => !captainSet.has(name)).map(name => { const member = memberByName.get(name); return ({ member_id: member?.id || null, member_nickname: name, main_line: member?.main_line || "미정", sub_line: member?.sub_line || "미정", match_tier: member?.match_tier || null }); });
     } else {
       const { data: poll } = await db.from("board_polls").select("id,match_at,board_posts(title)").eq("poll_type", "regular_match").eq("is_auction_source", true).maybeSingle();
       if (!poll) return NextResponse.json({ error: "경매 연동 투표가 없습니다. 투표 없이 만들려면 수동 생성을 선택하세요." }, { status: 400 });
@@ -41,6 +41,12 @@ export async function POST(req: NextRequest) {
       captainRows = captains;
       const captainIds = new Set(captains.map(c => c.member_id));
       playerRows = (votes || []).filter(v => !captainIds.has(v.member_id));
+      const participantIds = playerRows.map(p => p.member_id).filter(Boolean) as string[];
+      if (participantIds.length) {
+        const { data: participantMembers } = await db.from("members").select("id,main_line,sub_line,match_tier").in("id", participantIds);
+        const participantMap = new Map((participantMembers || []).map(member => [member.id, member]));
+        playerRows = playerRows.map(player => { const member = player.member_id ? participantMap.get(player.member_id) : undefined; return { ...player, main_line: member?.main_line || "미정", sub_line: member?.sub_line || "미정", match_tier: member?.match_tier || null }; });
+      }
     }
 
     const captainIds = captainRows.map(c => c.member_id).filter(Boolean) as string[];
@@ -60,7 +66,7 @@ export async function POST(req: NextRequest) {
       const finalBudget = startingBudget + tierBonus;
       return { room_id: room.id, name: `${String.fromCharCode(65 + index)}팀`, captain_member_id: captain.member_id, captain_nickname: captain.member_nickname, captain_match_tier: matchTier, captain_average_tier: member?.average_tier || member?.current_tier || null, base_budget: startingBudget, tier_bonus: tierBonus, starting_budget: finalBudget, budget: finalBudget, sort_order: index };
     });
-    const players = playerRows.map((p, index) => ({ room_id: room.id, member_id: p.member_id, nickname: p.member_nickname, sort_order: index }));
+    const players = playerRows.map((p, index) => ({ room_id: room.id, member_id: p.member_id, nickname: p.member_nickname, main_line: p.main_line || "미정", sub_line: p.sub_line || "미정", match_tier: p.match_tier || null, sort_order: index }));
     const { error: teamError } = await db.from("auction_teams").insert(teams); if (teamError) throw teamError;
     if (players.length) { const { error: playerError } = await db.from("auction_players").insert(players); if (playerError) throw playerError; }
     return NextResponse.json({ ok: true, roomId: room.id });

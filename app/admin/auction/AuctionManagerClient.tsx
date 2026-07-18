@@ -14,7 +14,7 @@ type Team = {
 };
 type AuctionState = {
   room: Room | null; teams: Team[];
-  players: Array<{ id: string; nickname: string; status: string }>;
+  players: Array<{ id: string; nickname: string; status: string; main_line?: string | null; sub_line?: string | null; match_tier?: number | null; note?: string | null }>;
   bids: Array<{ id: number }>;
 };
 const roman: Record<number, string> = { 1: "Ⅰ", 2: "Ⅱ", 3: "Ⅲ", 4: "Ⅳ", 5: "Ⅴ" };
@@ -33,6 +33,9 @@ export default function AuctionManagerClient() {
   const [manualCaptains, setManualCaptains] = useState("");
   const [manualPlayers, setManualPlayers] = useState("");
   const [newPlayer, setNewPlayer] = useState("");
+  const [newPlayerNote, setNewPlayerNote] = useState("");
+  const [playerPreview, setPlayerPreview] = useState<{ nickname: string; main_line: string | null; sub_line: string | null; match_tier: number | null } | null>(null);
+  const [lookingUpPlayer, setLookingUpPlayer] = useState(false);
   const [addingPlayer, setAddingPlayer] = useState(false);
 
   const load = useCallback(async () => {
@@ -81,16 +84,28 @@ export default function AuctionManagerClient() {
   };
 
 
+  const lookupPlayer = async () => {
+    const nickname = newPlayer.trim();
+    setPlayerPreview(null);
+    if (!nickname) return;
+    setLookingUpPlayer(true);
+    const response = await fetch(`/api/admin/auction/player?nickname=${encodeURIComponent(nickname)}`, { cache: "no-store" });
+    const result = await response.json().catch(() => ({}));
+    if (response.ok) setPlayerPreview(result.member);
+    else setMessage(result.error || "선수 조회 실패");
+    setLookingUpPlayer(false);
+  };
+
   const addPlayer = async () => {
     if (!state.room || !newPlayer.trim() || addingPlayer) return;
     setAddingPlayer(true); setMessage("");
     const response = await fetch("/api/admin/auction/player", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ roomId: state.room.id, nickname: newPlayer.trim() })
+      body: JSON.stringify({ roomId: state.room.id, nickname: newPlayer.trim(), note: newPlayerNote.trim() })
     });
     const result = await response.json().catch(() => ({}));
     setMessage(response.ok ? `${newPlayer.trim()} 선수를 추가했습니다.` : result.error || "선수 추가 실패");
-    if (response.ok) setNewPlayer("");
+    if (response.ok) { setNewPlayer(""); setNewPlayerNote(""); setPlayerPreview(null); }
     await load(); setAddingPlayer(false);
   };
 
@@ -149,9 +164,16 @@ export default function AuctionManagerClient() {
               <p><b>현재 예산</b><span>{team.budget.toLocaleString()}점</span></p>
             </article>)}
           </div>
-          <div className="auction-manual-player-add">
-            <div><b>선수 수동 추가</b><span>경매 생성 후에도 대기 선수 명단에 바로 추가됩니다.</span></div>
-            <div><input value={newPlayer} onChange={(e) => setNewPlayer(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") addPlayer(); }} placeholder="추가할 선수 닉네임" /><button type="button" disabled={addingPlayer || !newPlayer.trim()} onClick={addPlayer}>{addingPlayer ? "추가 중..." : "선수 추가"}</button></div>
+          <div className="auction-manual-player-add auction-player-profile-add">
+            <div><b>선수 수동 추가</b><span>닉네임을 입력하면 클랜원 명단의 주라인·부라인·내전티어를 자동으로 불러옵니다.</span></div>
+            <div className="auction-player-add-fields">
+              <label>닉네임<input value={newPlayer} onChange={(e) => { setNewPlayer(e.target.value); setPlayerPreview(null); }} onBlur={lookupPlayer} placeholder="클랜원 닉네임" /></label>
+              <label>주라인<input value={lookingUpPlayer ? "조회 중..." : playerPreview?.main_line || "자동 입력"} readOnly /></label>
+              <label>부라인<input value={lookingUpPlayer ? "조회 중..." : playerPreview?.sub_line || "자동 입력"} readOnly /></label>
+              <label>내전티어<input value={lookingUpPlayer ? "조회 중..." : playerPreview?.match_tier ? `${roman[playerPreview.match_tier]}티어` : "자동 입력"} readOnly /></label>
+              <label className="auction-player-note-field">참고사항<input value={newPlayerNote} onChange={(e) => setNewPlayerNote(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") addPlayer(); }} placeholder="이번 경매에만 표시할 참고사항" /></label>
+              <button type="button" disabled={addingPlayer || !newPlayer.trim()} onClick={addPlayer}>{addingPlayer ? "추가 중..." : "선수 추가"}</button>
+            </div>
           </div>
           <div className="auction-admin-links">
             <Link className="button" href="/auction">관전 화면 열기</Link>

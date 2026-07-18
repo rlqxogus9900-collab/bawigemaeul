@@ -29,6 +29,10 @@ type Player = {
   status: string;
   sold_team_id: string | null;
   sold_price: number | null;
+  main_line?: string | null;
+  sub_line?: string | null;
+  match_tier?: number | null;
+  note?: string | null;
 };
 
 type Bid = {

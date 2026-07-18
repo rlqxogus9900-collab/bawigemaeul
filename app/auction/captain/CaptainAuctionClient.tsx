@@ -29,6 +29,10 @@ type Player = {
   status: string;
   sold_team_id: string | null;
   sold_price: number | null;
+  main_line?: string | null;
+  sub_line?: string | null;
+  match_tier?: number | null;
+  note?: string | null;
 };
 type Bid = {
   id: number;
@@ -282,6 +286,7 @@ export default function CaptainAuctionClient({
         <div className="captain-current-player">
           <small>현재 선수</small>
           <h1 className="captain-player-nickname">{currentPlayer?.nickname || (room.status === "finished" ? "경매 종료" : "선수 지명 대기")}</h1>
+          {currentPlayer && <p className="auction-player-profile-line">주라인 {currentPlayer.main_line || "미정"} · 부라인 {currentPlayer.sub_line || "미정"} · 내전티어 {currentPlayer.match_tier ? `${["", "Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ"][currentPlayer.match_tier]}티어` : "미정"}{currentPlayer.note ? ` · ${currentPlayer.note}` : ""}</p>}
           {room.status === "live" && currentPlayer && (
             <div className={`captain-countdown ${timeLeft <= 5 ? "urgent" : ""} ${timeLeft === 0 ? "expired" : ""}`}>
               <span>{timeLeft === 0 ? "시간 종료" : "남은 시간"}</span><strong>{timeLeft}</strong><em>초</em>
