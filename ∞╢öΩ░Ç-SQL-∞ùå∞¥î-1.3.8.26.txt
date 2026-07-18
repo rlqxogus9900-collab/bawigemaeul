@@ -1,0 +1,9 @@
+1.3.8.26은 Riot API 서버 연동 및 전적 조회 화면 추가 버전입니다.
+추가 Supabase SQL은 없습니다.
+
+배포 환경 변수에 아래 값을 직접 등록해야 합니다.
+RIOT_API_KEY=새로 발급한 RGAPI 키
+RIOT_PLATFORM_REGION=kr
+RIOT_ROUTING_REGION=asia
+
+API 키는 ZIP이나 공개 저장소에 넣지 마세요.
