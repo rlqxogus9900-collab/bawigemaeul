@@ -26,6 +26,7 @@ export default function AuctionManagerClient() {
   const [tierBalanceEnabled, setTierBalanceEnabled] = useState(true);
   const [tierBonusPerTier, setTierBonusPerTier] = useState(100);
   const [busy, setBusy] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [message, setMessage] = useState("");
 
   const load = useCallback(async () => {
@@ -49,6 +50,24 @@ export default function AuctionManagerClient() {
     await load(); setBusy(false);
   };
 
+  const deleteRoom = async () => {
+    if (!state.room || deleting) return;
+    const confirmed = window.confirm(`현재 경매방 "${state.room.title}"을 완전히 삭제할까요?\n팀, 선수, 입찰 기록도 함께 삭제되며 되돌릴 수 없습니다.`);
+    if (!confirmed) return;
+
+    setDeleting(true);
+    setMessage("");
+    const response = await fetch("/api/admin/auction/delete", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ roomId: state.room.id })
+    });
+    const result = await response.json().catch(() => ({}));
+    setMessage(response.ok ? "경매방과 관련 기록을 삭제했습니다." : result.error || "경매 삭제 실패");
+    await load();
+    setDeleting(false);
+  };
+
   const active = state.room && state.room.status !== "finished";
 
   return (
@@ -63,9 +82,16 @@ export default function AuctionManagerClient() {
           <label className="auction-tier-toggle"><span>팀장 티어 보정</span><button type="button" className={tierBalanceEnabled ? "enabled" : ""} onClick={() => setTierBalanceEnabled(v => !v)}>{tierBalanceEnabled ? "사용 ON" : "사용 OFF"}</button></label>
         </div>
         <div className="auction-budget-example"><b>계산 방식</b><span>가장 높은 팀장 기준 1티어 차이마다 +{tierBonusPerTier.toLocaleString()}점</span></div>
-        <button className="button auction-create-main-button" disabled={busy || Boolean(active)} onClick={createRoom}>
-          {busy ? "생성 중..." : active ? "진행 중인 경매가 있습니다" : state.room?.status === "finished" ? "결과 보관 후 새 경매 시작" : "경매방 만들기"}
-        </button>
+        <div className="auction-room-setting-actions">
+          <button className="button auction-create-main-button" disabled={busy || deleting || Boolean(active)} onClick={createRoom}>
+            {busy ? "생성 중..." : active ? "진행 중인 경매가 있습니다" : state.room?.status === "finished" ? "결과 보관 후 새 경매 시작" : "경매방 만들기"}
+          </button>
+          {state.room && (
+            <button type="button" className="button auction-delete-room-button" disabled={busy || deleting} onClick={deleteRoom}>
+              {deleting ? "삭제 중..." : "현재 경매 삭제"}
+            </button>
+          )}
+        </div>
         {message && <p className={message.includes("실패") || message.includes("없") ? "form-error" : "form-success"}>{message}</p>}
       </section>
 

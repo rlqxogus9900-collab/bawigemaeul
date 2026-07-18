@@ -7,9 +7,9 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const latestUpdate = {
-  version: "1.3.8.28",
-  title: "클랜원 동반 경기 활동 집계",
-  summary: "클랜원끼리 함께 플레이한 경기만 활동으로 인정"
+  version: "1.3.8.29",
+  title: "경매 삭제와 최종 결과 화면 개선",
+  summary: "경매 설정에서 현재 경매를 삭제하고 결과 화면을 어둡게 개선"
 };
 
 
