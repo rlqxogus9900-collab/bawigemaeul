@@ -2,14 +2,15 @@ import Link from "next/link";
 import Image from "next/image";
 import { unstable_cache } from "next/cache";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { SITE_VERSION } from "@/lib/site-version";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const latestUpdate = {
-  version: "1.3.8.39",
-  title: "게시판 이미지와 업데이트 표시 수정",
-  summary: "커뮤니티 이미지 첨부 추가 및 업데이트 페이지·홈 최신 업데이트 카드 동기화"
+  version: SITE_VERSION,
+  title: "명단 ALL 라인과 버전 표시 수정",
+  summary: "클랜원 명단 주라인·부라인에 ALL 추가 및 사이트 버전 표시 통합"
 };
 
 

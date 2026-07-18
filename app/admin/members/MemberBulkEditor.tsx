@@ -22,7 +22,7 @@ type MemberRow = {
   last_game_at: string | null;
 };
 
-const lines = ["미정", "탑", "정글", "미드", "원딜", "서폿"];
+const lines = ["미정", "ALL", "탑", "정글", "미드", "원딜", "서폿"];
 const romanTier: Record<number, string> = { 1: "Ⅰ", 2: "Ⅱ", 3: "Ⅲ", 4: "Ⅳ", 5: "Ⅴ" };
 
 export default function MemberBulkEditor({

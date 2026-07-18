@@ -1,8 +1,15 @@
 import Link from "next/link";
+import { SITE_VERSION } from "@/lib/site-version";
 
 export const dynamic = "force-dynamic";
 
 const updates = [
+  {
+    version: SITE_VERSION,
+    date: "2026-07-19",
+    title: "명단 ALL 라인과 버전 표시 수정",
+    items: ["클랜원 명단과 내전 참고 명단의 주라인 선택에 ALL 추가", "클랜원 명단과 내전 참고 명단의 부라인 선택에 ALL 추가", "오른쪽 아래 Online Beta 버전을 1.3.8.40으로 수정", "사이트 버전 문자열을 공통 상수로 통합"]
+  },
   {
     version: "1.3.8.39",
     date: "2026-07-18",

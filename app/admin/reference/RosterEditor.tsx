@@ -12,7 +12,7 @@ type Member = {
   reference_note: string | null;
 };
 
-const lines = ["미정","탑","정글","미드","원딜","서폿"];
+const lines = ["미정","ALL","탑","정글","미드","원딜","서폿"];
 
 export default function RosterEditor({ initialMembers }: { initialMembers: Member[] }) {
   const [members, setMembers] = useState(initialMembers);

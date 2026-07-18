@@ -4,6 +4,7 @@ import { getSession } from "@/lib/session";
 import { getCachedBoardMenu } from "@/lib/board-menu";
 import SiteNavigation from "@/app/components/SiteNavigation";
 import NotificationCenter from "@/app/components/NotificationCenter";
+import { SITE_VERSION } from "@/lib/site-version";
 
 export const viewport = {
   width: "device-width",
@@ -80,7 +81,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
           <footer className="site-footer">
             <div><b>BAWIGEMAEUL</b><span>Since 2026</span></div>
-            <small>Created for 바위게마을 · Online Beta 1.3.8.37</small>
+            <small>Created for 바위게마을 · Online Beta {SITE_VERSION}</small>
           </footer>
         </div>
       </body>
