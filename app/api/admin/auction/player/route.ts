@@ -6,13 +6,15 @@ export async function GET(req: NextRequest) {
   try {
     await requireStaff();
     const nickname = String(req.nextUrl.searchParams.get("nickname") || "").trim();
-    if (!nickname) return NextResponse.json({ error: "닉네임을 입력하세요." }, { status: 400 });
     const db = getSupabaseAdmin();
-    const { data: member } = await db
-      .from("members")
-      .select("id,nickname,main_line,sub_line,match_tier")
-      .eq("nickname", nickname)
-      .maybeSingle();
+    if (!nickname) {
+      const { data: members, error } = await db.from("members").select("id,nickname,main_line,sub_line,match_tier").eq("is_active", true).order("nickname").limit(300);
+      if (error) throw error;
+      return NextResponse.json({ members: members || [] });
+    }
+    const { data: members, error } = await db.from("members").select("id,nickname,main_line,sub_line,match_tier").ilike("nickname", nickname).limit(2);
+    if (error) throw error;
+    const member = (members || []).find(m => m.nickname.trim().toLocaleLowerCase() === nickname.toLocaleLowerCase()) || null;
     if (!member) return NextResponse.json({ error: "클랜원 명단에서 닉네임을 찾을 수 없습니다." }, { status: 404 });
     return NextResponse.json({ member });
   } catch (error) {
@@ -36,7 +38,8 @@ export async function POST(req: NextRequest) {
     const { data: member } = await db
       .from("members")
       .select("id,nickname,main_line,sub_line,match_tier")
-      .eq("nickname", nickname)
+      .ilike("nickname", nickname)
+      .limit(1)
       .maybeSingle();
     if (!member) return NextResponse.json({ error: "클랜원 명단에서 닉네임을 찾을 수 없습니다." }, { status: 404 });
     const { data: last } = await db.from("auction_players").select("sort_order").eq("room_id", roomId).order("sort_order", { ascending: false }).limit(1).maybeSingle();

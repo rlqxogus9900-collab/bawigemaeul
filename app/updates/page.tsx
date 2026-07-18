@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 
 const updates = [
   {
-    version: "1.3.8.34",
+    version: "1.3.8.35",
     date: "2026-07-18",
     title: "경매 선수 정보 자동 입력",
     items: ["닉네임 입력 시 주라인·부라인·내전티어 자동 조회", "참고사항은 해당 경매용으로 별도 입력", "경매 화면에 선수 라인·내전티어·참고사항 표시"]

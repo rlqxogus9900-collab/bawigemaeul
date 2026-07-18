@@ -37,6 +37,7 @@ export default function AuctionManagerClient() {
   const [playerPreview, setPlayerPreview] = useState<{ nickname: string; main_line: string | null; sub_line: string | null; match_tier: number | null } | null>(null);
   const [lookingUpPlayer, setLookingUpPlayer] = useState(false);
   const [addingPlayer, setAddingPlayer] = useState(false);
+  const [memberOptions, setMemberOptions] = useState<Array<{ nickname: string; main_line: string | null; sub_line: string | null; match_tier: number | null }>>([]);
 
   const load = useCallback(async () => {
     const response = await fetch("/api/auction/state", { cache: "no-store" });
@@ -44,6 +45,7 @@ export default function AuctionManagerClient() {
   }, []);
   useEffect(() => {
     load();
+    fetch("/api/admin/auction/player", { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(data => setMemberOptions(data?.members || [])).catch(() => {});
     const timer = window.setInterval(load, 1500);
     return () => window.clearInterval(timer);
   }, [load]);
@@ -83,6 +85,11 @@ export default function AuctionManagerClient() {
     setDeleting(false);
   };
 
+
+  const applyMember = (nickname: string) => {
+    const found = memberOptions.find(m => m.nickname.toLocaleLowerCase() === nickname.trim().toLocaleLowerCase());
+    setPlayerPreview(found || null);
+  };
 
   const lookupPlayer = async () => {
     const nickname = newPlayer.trim();
@@ -167,7 +174,7 @@ export default function AuctionManagerClient() {
           <div className="auction-manual-player-add auction-player-profile-add">
             <div><b>선수 수동 추가</b><span>닉네임을 입력하면 클랜원 명단의 주라인·부라인·내전티어를 자동으로 불러옵니다.</span></div>
             <div className="auction-player-add-fields">
-              <label>닉네임<input value={newPlayer} onChange={(e) => { setNewPlayer(e.target.value); setPlayerPreview(null); }} onBlur={lookupPlayer} placeholder="클랜원 닉네임" /></label>
+              <label>닉네임<input list="auction-member-options" value={newPlayer} onChange={(e) => { setNewPlayer(e.target.value); applyMember(e.target.value); }} onBlur={lookupPlayer} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); lookupPlayer(); } }} placeholder="클랜원 닉네임 검색" /><datalist id="auction-member-options">{memberOptions.map(member => <option key={member.nickname} value={member.nickname}>{member.main_line || "미정"} / {member.sub_line || "미정"}</option>)}</datalist></label>
               <label>주라인<input value={lookingUpPlayer ? "조회 중..." : playerPreview?.main_line || "자동 입력"} readOnly /></label>
               <label>부라인<input value={lookingUpPlayer ? "조회 중..." : playerPreview?.sub_line || "자동 입력"} readOnly /></label>
               <label>내전티어<input value={lookingUpPlayer ? "조회 중..." : playerPreview?.match_tier ? `${roman[playerPreview.match_tier]}티어` : "자동 입력"} readOnly /></label>

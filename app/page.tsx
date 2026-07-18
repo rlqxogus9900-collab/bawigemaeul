@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const latestUpdate = {
-  version: "1.3.8.34",
+  version: "1.3.8.35",
   title: "경매 선수 정보 자동 입력",
   summary: "닉네임으로 주라인·부라인·내전티어 자동 입력, 경매별 참고사항 별도 저장"
 };
