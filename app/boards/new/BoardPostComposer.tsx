@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 type PostMode = "normal" | "poll";
 type PollMode = "general" | "regular_match";
@@ -272,7 +272,6 @@ export default function BoardPostComposer({
   const defaultDay = koreaNow.day;
 
   const [postMode, setPostMode] = useState<PostMode>("normal");
-  const [submitting, setSubmitting] = useState(false);
   const [pollMode, setPollMode] = useState<PollMode>("general");
   const [options, setOptions] = useState(["선택지 1", "선택지 2"]);
 
@@ -328,16 +327,8 @@ export default function BoardPostComposer({
     );
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    if (submitting) {
-      event.preventDefault();
-      return;
-    }
-    setSubmitting(true);
-  }
-
   return (
-    <form className="board-editor-form" action="/api/boards/posts" method="post" onSubmit={handleSubmit}>
+    <form className="board-editor-form" action="/api/boards/posts" method="post">
       <input type="hidden" name="subcategory_id" value={boardId} />
       <input type="hidden" name="post_type" value={postMode} />
       <input type="hidden" name="poll_type" value={pollMode} />
@@ -495,8 +486,8 @@ export default function BoardPostComposer({
         <Link className="button" href={`/boards?board=${boardId}`}>
           취소
         </Link>
-        <button className="button primary" type="submit" disabled={submitting}>
-          {submitting ? "등록 중..." : (postMode === "poll" ? "투표 글 등록" : "게시글 등록")}
+        <button className="button primary">
+          {postMode === "poll" ? "투표 글 등록" : "게시글 등록"}
         </button>
       </div>
     </form>

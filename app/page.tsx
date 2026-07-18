@@ -7,9 +7,9 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const latestUpdate = {
-  version: "1.3.8.22",
-  title: "즐겨찾기와 인기 챔피언",
-  summary: "즐겨찾기·최근 본 챔피언·인기 TOP10·무작위 추천 추가"
+  version: "1.3.8.23",
+  title: "신문고 저장 오류 수정",
+  summary: "신문고 저장 실패 원인 표시·중복 접수 방지·목록 즉시 갱신"
 };
 
 

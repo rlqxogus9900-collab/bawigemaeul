@@ -34,38 +34,9 @@ export default function WhistleClient({ reports, loggedIn }: { reports: Report[]
   const [status, setStatus] = useState("all");
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [notice, setNotice] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [submitMessage, setSubmitMessage] = useState("");
+  const [submitError, setSubmitError] = useState("");
   const router = useRouter();
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (submitting) return;
-
-    setSubmitting(true);
-    setNotice(null);
-    const form = event.currentTarget;
-
-    try {
-      const response = await fetch("/api/whistle", {
-        method: "POST",
-        body: new FormData(form),
-        headers: { Accept: "application/json" }
-      });
-      const result = await response.json().catch(() => null);
-
-      if (!response.ok || !result?.ok) {
-        throw new Error(result?.message || "신문고 저장에 실패했습니다.");
-      }
-
-      form.reset();
-      setNotice({ type: "success", message: result.message || "신문고가 정상적으로 접수되었습니다." });
-      router.refresh();
-    } catch (error) {
-      setNotice({ type: "error", message: error instanceof Error ? error.message : "신문고 저장에 실패했습니다." });
-    } finally {
-      setSubmitting(false);
-    }
-  }
 
   const filtered = useMemo(() => {
     const keyword = query.trim().toLowerCase();
@@ -80,6 +51,34 @@ export default function WhistleClient({ reports, loggedIn }: { reports: Report[]
   const pending = reports.filter(item => item.status === "pending").length;
   const reviewing = reports.filter(item => item.status === "reviewing").length;
   const completed = reports.filter(item => item.status === "completed").length;
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (submitting) return;
+
+    setSubmitting(true);
+    setSubmitMessage("");
+    setSubmitError("");
+
+    try {
+      const response = await fetch("/api/whistle", {
+        method: "POST",
+        body: new FormData(event.currentTarget),
+        headers: { Accept: "application/json", "X-Requested-With": "fetch" }
+      });
+      const result = await response.json().catch(() => null) as { ok?: boolean; error?: string } | null;
+      if (!response.ok || !result?.ok) throw new Error(result?.error || "신문고 저장에 실패했습니다.");
+
+      event.currentTarget.reset();
+      setSubmitMessage("신문고가 정상적으로 접수되었습니다.");
+      setShowForm(false);
+      router.refresh();
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "신문고 저장에 실패했습니다.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
     <div className="whistle-shell">
@@ -106,10 +105,12 @@ export default function WhistleClient({ reports, loggedIn }: { reports: Report[]
             <label>내용<textarea name="content" rows={7} maxLength={2000} placeholder="운영진이 확인할 수 있도록 자세히 적어주세요" required /></label>
             <label>이미지 주소 <small>(선택)</small><input name="image_url" type="url" placeholder="https://... 이미지 링크" /></label>
             <div className="whistle-submit-row"><small>욕설·허위 신고는 처리되지 않을 수 있습니다.</small><button className="button primary" type="submit" disabled={submitting}>{submitting ? "접수 중..." : "신문고 접수"}</button></div>
-            {notice && <p className={`whistle-submit-notice ${notice.type}`}>{notice.message}</p>}
+            {submitError && <p className="form-error" role="alert">{submitError}</p>}
           </form>
         </section>
       )}
+
+      {submitMessage && <div className="card form-success" role="status">{submitMessage}</div>}
 
       <section className="whistle-summary-grid">
         <article className="card"><span>접수</span><strong>{pending}</strong><small>운영진 확인 전</small></article>

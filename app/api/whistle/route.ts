@@ -6,7 +6,7 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin";
 const allowedCategories = new Set(["suggestion", "bug", "report", "other"]);
 
 function wantsJson(request: Request) {
-  return request.headers.get("accept")?.includes("application/json") ?? false;
+  return request.headers.get("accept")?.includes("application/json") || request.headers.get("x-requested-with") === "fetch";
 }
 
 export async function POST(request: Request) {
@@ -22,9 +22,7 @@ export async function POST(request: Request) {
     const isAnonymous = !user || requestedAnonymous;
 
     if (!title || !content) {
-      if (wantsJson(request)) {
-        return NextResponse.json({ ok: false, message: "제목과 내용을 입력해주세요." }, { status: 400 });
-      }
+      if (wantsJson(request)) return NextResponse.json({ ok: false, error: "제목과 내용을 입력해주세요." }, { status: 400 });
       return NextResponse.redirect(new URL("/whistle?error=empty", request.url), 303);
     }
 
@@ -40,29 +38,25 @@ export async function POST(request: Request) {
     });
 
     if (error) {
-      console.error("[whistle] insert failed", { code: error.code, message: error.message, details: error.details });
-      const message = error.code === "42P01"
-        ? "신문고 DB 테이블이 없습니다. 포함된 추가 SQL을 먼저 실행해주세요."
-        : "신문고 저장에 실패했습니다. 잠시 후 다시 시도해주세요.";
-      if (wantsJson(request)) {
-        return NextResponse.json({ ok: false, message }, { status: 500 });
-      }
-      return NextResponse.redirect(new URL("/whistle?error=save", request.url), 303);
+      console.error("[whistle] insert failed", error);
+      const missingTable = error.code === "42P01" || /whistle_reports|relation .* does not exist/i.test(error.message || "");
+      const message = missingTable
+        ? "신문고 DB 테이블이 없습니다. ZIP의 추가-SQL-1.3.8.23.sql을 Supabase SQL Editor에서 실행해주세요."
+        : `신문고 저장에 실패했습니다. (${error.message})`;
+      if (wantsJson(request)) return NextResponse.json({ ok: false, error: message }, { status: 500 });
+      return NextResponse.redirect(new URL(`/whistle?error=${missingTable ? "missing_table" : "save"}`, request.url), 303);
     }
 
     revalidatePath("/whistle");
     revalidatePath("/admin");
     revalidatePath("/admin/whistle");
 
-    if (wantsJson(request)) {
-      return NextResponse.json({ ok: true, message: "신문고가 정상적으로 접수되었습니다." });
-    }
+    if (wantsJson(request)) return NextResponse.json({ ok: true });
     return NextResponse.redirect(new URL("/whistle?submitted=1", request.url), 303);
   } catch (error) {
-    console.error("[whistle] unexpected failure", error);
-    if (wantsJson(request)) {
-      return NextResponse.json({ ok: false, message: "신문고 저장 중 오류가 발생했습니다." }, { status: 500 });
-    }
-    return NextResponse.redirect(new URL("/whistle?error=save", request.url), 303);
+    console.error("[whistle] unexpected error", error);
+    const message = error instanceof Error ? error.message : "알 수 없는 오류";
+    if (wantsJson(request)) return NextResponse.json({ ok: false, error: `신문고 저장에 실패했습니다. (${message})` }, { status: 500 });
+    return NextResponse.redirect(new URL("/whistle?error=server", request.url), 303);
   }
 }
