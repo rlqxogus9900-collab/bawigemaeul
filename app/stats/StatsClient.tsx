@@ -2,136 +2,109 @@
 
 import { useMemo, useState } from "react";
 
+type LineStat = {
+  games: number;
+  wins: number;
+  kills: number;
+  deaths: number;
+  assists: number;
+};
+
 type MemberStat = {
   id: string;
   nickname: string;
-  riotId: string;
-  mainLine: string;
-  subLine: string;
   matchTier: number | null;
-  soloTier: string;
-  auctionCount: number;
-  averagePrice: number | null;
-  highestPrice: number | null;
+  overall: LineStat;
+  byLine: Record<string, LineStat>;
 };
 
 type Props = {
   members: MemberStat[];
-  totalMatches: number;
-  auctionPlayerCount: number;
-  overallAveragePrice: number | null;
 };
 
 const lines = ["전체", "탑", "정글", "미드", "원딜", "서폿"];
+const romanTier: Record<number, string> = { 1: "I", 2: "II", 3: "III", 4: "IV", 5: "V" };
+const emptyStat: LineStat = { games: 0, wins: 0, kills: 0, deaths: 0, assists: 0 };
 
-function formatNumber(value: number | null) {
-  if (value === null) return "-";
-  return new Intl.NumberFormat("ko-KR").format(value);
+function formatKda(stat: LineStat) {
+  if (!stat.games) return "-";
+  if (stat.deaths === 0) return stat.kills + stat.assists > 0 ? "Perfect" : "0.00";
+  return ((stat.kills + stat.assists) / stat.deaths).toFixed(2);
 }
 
-function matchTierLabel(value: number | null) {
-  if (!value) return "미정";
-  return `내전 ${value}티어`;
+function formatWinRate(stat: LineStat) {
+  if (!stat.games) return "-";
+  return `${Math.round((stat.wins / stat.games) * 100)}%`;
 }
 
-export default function StatsClient({ members, totalMatches, auctionPlayerCount, overallAveragePrice }: Props) {
+export default function StatsClient({ members }: Props) {
   const [line, setLine] = useState("전체");
   const [query, setQuery] = useState("");
-  const [sort, setSort] = useState<"name" | "price" | "count">("name");
 
   const filtered = useMemo(() => {
     const keyword = query.trim().toLowerCase();
-    const result = members.filter(member => {
-      const lineMatches = line === "전체" || member.mainLine === line || member.subLine === line;
-      const keywordMatches = !keyword || member.nickname.toLowerCase().includes(keyword) || member.riotId.toLowerCase().includes(keyword);
-      return lineMatches && keywordMatches;
-    });
-
-    return [...result].sort((a, b) => {
-      if (sort === "price") return (b.averagePrice ?? -1) - (a.averagePrice ?? -1);
-      if (sort === "count") return b.auctionCount - a.auctionCount;
-      return a.nickname.localeCompare(b.nickname, "ko");
-    });
-  }, [members, line, query, sort]);
+    return members
+      .filter(member => !keyword || member.nickname.toLowerCase().includes(keyword))
+      .sort((a, b) => a.nickname.localeCompare(b.nickname, "ko"));
+  }, [members, query]);
 
   return (
-    <div className="stats-page-shell">
+    <div className="stats-page-shell simple-stats-shell">
       <section className="stats-hero">
         <div>
-          <span>CLAN STATISTICS</span>
-          <h1>바위게마을 통계</h1>
-          <p>클랜원 라인 분포와 경매 기록, 정기내전 누적 현황을 확인합니다.</p>
+          <span>REGULAR MATCH STATISTICS</span>
+          <h1>정기내전 통계</h1>
+          <p>라인을 선택하면 해당 라인 기록만, 전체를 선택하면 모든 정기내전 기록을 표시합니다.</p>
         </div>
         <div className="stats-hero-mark">▥</div>
       </section>
 
-      <section className="stats-summary-grid">
-        <article><span>활성 클랜원</span><strong>{members.length}</strong><small>명단에 등록된 인원</small></article>
-        <article><span>정기내전 결과</span><strong>{totalMatches}</strong><small>등록된 세트 결과</small></article>
-        <article><span>경매 낙찰 기록</span><strong>{auctionPlayerCount}</strong><small>누적 낙찰 선수</small></article>
-        <article><span>전체 평균 경매가</span><strong>{formatNumber(overallAveragePrice)}</strong><small>{overallAveragePrice === null ? "기록 없음" : "점"}</small></article>
-      </section>
-
-      <section className="card stats-toolbar-card">
-        <div className="stats-line-tabs" aria-label="라인 필터">
+      <section className="card stats-toolbar-card simple-stats-toolbar">
+        <div className="stats-line-tabs" aria-label="라인 통계 선택">
           {lines.map(item => (
             <button key={item} type="button" className={line === item ? "active" : ""} onClick={() => setLine(item)}>{item}</button>
           ))}
         </div>
         <div className="stats-toolbar-actions">
-          <input value={query} onChange={event => setQuery(event.target.value)} placeholder="닉네임 또는 Riot ID 검색" />
-          <select value={sort} onChange={event => setSort(event.target.value as "name" | "price" | "count")}>
-            <option value="name">닉네임순</option>
-            <option value="price">평균 경매가순</option>
-            <option value="count">낙찰 횟수순</option>
-          </select>
+          <input value={query} onChange={event => setQuery(event.target.value)} placeholder="닉네임 검색" />
         </div>
       </section>
 
-      <section className="stats-member-section">
+      <section className="card regular-stats-table-card">
         <div className="dashboard-head">
-          <div><span>MEMBER RECORDS</span><h2>클랜원 기록</h2></div>
-          <small>{filtered.length}명 표시</small>
+          <div><span>MEMBER RECORDS</span><h2>{line === "전체" ? "전체 기록" : `${line} 기록`}</h2></div>
+          <small>{filtered.length}명</small>
         </div>
-
-        <div className="stats-member-grid">
-          {filtered.map(member => (
-            <article className="card stats-member-card" key={member.id}>
-              <div className="stats-member-head">
-                <div>
-                  <span>{member.mainLine || "미정"}</span>
-                  <h3>{member.nickname}</h3>
-                  <p>{member.riotId || "Riot ID 미등록"}</p>
-                </div>
-                <b>{matchTierLabel(member.matchTier)}</b>
-              </div>
-
-              <div className="stats-member-lines">
-                <span>주라인 <b>{member.mainLine || "미정"}</b></span>
-                <span>부라인 <b>{member.subLine || "미정"}</b></span>
-                <span>롤 티어 <b>{member.soloTier || "미정"}</b></span>
-              </div>
-
-              <div className="stats-member-numbers">
-                <div><small>평균 경매가</small><strong>{formatNumber(member.averagePrice)}</strong><em>{member.averagePrice === null ? "기록 없음" : "점"}</em></div>
-                <div><small>최고 경매가</small><strong>{formatNumber(member.highestPrice)}</strong><em>{member.highestPrice === null ? "기록 없음" : "점"}</em></div>
-                <div><small>낙찰 횟수</small><strong>{member.auctionCount}</strong><em>회</em></div>
-              </div>
-
-              <div className="stats-pending-row">
-                <span>내전 승률</span><b>상세 기록 등록 후 표시</b>
-                <span>내전 KDA</span><b>상세 기록 등록 후 표시</b>
-              </div>
-            </article>
-          ))}
+        <div className="table-scroll">
+          <table className="regular-stats-table">
+            <thead>
+              <tr>
+                <th>닉네임</th>
+                <th>내전티어</th>
+                <th>KDA</th>
+                <th>승률</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(member => {
+                const stat = line === "전체" ? member.overall : (member.byLine[line] || emptyStat);
+                return (
+                  <tr key={member.id}>
+                    <td><b>{member.nickname}</b></td>
+                    <td>
+                      <span className={`roman-tier-badge tier-${member.matchTier || 0}`}>
+                        {member.matchTier ? romanTier[member.matchTier] : "-"}
+                      </span>
+                    </td>
+                    <td><strong>{formatKda(stat)}</strong>{stat.games > 0 && <small>{stat.games}경기</small>}</td>
+                    <td><strong>{formatWinRate(stat)}</strong>{stat.games > 0 && <small>{stat.wins}승 {stat.games - stat.wins}패</small>}</td>
+                  </tr>
+                );
+              })}
+              {!filtered.length && <tr><td colSpan={4} className="muted">조건에 맞는 클랜원이 없습니다.</td></tr>}
+            </tbody>
+          </table>
         </div>
-
-        {!filtered.length && <div className="card stats-empty">조건에 맞는 클랜원이 없습니다.</div>}
-      </section>
-
-      <section className="card stats-guide-card">
-        <div><span>RECORD GUIDE</span><h2>통계 반영 기준</h2></div>
-        <p>경매가는 실시간 경매에서 낙찰 완료된 기록을 자동 집계합니다. 승률·KDA·모스트 챔피언은 정기내전 상세 기록 기능이 추가되면 이 페이지에 자동 연결됩니다.</p>
       </section>
     </div>
   );

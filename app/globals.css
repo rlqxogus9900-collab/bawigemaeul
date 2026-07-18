@@ -3291,3 +3291,16 @@ html,body{
 
 /* Online Beta 1.3.8.31 - functional admin pages */
 .admin-functional-page{display:grid;gap:18px}.admin-shortcuts{display:flex;gap:10px;flex-wrap:wrap}.record-create-grid{display:grid;grid-template-columns:1fr 110px 1fr 110px 190px auto;gap:10px;margin-top:18px}.record-create-grid input{min-width:0}.record-admin-list{display:grid;gap:10px;margin-top:14px}.record-admin-list article{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 16px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.025)}.record-admin-list article div{display:grid;gap:5px}.record-admin-list article span{color:#8fa299;font-size:12px}.home-admin-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}.home-admin-grid a{display:grid;gap:7px;padding:18px;border:1px solid rgba(116,214,166,.18);border-radius:16px;background:rgba(255,255,255,.025);text-decoration:none}.home-admin-grid a:hover{border-color:rgba(255,213,99,.5);transform:translateY(-1px)}.home-admin-grid b{color:#e5eee9}.home-admin-grid span{color:#8fa299;font-size:12px;line-height:1.5}@media(max-width:1000px){.record-create-grid{grid-template-columns:1fr 100px 1fr 100px}.record-create-grid input[type=datetime-local],.record-create-grid button{grid-column:span 2}.home-admin-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:650px){.record-create-grid,.home-admin-grid{grid-template-columns:1fr}.record-create-grid>*{grid-column:auto!important}.record-admin-list article{align-items:flex-start;flex-direction:column}}
+
+/* Online Beta 1.3.8.32 - simple regular match statistics */
+.simple-stats-shell{gap:16px}
+.simple-stats-toolbar{padding:14px 16px}
+.regular-stats-table-card{padding:18px}
+.regular-stats-table{width:100%;min-width:680px;border-collapse:collapse}
+.regular-stats-table th{padding:12px 16px;border-bottom:1px solid rgba(216,183,87,.25);color:#d5b95d;font-size:11px;text-align:left;letter-spacing:.04em}
+.regular-stats-table td{padding:15px 16px;border-bottom:1px solid rgba(255,255,255,.055);color:#d7e2dc}
+.regular-stats-table tbody tr:hover{background:rgba(87,202,142,.045)}
+.regular-stats-table td:first-child b{font-size:14px}
+.regular-stats-table td strong{display:block;color:#e7f0eb;font-size:16px}
+.regular-stats-table td small{display:block;margin-top:3px;color:#70847a;font-size:10px}
+@media(max-width:760px){.simple-stats-toolbar{align-items:stretch;flex-direction:column}.simple-stats-toolbar .stats-toolbar-actions input{width:100%}.regular-stats-table-card{padding:12px}}

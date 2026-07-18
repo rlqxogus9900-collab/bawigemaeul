@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const latestUpdate = {
-  version: "1.3.8.31",
+  version: "1.3.8.32",
   title: "관리 기능 활성화와 기록 초기화 수정",
   summary: "일정·홈·내전 기록 관리 활성화, 통계 초기화와 경매 잔존 기록 제거"
 };

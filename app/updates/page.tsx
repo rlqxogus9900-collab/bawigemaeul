@@ -4,6 +4,12 @@ export const dynamic = "force-dynamic";
 
 const updates = [
   {
+    version: "1.3.8.32",
+    date: "2026-07-18",
+    title: "정기내전 통계 표 간소화",
+    items: ["관리자 명단 형태의 표로 변경", "닉네임·내전티어·KDA·승률만 표시", "라인 선택 시 해당 라인 통계, 전체 선택 시 총 통계 표시"]
+  },
+  {
     version: "1.3.8.31",
     date: "2026-07-18",
     title: "관리 기능 활성화와 기록 초기화 수정",
