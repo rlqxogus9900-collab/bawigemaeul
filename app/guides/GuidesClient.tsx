@@ -92,6 +92,9 @@ function buildForRole(champion: DataDragonChampion, role: Role, patch: string): 
 }
 
 const roles = ["전체", "탑", "정글", "미드", "원딜", "서폿"] as const;
+const POPULAR_CHAMPION_IDS = ["Kaisa","Ahri","LeeSin","Jinx","Ezreal","Thresh","Aatrox","Darius","Nautilus","Vi"];
+const FAVORITES_KEY = "bawigemaeul-guide-favorites";
+const RECENT_KEY = "bawigemaeul-guide-recent";
 
 export default function GuidesClient() {
   const [query, setQuery] = useState("");
@@ -103,6 +106,9 @@ export default function GuidesClient() {
   const [ddragonVersion, setDdragonVersion] = useState(FALLBACK_DDRAGON_VERSION);
   const [patch, setPatch] = useState(FALLBACK_PATCH);
   const [loading, setLoading] = useState(true);
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [recent, setRecent] = useState<string[]>([]);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
 
   const championImageBase = `https://ddragon.leagueoflegends.com/cdn/${ddragonVersion}/img/champion`;
 
@@ -145,14 +151,39 @@ export default function GuidesClient() {
     return () => { active = false; };
   }, []);
 
+  useEffect(() => {
+    try {
+      const savedFavorites = JSON.parse(localStorage.getItem(FAVORITES_KEY) || "[]");
+      const savedRecent = JSON.parse(localStorage.getItem(RECENT_KEY) || "[]");
+      if (Array.isArray(savedFavorites)) setFavorites(savedFavorites);
+      if (Array.isArray(savedRecent)) setRecent(savedRecent);
+    } catch {
+      setFavorites([]);
+      setRecent([]);
+    }
+  }, []);
+
+  const popularBuilds = useMemo(() => {
+    const rank = new Map(POPULAR_CHAMPION_IDS.map((id, index) => [id, index]));
+    return allBuilds
+      .filter(build => rank.has(build.englishName))
+      .sort((a, b) => (rank.get(a.englishName) ?? 99) - (rank.get(b.englishName) ?? 99))
+      .slice(0, 10);
+  }, [allBuilds]);
+
+  const recentBuilds = useMemo(() => recent
+    .map(id => allBuilds.find(build => build.englishName === id))
+    .filter((build): build is ChampionBuild => Boolean(build))
+    .slice(0, 6), [allBuilds, recent]);
+
   const filtered = useMemo(() => {
     const keyword = query.trim().toLowerCase();
     return allBuilds.filter(build => {
       const champion = championMap[build.englishName];
       const championRoles = champion ? availableRoles(champion) : [build.role];
-      return (role === "전체" || championRoles.includes(role)) && (!keyword || `${build.champion} ${build.englishName}`.toLowerCase().includes(keyword));
+      return (role === "전체" || championRoles.includes(role)) && (!showFavoritesOnly || favorites.includes(build.englishName)) && (!keyword || `${build.champion} ${build.englishName}`.toLowerCase().includes(keyword));
     });
-  }, [allBuilds, championMap, query, role]);
+  }, [allBuilds, championMap, favorites, query, role, showFavoritesOnly]);
 
   const selectableRoles = useMemo(() => {
     const champion = championMap[selected.englishName];
@@ -162,7 +193,26 @@ export default function GuidesClient() {
   function selectChampion(build: ChampionBuild) {
     setSelected(build);
     setSelectedRole(build.role);
+    setRecent(current => {
+      const next = [build.englishName, ...current.filter(id => id !== build.englishName)].slice(0, 6);
+      localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+      return next;
+    });
     requestAnimationFrame(() => document.getElementById("selected-build")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }
+
+  function toggleFavorite(id: string) {
+    setFavorites(current => {
+      const next = current.includes(id) ? current.filter(item => item !== id) : [id, ...current];
+      localStorage.setItem(FAVORITES_KEY, JSON.stringify(next));
+      return next;
+    });
+  }
+
+  function selectRandomChampion() {
+    const pool = filtered.length ? filtered : allBuilds;
+    const build = pool[Math.floor(Math.random() * pool.length)];
+    if (build) selectChampion(build);
   }
 
   function changeSelectedRole(nextRole: Role) {
@@ -185,7 +235,22 @@ export default function GuidesClient() {
 
       <section className="card guides-toolbar">
         <div className="guides-role-tabs">{roles.map(item => <button key={item} type="button" className={role === item ? "active" : ""} onClick={() => setRole(item)}>{item}</button>)}</div>
-        <div className="guides-search-row"><input value={query} onChange={event => setQuery(event.target.value)} placeholder="챔피언 이름 검색" /></div>
+        <div className="guides-search-row">
+          <input value={query} onChange={event => setQuery(event.target.value)} placeholder="챔피언 이름 검색" />
+          <button type="button" className={showFavoritesOnly ? "active" : ""} onClick={() => setShowFavoritesOnly(value => !value)}>★ 즐겨찾기</button>
+          <button type="button" onClick={selectRandomChampion}>🎲 무작위 추천</button>
+        </div>
+      </section>
+
+      <section className="guide-quick-sections">
+        <article className="card guide-quick-card">
+          <div className="guides-section-head"><div><span>POPULAR TOP 10</span><h2>인기 챔피언</h2></div><small>대중적으로 많이 찾는 챔피언</small></div>
+          <div className="guide-mini-list">{popularBuilds.map((build, index) => <button key={build.id} type="button" onClick={() => selectChampion(build)}><b>{index + 1}</b><Image src={`${championImageBase}/${build.imageName ?? `${build.englishName}.png`}`} alt={build.champion} width={42} height={42} unoptimized /><span>{build.champion}</span></button>)}</div>
+        </article>
+        <article className="card guide-quick-card">
+          <div className="guides-section-head"><div><span>RECENTLY VIEWED</span><h2>최근 본 챔피언</h2></div><small>최대 6명 저장</small></div>
+          {recentBuilds.length ? <div className="guide-mini-list recent">{recentBuilds.map(build => <button key={build.id} type="button" onClick={() => selectChampion(build)}><Image src={`${championImageBase}/${build.imageName ?? `${build.englishName}.png`}`} alt={build.champion} width={42} height={42} unoptimized /><span>{build.champion}</span></button>)}</div> : <p className="guide-recent-empty">챔피언을 선택하면 최근 목록에 저장됩니다.</p>}
+        </article>
       </section>
 
       <section className="champion-picker-section">
@@ -205,7 +270,10 @@ export default function GuidesClient() {
         <header className="popular-build-head">
           <div className="popular-build-champion"><Image src={`${championImageBase}/${selected.imageName ?? `${selected.englishName}.png`}`} alt={selected.champion} width={118} height={118} unoptimized /></div>
           <div className="popular-build-title"><span>{selectedRole} · PATCH {patch}</span><h2>{selected.champion}</h2><p><b>현재 가장 많이 사용하는 빌드</b></p></div>
-          <div className="popular-build-status"><strong>POPULAR</strong><small>대중 추천</small></div>
+          <div className="popular-build-actions">
+            <button type="button" className={favorites.includes(selected.englishName) ? "favorite active" : "favorite"} onClick={() => toggleFavorite(selected.englishName)}>{favorites.includes(selected.englishName) ? "★ 즐겨찾기됨" : "☆ 즐겨찾기"}</button>
+            <div className="popular-build-status"><strong>POPULAR</strong><small>대중 추천</small></div>
+          </div>
         </header>
 
         <div className="selected-role-tabs" aria-label="포지션 선택">

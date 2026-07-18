@@ -7,9 +7,9 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const latestUpdate = {
-  version: "1.3.8.18",
-  title: "패치 자동 감지와 포지션별 빌드",
-  summary: "최신 패치를 자동 감지하고 챔피언별 포지션 대중 빌드를 표시"
+  version: "1.3.8.19",
+  title: "즐겨찾기와 인기 챔피언",
+  summary: "즐겨찾기·최근 본 챔피언·인기 TOP10·무작위 추천 추가"
 };
 
 
@@ -182,6 +182,28 @@ export default async function HomePage() {
           <span>📊</span>
           <div><small>CLAN STATS</small><b>정기내전 통계</b><p>승률과 기록 확인</p></div>
         </Link>
+      </section>
+
+      <section className="home-popular-champions">
+        <div className="dashboard-head">
+          <div><span>POPULAR CHAMPIONS</span><h2>인기 챔피언 바로가기</h2></div>
+          <Link href="/guides" prefetch={false}>전체 챔피언 보기</Link>
+        </div>
+        <div className="home-champion-row">
+          {[
+            ["Kaisa", "카이사"],
+            ["Ahri", "아리"],
+            ["LeeSin", "리 신"],
+            ["Jinx", "징크스"],
+            ["Thresh", "쓰레쉬"]
+          ].map(([id, name]) => (
+            <Link key={id} href="/guides" prefetch={false}>
+              <img src={`https://ddragon.leagueoflegends.com/cdn/16.14.1/img/champion/${id}.png`} alt={name} />
+              <strong>{name}</strong>
+              <span>대중 빌드 보기</span>
+            </Link>
+          ))}
+        </div>
       </section>
 
       <section className="home-dashboard-grid">
