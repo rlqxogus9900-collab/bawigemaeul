@@ -4,6 +4,11 @@ export const dynamic = "force-dynamic";
 
 const updates = [
   {
+    version: "1.3.8.36",
+    title: "경매 선수 추가 오류 수정",
+    items: ["클랜원 명단 조회 호환성 개선", "팀장·중복 선수 검사 수정", "DB 오류 원문 표시", "선수 프로필 컬럼 누락 안내 추가"]
+  },
+  {
     version: "1.3.8.35",
     date: "2026-07-18",
     title: "경매 선수 정보 자동 입력",
