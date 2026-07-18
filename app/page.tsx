@@ -7,9 +7,9 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const latestUpdate = {
-  version: "1.3.8.23",
-  title: "신문고 저장 오류 수정",
-  summary: "신문고 저장 실패 원인 표시·중복 접수 방지·목록 즉시 갱신"
+  version: "1.3.8.25",
+  title: "최신 업데이트 표기 누락 수정",
+  summary: "업데이트 페이지와 홈 화면 최신 버전 표기를 함께 갱신"
 };
 
 
