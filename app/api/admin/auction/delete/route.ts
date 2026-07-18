@@ -14,17 +14,24 @@ export async function DELETE(req: NextRequest) {
     if (roomError) throw roomError;
     if (!room) return NextResponse.json({ ok: true, deletedRoomId: roomId, alreadyDeleted: true });
 
-    // FK 설정이 과거 SQL 상태와 달라도 확실히 삭제되도록 자식 기록을 순서대로 정리한다.
-    const steps = [
-      db.from("auction_rooms").update({ current_player_id: null, current_team_id: null, current_bid: 0 }).eq("id", roomId),
-      db.from("auction_bids").delete().eq("room_id", roomId),
-      db.from("auction_players").delete().eq("room_id", roomId),
-      db.from("auction_teams").delete().eq("room_id", roomId),
-      db.from("auction_rooms").delete().eq("id", roomId)
-    ];
-    for (const operation of steps) {
-      const { error } = await operation;
-      if (error) throw error;
+    // 현재 화면에서 이전 테스트 경매가 다시 살아나는 일을 막기 위해
+    // 현재 경매 삭제 시 모든 경매방과 관련 기록을 완전히 초기화한다.
+    const { data: allRooms, error: listError } = await db.from("auction_rooms").select("id");
+    if (listError) throw listError;
+    const roomIds = (allRooms || []).map(item => item.id);
+
+    if (roomIds.length) {
+      const steps = [
+        db.from("auction_rooms").update({ current_player_id: null, current_team_id: null, current_bid: 0 }).in("id", roomIds),
+        db.from("auction_bids").delete().in("room_id", roomIds),
+        db.from("auction_players").delete().in("room_id", roomIds),
+        db.from("auction_teams").delete().in("room_id", roomIds),
+        db.from("auction_rooms").delete().in("id", roomIds)
+      ];
+      for (const operation of steps) {
+        const { error } = await operation;
+        if (error) throw error;
+      }
     }
 
     return NextResponse.json({ ok: true, deletedRoomId: roomId });

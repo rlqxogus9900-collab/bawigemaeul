@@ -1,7 +1,5 @@
-import FeaturePage from "@/app/components/FeaturePage";
+import Link from "next/link";
 import { requireStaff } from "@/lib/session";
-
-export default async function Page() {
-  await requireStaff();
-  return <FeaturePage eyebrow="STAFF ONLY" title="대회·내전 기록" description="대회 결과와 우승팀을 관리합니다." icon="🏆" admin={true} />;
-}
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
+export const dynamic='force-dynamic';
+export default async function Page(){await requireStaff();const {data}=await getSupabaseAdmin().from('regular_match_results').select('*').order('played_at',{ascending:false}).limit(100);return <div className="admin-functional-page"><section className="card"><div className="dashboard-head"><div><span>STAFF ONLY</span><h1>대회·내전 기록</h1><p className="muted">등록된 결과를 대회 기록과 명예의 전당에서 함께 확인합니다.</p></div><Link className="button primary" href="/admin/match-records">기록 등록·수정</Link></div></section><section className="card"><div className="record-admin-list">{(data||[]).map((x:any)=><article key={x.id}><div><b>{x.team_a_name} {x.team_a_sets} : {x.team_b_sets} {x.team_b_name}</b><span>{new Date(x.played_at).toLocaleDateString('ko-KR')} · 우승 {x.winner_name}</span></div></article>)}{!data?.length&&<p className="empty-copy">등록된 대회·내전 기록이 없습니다.</p>}</div></section></div>}

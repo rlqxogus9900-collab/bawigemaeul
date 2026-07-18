@@ -63,7 +63,7 @@ export default function AuctionManagerClient() {
 
   const deleteRoom = async () => {
     if (!state.room || deleting) return;
-    const confirmed = window.confirm(`현재 경매방 "${state.room.title}"을 완전히 삭제할까요?\n팀, 선수, 입찰 기록도 함께 삭제되며 되돌릴 수 없습니다.`);
+    const confirmed = window.confirm(`현재 경매방과 남아 있는 이전 테스트 경매 기록을 모두 삭제할까요?\n팀, 선수, 입찰 기록도 함께 초기화되며 되돌릴 수 없습니다.`);
     if (!confirmed) return;
 
     setDeleting(true);
@@ -74,7 +74,7 @@ export default function AuctionManagerClient() {
       body: JSON.stringify({ roomId: state.room.id })
     });
     const result = await response.json().catch(() => ({}));
-    setMessage(response.ok ? "경매방과 관련 기록을 삭제했습니다." : result.error || "경매 삭제 실패");
+    setMessage(response.ok ? "현재 경매와 이전 테스트 기록을 모두 삭제했습니다." : result.error || "경매 삭제 실패");
     if (response.ok) setState({ room: null, teams: [], players: [], bids: [] });
     await load();
     setDeleting(false);

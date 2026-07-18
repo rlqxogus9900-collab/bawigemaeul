@@ -7,9 +7,9 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const latestUpdate = {
-  version: "1.3.8.30",
-  title: "경매 삭제와 최종 결과 화면 개선",
-  summary: "경매 설정에서 현재 경매를 삭제하고 결과 화면을 어둡게 개선"
+  version: "1.3.8.31",
+  title: "관리 기능 활성화와 기록 초기화 수정",
+  summary: "일정·홈·내전 기록 관리 활성화, 통계 초기화와 경매 잔존 기록 제거"
 };
 
 

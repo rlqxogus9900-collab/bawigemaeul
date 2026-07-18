@@ -1,7 +1,3 @@
-import FeaturePage from "@/app/components/FeaturePage";
+import Link from "next/link";
 import { requireStaff } from "@/lib/session";
-
-export default async function Page() {
-  await requireStaff();
-  return <FeaturePage eyebrow="STAFF ONLY" title="홈페이지 관리" description="배너와 홈 카드의 제목·설명·버튼을 설정합니다." icon="🏠" admin={true} />;
-}
+export default async function Page(){await requireStaff();return <div className="admin-functional-page"><section className="card"><div className="dashboard-head"><div><span>STAFF ONLY</span><h1>홈페이지 관리</h1><p className="muted">홈 화면에 노출되는 실제 데이터를 관리합니다.</p></div></div><div className="home-admin-grid"><Link href="/admin/notices"><b>공지 카드 관리</b><span>홈 최근 공지와 고정 공지 수정</span></Link><Link href="/admin/rules"><b>클랜 규칙 관리</b><span>홈 규칙 카드 내용·순서 수정</span></Link><Link href="/admin/match-records"><b>최근 내전 결과 관리</b><span>홈 최근 결과와 명예의 전당 연동</span></Link><Link href="/admin/sponsors"><b>후원 영역 관리</b><span>홈 후원자 노출 설정</span></Link><Link href="/admin/boards"><b>게시판·메뉴 관리</b><span>홈과 사이드 메뉴 게시판 구성</span></Link><Link href="/admin/schedule"><b>다음 일정 관리</b><span>정기내전 일정과 모집 연결</span></Link></div></section></div>}
