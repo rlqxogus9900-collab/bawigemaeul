@@ -3251,3 +3251,11 @@ html,body{
 @media(max-width:620px){.guide-mini-list{grid-template-columns:repeat(3,minmax(0,1fr))}.guide-mini-list.recent{grid-template-columns:repeat(3,minmax(0,1fr))}.guides-search-row button{width:100%}.popular-build-actions{justify-content:space-between}.popular-build-actions .favorite{flex:1}.popular-build-status{min-width:94px}}
 .home-popular-champions{padding:21px 23px;border:1px solid rgba(198,156,255,.14);border-radius:20px;background:linear-gradient(135deg,rgba(35,25,45,.76),rgba(20,17,25,.82))}.home-champion-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:11px;margin-top:15px}.home-champion-row a{display:grid;grid-template-columns:52px 1fr;grid-template-rows:auto auto;column-gap:11px;align-items:center;padding:11px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.025);color:inherit;text-decoration:none;transition:.18s ease}.home-champion-row a:hover{transform:translateY(-2px);border-color:rgba(198,156,255,.4);background:rgba(198,156,255,.07)}.home-champion-row img{grid-row:1/3;width:52px;height:52px;border-radius:12px;object-fit:cover}.home-champion-row strong{align-self:end;font-size:13px}.home-champion-row span{align-self:start;color:#91859c;font-size:10px}
 @media(max-width:900px){.home-champion-row{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:560px){.home-popular-champions{padding:17px}.home-champion-row{grid-template-columns:1fr 1fr}.home-champion-row a{grid-template-columns:43px 1fr}.home-champion-row img{width:43px;height:43px}}
+
+
+/* 1.3.8.20 - 챔피언 공략 간소화 */
+.guides-toolbar-simple{justify-content:center}
+.guides-name-search{width:min(560px,100%)}
+.guides-name-search input{width:100%}
+.champion-portrait-card>strong{margin-bottom:2px}
+@media(max-width:760px){.guides-toolbar-simple{padding:12px}.guides-name-search{width:100%}}

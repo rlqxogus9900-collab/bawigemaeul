@@ -91,24 +91,20 @@ function buildForRole(champion: DataDragonChampion, role: Role, patch: string): 
   return { ...createFallbackBuild(champion, patch, role), tier: "포지션별 대중 추천" };
 }
 
-const roles = ["전체", "탑", "정글", "미드", "원딜", "서폿"] as const;
 const POPULAR_CHAMPION_IDS = ["Kaisa","Ahri","LeeSin","Jinx","Ezreal","Thresh","Aatrox","Darius","Nautilus","Vi"];
 const FAVORITES_KEY = "bawigemaeul-guide-favorites";
 const RECENT_KEY = "bawigemaeul-guide-recent";
 
 export default function GuidesClient() {
   const [query, setQuery] = useState("");
-  const [role, setRole] = useState<(typeof roles)[number]>("전체");
   const [allBuilds, setAllBuilds] = useState<ChampionBuild[]>(builds);
   const [championMap, setChampionMap] = useState<Record<string, DataDragonChampion>>({});
   const [selected, setSelected] = useState<ChampionBuild>(builds[0]);
-  const [selectedRole, setSelectedRole] = useState<Role>(builds[0].role);
   const [ddragonVersion, setDdragonVersion] = useState(FALLBACK_DDRAGON_VERSION);
   const [patch, setPatch] = useState(FALLBACK_PATCH);
   const [loading, setLoading] = useState(true);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [recent, setRecent] = useState<string[]>([]);
-  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
 
   const championImageBase = `https://ddragon.leagueoflegends.com/cdn/${ddragonVersion}/img/champion`;
 
@@ -178,21 +174,11 @@ export default function GuidesClient() {
 
   const filtered = useMemo(() => {
     const keyword = query.trim().toLowerCase();
-    return allBuilds.filter(build => {
-      const champion = championMap[build.englishName];
-      const championRoles = champion ? availableRoles(champion) : [build.role];
-      return (role === "전체" || championRoles.includes(role)) && (!showFavoritesOnly || favorites.includes(build.englishName)) && (!keyword || `${build.champion} ${build.englishName}`.toLowerCase().includes(keyword));
-    });
-  }, [allBuilds, championMap, favorites, query, role, showFavoritesOnly]);
-
-  const selectableRoles = useMemo(() => {
-    const champion = championMap[selected.englishName];
-    return champion ? availableRoles(champion) : [selected.role];
-  }, [championMap, selected.englishName, selected.role]);
+    return allBuilds.filter(build => !keyword || `${build.champion} ${build.englishName}`.toLowerCase().includes(keyword));
+  }, [allBuilds, query]);
 
   function selectChampion(build: ChampionBuild) {
     setSelected(build);
-    setSelectedRole(build.role);
     setRecent(current => {
       const next = [build.englishName, ...current.filter(id => id !== build.englishName)].slice(0, 6);
       localStorage.setItem(RECENT_KEY, JSON.stringify(next));
@@ -209,36 +195,17 @@ export default function GuidesClient() {
     });
   }
 
-  function selectRandomChampion() {
-    const pool = filtered.length ? filtered : allBuilds;
-    const build = pool[Math.floor(Math.random() * pool.length)];
-    if (build) selectChampion(build);
-  }
-
-  function changeSelectedRole(nextRole: Role) {
-    setSelectedRole(nextRole);
-    const champion = championMap[selected.englishName];
-    if (!champion) {
-      setSelected(current => ({ ...current, role: nextRole }));
-      return;
-    }
-    const detailed = builds.find(build => build.englishName === champion.id && build.role === nextRole);
-    setSelected(detailed ? { ...detailed, champion: champion.name, imageName: champion.image.full, patch } : buildForRole(champion, nextRole, patch));
-  }
 
   return (
     <div className="guides-shell champion-build-shell">
       <section className="guides-hero">
-        <div><span>POPULAR BUILDS</span><h1>챔피언 빌드</h1><p>챔피언과 포지션을 고르면 현재 패치 기준으로 바로 쓰기 쉬운 대중 빌드를 보여줍니다.</p></div>
+        <div><span>POPULAR BUILDS</span><h1>챔피언 빌드</h1><p>챔피언을 고르면 현재 패치 기준으로 바로 쓰기 쉬운 대중 빌드를 보여줍니다.</p></div>
         <div className="guides-hero-badge"><b>{loading ? "…" : allBuilds.length}</b><small>PATCH {patch}</small></div>
       </section>
 
-      <section className="card guides-toolbar">
-        <div className="guides-role-tabs">{roles.map(item => <button key={item} type="button" className={role === item ? "active" : ""} onClick={() => setRole(item)}>{item}</button>)}</div>
-        <div className="guides-search-row">
-          <input value={query} onChange={event => setQuery(event.target.value)} placeholder="챔피언 이름 검색" />
-          <button type="button" className={showFavoritesOnly ? "active" : ""} onClick={() => setShowFavoritesOnly(value => !value)}>★ 즐겨찾기</button>
-          <button type="button" onClick={selectRandomChampion}>🎲 무작위 추천</button>
+      <section className="card guides-toolbar guides-toolbar-simple">
+        <div className="guides-search-row guides-name-search">
+          <input value={query} onChange={event => setQuery(event.target.value)} placeholder="챔피언 이름 검색" aria-label="챔피언 이름 검색" />
         </div>
       </section>
 
@@ -259,7 +226,7 @@ export default function GuidesClient() {
           {filtered.map(build => (
             <button key={build.id} type="button" className={`champion-portrait-card ${selected.id === build.id ? "selected" : ""}`} onClick={() => selectChampion(build)}>
               <div className="champion-image-wrap"><Image src={`${championImageBase}/${build.imageName ?? `${build.englishName}.png`}`} alt={build.champion} width={96} height={96} unoptimized /></div>
-              <strong>{build.champion}</strong><span>{build.role}</span>
+              <strong>{build.champion}</strong>
             </button>
           ))}
           {!filtered.length && <div className="card guides-empty">조건에 맞는 챔피언이 없습니다.</div>}
@@ -269,19 +236,16 @@ export default function GuidesClient() {
       <section id="selected-build" className="card popular-build-detail">
         <header className="popular-build-head">
           <div className="popular-build-champion"><Image src={`${championImageBase}/${selected.imageName ?? `${selected.englishName}.png`}`} alt={selected.champion} width={118} height={118} unoptimized /></div>
-          <div className="popular-build-title"><span>{selectedRole} · PATCH {patch}</span><h2>{selected.champion}</h2><p><b>현재 가장 많이 사용하는 빌드</b></p></div>
+          <div className="popular-build-title"><span>PATCH {patch}</span><h2>{selected.champion}</h2><p><b>현재 가장 많이 사용하는 빌드</b></p></div>
           <div className="popular-build-actions">
             <button type="button" className={favorites.includes(selected.englishName) ? "favorite active" : "favorite"} onClick={() => toggleFavorite(selected.englishName)}>{favorites.includes(selected.englishName) ? "★ 즐겨찾기됨" : "☆ 즐겨찾기"}</button>
             <div className="popular-build-status"><strong>POPULAR</strong><small>대중 추천</small></div>
           </div>
         </header>
 
-        <div className="selected-role-tabs" aria-label="포지션 선택">
-          {selectableRoles.map(item => <button type="button" key={item} className={selectedRole === item ? "active" : ""} onClick={() => changeSelectedRole(item)}>{item}</button>)}
-        </div>
 
         <div className="build-data-note">
-          <span>패치 자동 감지</span><b>{patch}</b><p>챔피언 목록과 패치는 Data Dragon에서 자동 갱신됩니다. 승률·픽률 집계는 프로덕션 데이터 연동 후 표시됩니다.</p>
+          <span>패치 자동 감지</span><b>{patch}</b><p>챔피언 목록과 패치는 Data Dragon에서 자동 갱신됩니다.</p>
         </div>
 
         <div className="popular-build-grid">
@@ -300,7 +264,7 @@ export default function GuidesClient() {
         <div className="guide-detail-block build-tips"><b>간단 핵심 팁</b><ul>{selected.tips.map(item => <li key={item}>{item}</li>)}</ul></div>
       </section>
 
-      <section className="card guides-notice"><span>AUTO PATCH</span><div><h2>챔피언과 패치는 자동으로 최신화</h2><p>전체 챔피언과 최신 패치를 자동으로 불러오고, 챔피언별 선택 가능한 포지션을 나눠 빌드를 표시합니다.</p></div></section>
+      <section className="card guides-notice"><span>AUTO PATCH</span><div><h2>챔피언과 패치는 자동으로 최신화</h2><p>전체 챔피언과 최신 패치를 자동으로 불러오고, 챔피언을 선택하면 대중적인 빌드를 바로 표시합니다.</p></div></section>
     </div>
   );
 }
