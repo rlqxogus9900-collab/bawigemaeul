@@ -15,6 +15,11 @@ export async function POST(request: Request) {
   const content = String(form.get("content") || "").trim();
   const postType = String(form.get("post_type") || "normal");
   const pollType = String(form.get("poll_type") || "general");
+  let imageUrls: string[] = [];
+  try {
+    const raw = JSON.parse(String(form.get("image_urls_json") || "[]"));
+    imageUrls = Array.isArray(raw) ? raw.map(String).filter(url => url.startsWith("https://")).slice(0, 5) : [];
+  } catch {}
 
   if (!subcategoryId || !title || !content) {
     return NextResponse.redirect(
@@ -47,7 +52,8 @@ export async function POST(request: Request) {
       author_member_id: user.id,
       author_nickname: user.nickname,
       is_pinned: user.role === "staff" && form.get("is_pinned") === "on",
-      post_type: postType === "poll" ? "poll" : "normal"
+      post_type: postType === "poll" ? "poll" : "normal",
+      image_urls: imageUrls
     })
     .select("id")
     .single();

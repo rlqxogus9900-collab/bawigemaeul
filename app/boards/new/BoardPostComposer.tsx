@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import BoardImageUploader from "@/app/boards/components/BoardImageUploader";
 
 type PostMode = "normal" | "poll";
 type PollMode = "general" | "regular_match";
@@ -407,6 +408,8 @@ export default function BoardPostComposer({
           placeholder="내용을 입력하세요."
         />
       </label>
+
+      <BoardImageUploader />
 
       {postMode === "poll" && pollMode === "general" && (
         <section className="poll-option-editor">

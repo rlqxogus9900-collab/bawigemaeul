@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import BoardImageUploader from "@/app/boards/components/BoardImageUploader";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +11,7 @@ export default async function EditBoardPostPage({ params }:{ params:Promise<{id:
   const user = await getSession();
   if (!user) redirect("/login");
   const db = getSupabaseAdmin();
-  const { data: post } = await db.from("board_posts").select("id,subcategory_id,title,content,author_member_id,is_pinned").eq("id", id).maybeSingle();
+  const { data: post } = await db.from("board_posts").select("id,subcategory_id,title,content,author_member_id,is_pinned,image_urls").eq("id", id).maybeSingle();
   if (!post) notFound();
   if (user.role !== "staff" && user.id !== post.author_member_id) redirect(`/boards/${id}`);
 
@@ -20,6 +21,7 @@ export default async function EditBoardPostPage({ params }:{ params:Promise<{id:
       <input type="hidden" name="_action" value="update"/>
       <label>제목<input name="title" maxLength={120} required defaultValue={post.title}/></label>
       <label>내용<textarea name="content" rows={16} required defaultValue={post.content}/></label>
+      <BoardImageUploader initialUrls={Array.isArray(post.image_urls) ? post.image_urls : []} />
       {user.role === "staff" && <label className="board-check"><input type="checkbox" name="is_pinned" defaultChecked={post.is_pinned}/> 상단 고정글</label>}
       <div className="board-editor-actions"><Link className="button" href={`/boards/${id}`}>취소</Link><button className="button primary">수정 저장</button></div>
     </form>

@@ -37,7 +37,8 @@ export default async function BoardPostPage({
       comment_count,
       created_at,
       updated_at,
-      post_type
+      post_type,
+      image_urls
     `)
     .eq("id", id)
     .maybeSingle();
@@ -161,6 +162,16 @@ export default async function BoardPostPage({
         </div>
 
         <div className="board-post-content">{post.content}</div>
+
+        {Array.isArray(post.image_urls) && post.image_urls.length > 0 && (
+          <div className="board-post-images">
+            {post.image_urls.map((url: string, index: number) => (
+              <a href={url} target="_blank" rel="noreferrer" key={`${url}-${index}`}>
+                <img src={url} alt={`첨부 이미지 ${index + 1}`} />
+              </a>
+            ))}
+          </div>
+        )}
 
         {poll && (
           <PollBlock

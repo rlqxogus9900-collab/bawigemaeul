@@ -21,7 +21,12 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
   const title = String(form.get("title") || "").trim();
   const content = String(form.get("content") || "").trim();
   if (!title || !content) return NextResponse.redirect(new URL(`/boards/${id}/edit`, request.url), 303);
-  const update:Record<string,unknown> = { title, content, updated_at:new Date().toISOString() };
+  let imageUrls: string[] = [];
+  try {
+    const raw = JSON.parse(String(form.get("image_urls_json") || "[]"));
+    imageUrls = Array.isArray(raw) ? raw.map(String).filter(url => url.startsWith("https://")).slice(0, 5) : [];
+  } catch {}
+  const update:Record<string,unknown> = { title, content, image_urls: imageUrls, updated_at:new Date().toISOString() };
   if (user.role === "staff") update.is_pinned = form.get("is_pinned") === "on";
   await db.from("board_posts").update(update).eq("id", id);
   return NextResponse.redirect(new URL(`/boards/${id}`, request.url), 303);
