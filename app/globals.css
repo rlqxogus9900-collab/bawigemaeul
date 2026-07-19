@@ -3333,3 +3333,10 @@ html,body{
 .board-image-preview-list button{position:absolute;right:7px;top:7px;border:0;border-radius:8px;padding:6px 9px;background:rgba(111,20,20,.9);color:#fff;cursor:pointer}
 .board-post-images{display:grid;gap:14px;padding:0 4px 28px}.board-post-images a{display:block}.board-post-images img{display:block;max-width:100%;max-height:900px;margin:0 auto;border-radius:14px;border:1px solid #284536;object-fit:contain;background:#04110b}
 @media(max-width:650px){.board-image-upload-head{align-items:stretch;flex-direction:column}.board-image-preview-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+/* Online Beta 1.3.8.41 sponsor badge icons */
+.sponsor-name-with-icon{display:inline-flex!important;align-items:center;gap:5px;padding:4px 9px 4px 5px!important}
+.sponsor-mini-icon{width:30px;height:30px;object-fit:contain;flex:0 0 auto;filter:drop-shadow(0 2px 5px rgba(0,0,0,.35))}
+.sponsor-add-form select,.sponsor-edit-form select{min-height:38px;border:1px solid #315344;border-radius:8px;background:#071a12;color:#dce9e1;padding:0 10px}
+@media(max-width:700px){.sponsor-mini-icon{width:26px;height:26px}}

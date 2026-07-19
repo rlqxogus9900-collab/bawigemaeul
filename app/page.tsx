@@ -9,8 +9,8 @@ export const revalidate = 0;
 
 const latestUpdate = {
   version: SITE_VERSION,
-  title: "명단 ALL 라인과 버전 표시 수정",
-  summary: "클랜원 명단 주라인·부라인에 ALL 추가 및 사이트 버전 표시 통합"
+  title: "후원 바위게 아이콘 추가",
+  summary: "후원자별 바위게 아이콘 선택 및 닉네임 옆 표시"
 };
 
 
@@ -40,7 +40,7 @@ const getCachedHomeSummary = unstable_cache(
         .eq("is_active", true),
       db
         .from("sponsors")
-        .select("id,display_name")
+        .select("id,display_name,icon_key")
         .eq("is_visible", true)
         .order("sort_order", { ascending: true })
         .limit(10)
@@ -66,7 +66,7 @@ const getCachedHomeSummary = unstable_cache(
       sponsors: sponsors || []
     };
   },
-  ["home-summary-v13839"],
+  ["home-summary-v13841"],
   {
     revalidate: 120,
     tags: ["home-summary"]
@@ -154,7 +154,18 @@ export default async function HomePage() {
 
           <div className="hero-sponsor-list">
             {sponsors.length ? sponsors.map(sponsor => (
-              <span key={sponsor.id}>{sponsor.display_name}</span>
+              <span key={sponsor.id} className="sponsor-name-with-icon">
+                {sponsor.icon_key && sponsor.icon_key !== "none" && (
+                  <Image
+                    src={`/assets/sponsor-icons/${sponsor.icon_key}.png`}
+                    alt=""
+                    width={30}
+                    height={30}
+                    className="sponsor-mini-icon"
+                  />
+                )}
+                {sponsor.display_name}
+              </span>
             )) : (
               <span className="empty-copy">등록된 후원자가 없습니다.</span>
             )}

@@ -24,7 +24,7 @@ export default async function SponsorsAdminPage({
           <div>
             <span>STAFF ONLY</span>
             <h1>후원 관리</h1>
-            <p className="muted">홈 화면 후원 목록에 표시할 이름을 관리합니다.</p>
+            <p className="muted">후원자 이름 옆에 표시할 바위게 아이콘을 설정합니다.</p>
           </div>
         </div>
 
@@ -33,6 +33,13 @@ export default async function SponsorsAdminPage({
 
         <form className="sponsor-add-form" action="/api/admin/sponsors" method="post">
           <input name="display_name" placeholder="표시할 이름" required />
+          <select name="icon_key" defaultValue="bronze" aria-label="후원 아이콘">
+            <option value="none">아이콘 없음</option>
+            <option value="bronze">브론즈 바위게</option>
+            <option value="silver">실버 바위게</option>
+            <option value="gold">골드 바위게</option>
+            <option value="rainbow">레인보우 바위게</option>
+          </select>
           <input name="memo" placeholder="운영진 메모 (선택)" />
           <input name="sort_order" type="number" defaultValue={0} min={0} placeholder="순서" />
           <label className="sponsor-visible-check">
@@ -45,13 +52,20 @@ export default async function SponsorsAdminPage({
 
       <section className="card" style={{ marginTop: 14 }}>
         <h2>등록된 후원자</h2>
-        <p className="muted">금액은 저장하거나 표시하지 않습니다. 홈에는 이름만 노출됩니다.</p>
+        <p className="muted">후원 등급이나 기간 없이 선택한 아이콘과 이름만 표시됩니다.</p>
 
         <div className="sponsor-admin-list">
           {sponsors?.length ? sponsors.map(sponsor => (
             <article key={sponsor.id} className="sponsor-admin-row">
               <form className="sponsor-edit-form" action={`/api/admin/sponsors/${sponsor.id}`} method="post">
                 <input name="display_name" defaultValue={sponsor.display_name} required />
+                <select name="icon_key" defaultValue={sponsor.icon_key || "none"} aria-label={`${sponsor.display_name} 후원 아이콘`}>
+                  <option value="none">아이콘 없음</option>
+                  <option value="bronze">브론즈 바위게</option>
+                  <option value="silver">실버 바위게</option>
+                  <option value="gold">골드 바위게</option>
+                  <option value="rainbow">레인보우 바위게</option>
+                </select>
                 <input name="memo" defaultValue={sponsor.memo || ""} placeholder="운영진 메모" />
                 <input name="sort_order" type="number" defaultValue={sponsor.sort_order || 0} min={0} />
                 <label className="sponsor-visible-check">

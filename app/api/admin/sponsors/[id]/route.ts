@@ -21,8 +21,12 @@ export async function POST(
       return NextResponse.redirect(new URL("/admin/sponsors?error=1", request.url), 303);
     }
 
+    const iconKey = String(form.get("icon_key") || "none");
+    const allowedIcons = new Set(["none", "bronze", "silver", "gold", "rainbow"]);
+
     await db.from("sponsors").update({
       display_name: displayName,
+      icon_key: allowedIcons.has(iconKey) ? iconKey : "none",
       memo: String(form.get("memo") || "").trim() || null,
       sort_order: Number(form.get("sort_order") || 0),
       is_visible: form.get("is_visible") === "on"

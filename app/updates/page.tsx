@@ -6,6 +6,12 @@ export const dynamic = "force-dynamic";
 const updates = [
   {
     version: SITE_VERSION,
+    date: "2026.07.19",
+    title: "후원 바위게 아이콘",
+    items: ["후원자별 브론즈·실버·골드·레인보우 바위게 아이콘 선택", "후원 등급과 기간 없이 아이콘과 닉네임만 표시", "관리자 후원 관리에서 아이콘 변경 가능"]
+  },
+  {
+    version: "1.3.8.40",
     date: "2026-07-19",
     title: "명단 ALL 라인과 버전 표시 수정",
     items: ["클랜원 명단과 내전 참고 명단의 주라인 선택에 ALL 추가", "클랜원 명단과 내전 참고 명단의 부라인 선택에 ALL 추가", "오른쪽 아래 Online Beta 버전을 1.3.8.40으로 수정", "사이트 버전 문자열을 공통 상수로 통합"]

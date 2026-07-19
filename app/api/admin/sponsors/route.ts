@@ -8,6 +8,8 @@ export async function POST(request: Request) {
   const form = await request.formData();
   const displayName = String(form.get("display_name") || "").trim();
   const memo = String(form.get("memo") || "").trim();
+  const iconKey = String(form.get("icon_key") || "none");
+  const allowedIcons = new Set(["none", "bronze", "silver", "gold", "rainbow"]);
   const sortOrder = Number(form.get("sort_order") || 0);
   const isVisible = form.get("is_visible") === "on";
 
@@ -17,6 +19,7 @@ export async function POST(request: Request) {
 
   await getSupabaseAdmin().from("sponsors").insert({
     display_name: displayName,
+    icon_key: allowedIcons.has(iconKey) ? iconKey : "none",
     memo: memo || null,
     sort_order: Number.isFinite(sortOrder) ? sortOrder : 0,
     is_visible: isVisible
