@@ -9,8 +9,8 @@ export const revalidate = 0;
 
 const latestUpdate = {
   version: SITE_VERSION,
-  title: "후원 바위게 아이콘 추가",
-  summary: "후원자별 바위게 아이콘 선택 및 닉네임 옆 표시"
+  title: "홈 최근 공지 개편",
+  summary: "최신 공지 1건 강조 표시 및 공지 목록 분리"
 };
 
 
@@ -66,7 +66,7 @@ const getCachedHomeSummary = unstable_cache(
       sponsors: sponsors || []
     };
   },
-  ["home-summary-v13841"],
+  ["home-summary-v13843"],
   {
     revalidate: 120,
     tags: ["home-summary"]
@@ -76,7 +76,7 @@ const getCachedHomeSummary = unstable_cache(
 async function getLatestNotices() {
   const { data } = await getSupabaseAdmin()
     .from("notices")
-    .select("id,title,is_pinned,created_at")
+    .select("id,title,content,is_pinned,created_at,image_urls")
     .order("created_at", { ascending: false })
     .limit(5);
 
@@ -177,51 +177,37 @@ export default async function HomePage() {
         </aside>
       </section>
 
-      <section className="home-quick-grid">
-        <Link href="/updates" className="quick-card" prefetch={false}>
-          <span>🆕</span>
-          <div><small>WHAT&apos;S NEW</small><b>업데이트 내역</b><p>새로 추가된 기능 확인</p></div>
-        </Link>
-        <Link href="/schedule" className="quick-card" prefetch={false}>
-          <span>📅</span>
-          <div><small>NEXT SCHEDULE</small><b>다음 일정</b><p>클랜 일정 확인</p></div>
-        </Link>
-        <Link href="/hall-of-fame" className="quick-card" prefetch={false}>
-          <span>🏆</span>
-          <div><small>HALL OF FAME</small><b>명예의 전당</b><p>우승 기록 확인</p></div>
-        </Link>
-        <Link href="/stats" className="quick-card" prefetch={false}>
-          <span>📊</span>
-          <div><small>CLAN STATS</small><b>정기내전 통계</b><p>승률과 기록 확인</p></div>
-        </Link>
-      </section>
+      {notices[0] && (
+        <section className="home-latest-notice">
+          <div className="dashboard-head">
+            <div><span>LATEST NOTICE</span><h2>최근 공지</h2></div>
+            <Link href="/notices" prefetch={false}>전체 공지 보기</Link>
+          </div>
 
-      <section className="home-popular-champions">
-        <div className="dashboard-head">
-          <div><span>POPULAR CHAMPIONS</span><h2>인기 챔피언 바로가기</h2></div>
-          <Link href="/guides" prefetch={false}>전체 챔피언 보기</Link>
-        </div>
-        <div className="home-champion-row">
-          {[
-            ["Kaisa", "카이사"],
-            ["Ahri", "아리"],
-            ["LeeSin", "리 신"],
-            ["Jinx", "징크스"],
-            ["Thresh", "쓰레쉬"]
-          ].map(([id, name]) => (
-            <Link key={id} href="/guides" prefetch={false}>
-              <img src={`https://ddragon.leagueoflegends.com/cdn/16.14.1/img/champion/${id}.png`} alt={name} />
-              <strong>{name}</strong>
-              <span>대중 빌드 보기</span>
-            </Link>
-          ))}
-        </div>
-      </section>
+          <article className={`home-latest-notice-card ${Array.isArray(notices[0].image_urls) && notices[0].image_urls.length ? "has-image" : ""}`}>
+            <div className="home-latest-notice-copy">
+              <div className="home-latest-notice-meta">
+                <span>{notices[0].is_pinned ? "필독" : "NEW"}</span>
+                <time>{new Date(notices[0].created_at).toLocaleDateString("ko-KR")}</time>
+              </div>
+              <h2>{notices[0].title}</h2>
+              <p>{notices[0].content}</p>
+              <Link href="/notices" className="button primary" prefetch={false}>자세히 보기 →</Link>
+            </div>
+
+            {Array.isArray(notices[0].image_urls) && notices[0].image_urls.length > 0 && (
+              <a className="home-latest-notice-image" href={notices[0].image_urls[0]} target="_blank" rel="noreferrer">
+                <img src={notices[0].image_urls[0]} alt="최근 공지 첨부 이미지" />
+              </a>
+            )}
+          </article>
+        </section>
+      )}
 
       <section className="home-dashboard-grid">
         <article className="dashboard-card notices-panel home-important-card">
           <div className="dashboard-head">
-            <div><span>NOTICE</span><h2>최근 공지</h2></div>
+            <div><span>NOTICE</span><h2>공지 목록</h2></div>
             <Link href="/notices" prefetch={false}>전체보기</Link>
           </div>
 
