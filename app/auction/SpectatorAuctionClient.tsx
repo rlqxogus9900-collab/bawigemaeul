@@ -1,5 +1,7 @@
 "use client";
 
+import SponsorNickname from "@/app/components/SponsorNickname";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type Room = {
@@ -158,13 +160,13 @@ export default function SpectatorAuctionClient() {
             {state.teams.map((team) => (
               <article key={team.id}>
                 <header>
-                  <div><span>{team.name}</span><h3>{team.captain_nickname}</h3><small>{team.captain_match_tier ? `내전 ${["","Ⅰ","Ⅱ","Ⅲ","Ⅳ","Ⅴ"][team.captain_match_tier]}티어` : "내전 티어 미정"} · {team.captain_average_tier || "롤 티어 미정"}</small></div>
+                  <div><span>{team.name}</span><h3 className="auction-sponsor-name"><SponsorNickname nickname={team.captain_nickname} /></h3><small>{team.captain_match_tier ? `내전 ${["","Ⅰ","Ⅱ","Ⅲ","Ⅳ","Ⅴ"][team.captain_match_tier]}티어` : "내전 티어 미정"} · {team.captain_average_tier || "롤 티어 미정"}</small></div>
                   <strong>잔여 {team.budget.toLocaleString()}점</strong>
                 </header>
                 <div className="auction-captain-budget"><span>시작 {team.starting_budget.toLocaleString()}점</span><span>보너스 +{team.tier_bonus.toLocaleString()}점</span><span>사용 {(team.starting_budget-team.budget).toLocaleString()}점</span></div><div>
                   {(teamPlayers[team.id] || []).map((player: Player) => (
                     <p key={player.id}>
-                      <b>{player.nickname}</b>
+                      <b className="auction-sponsor-name"><SponsorNickname nickname={player.nickname} /></b>
                       <span>{(player.sold_price || 0).toLocaleString()}점</span>
                     </p>
                   ))}
@@ -191,13 +193,13 @@ export default function SpectatorAuctionClient() {
             {state.teams.map((team) => (
               <article className={leadingTeam?.id === team.id ? "leading" : ""} key={team.id}>
                 <header>
-                  <div><span>{team.name}</span><h3>{team.captain_nickname}</h3><small>{team.captain_match_tier ? `내전 ${["","Ⅰ","Ⅱ","Ⅲ","Ⅳ","Ⅴ"][team.captain_match_tier]}티어` : "내전 티어 미정"} · {team.captain_average_tier || "롤 티어 미정"}</small></div>
+                  <div><span>{team.name}</span><h3 className="auction-sponsor-name"><SponsorNickname nickname={team.captain_nickname} /></h3><small>{team.captain_match_tier ? `내전 ${["","Ⅰ","Ⅱ","Ⅲ","Ⅳ","Ⅴ"][team.captain_match_tier]}티어` : "내전 티어 미정"} · {team.captain_average_tier || "롤 티어 미정"}</small></div>
                   <strong>{team.budget.toLocaleString()}점</strong>
                 </header>
                 <div className="auction-captain-budget"><span>시작 {team.starting_budget.toLocaleString()}점</span><span>보너스 +{team.tier_bonus.toLocaleString()}점</span><span>사용 {(team.starting_budget-team.budget).toLocaleString()}점</span></div><div>
                   {(teamPlayers[team.id] || []).map((player: Player) => (
                     <p key={player.id}>
-                      <b>{player.nickname}</b>
+                      <b className="auction-sponsor-name"><SponsorNickname nickname={player.nickname} /></b>
                       <span>{(player.sold_price || 0).toLocaleString()}점</span>
                     </p>
                   ))}
@@ -218,7 +220,7 @@ export default function SpectatorAuctionClient() {
             <p key={bid.id}>
               <b>{state.teams.find((team) => team.id === bid.team_id)?.name || "팀"}</b>
               <strong>{bid.amount.toLocaleString()}점</strong>
-              <span>{bid.bidder_nickname}</span>
+              <span><SponsorNickname nickname={bid.bidder_nickname} /></span>
               <time>{new Date(bid.created_at).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</time>
             </p>
           ))}
@@ -229,7 +231,7 @@ export default function SpectatorAuctionClient() {
       {soldFlash && (
         <div className="sold-flash">
           <span>SOLD</span>
-          <strong>{soldFlash.nickname}</strong>
+          <strong className="auction-sponsor-name"><SponsorNickname nickname={soldFlash.nickname} /></strong>
           <p>{soldFlash.team} · {soldFlash.price.toLocaleString()}점</p>
         </div>
       )}

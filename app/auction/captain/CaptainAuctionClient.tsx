@@ -1,5 +1,7 @@
 "use client";
 
+import SponsorNickname from "@/app/components/SponsorNickname";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type Room = {
@@ -320,7 +322,7 @@ export default function CaptainAuctionClient({
           <div className="dashboard-head"><div><span>SELECTED TEAM</span><h2>{isStaff ? "선택 팀 선수" : "우리 팀 선수"}</h2></div></div>
           <div className="captain-player-list">
             {activePlayers.map((player) => (
-              <p key={player.id}><b>{player.nickname}</b><span>{(player.sold_price || 0).toLocaleString()}점</span></p>
+              <p key={player.id}><b className="auction-sponsor-name"><SponsorNickname nickname={player.nickname} /></b><span>{(player.sold_price || 0).toLocaleString()}점</span></p>
             ))}
             {!activePlayers.length && <em>아직 낙찰 선수가 없습니다.</em>}
           </div>

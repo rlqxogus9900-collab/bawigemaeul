@@ -1,3 +1,4 @@
+import SponsorNickname from "@/app/components/SponsorNickname";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
@@ -112,7 +113,7 @@ export default async function NormalMatchPage() {
                     {eventVotes
                       .filter(vote => vote.choice === "attending")
                       .map(vote => (
-                        <span key={vote.member_id}>{vote.member_nickname}</span>
+                        <span key={vote.member_id}><SponsorNickname nickname={vote.member_nickname} /></span>
                       ))}
                     {!eventVotes.some(vote => vote.choice === "attending") && <em>아직 없음</em>}
                   </div>
@@ -122,7 +123,7 @@ export default async function NormalMatchPage() {
                   <h3>팀장</h3>
                   <div className="match-name-list captain-list">
                     {eventCaptains.map(captain => (
-                      <span key={captain.member_id}>⭐ {captain.member_nickname}</span>
+                      <span key={captain.member_id}>⭐ <SponsorNickname nickname={captain.member_nickname} /></span>
                     ))}
                     {!eventCaptains.length && <em>아직 지정되지 않음</em>}
                   </div>

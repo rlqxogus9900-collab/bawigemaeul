@@ -1,5 +1,7 @@
 "use client";
 
+import SponsorNickname from "@/app/components/SponsorNickname";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type Room = {
@@ -242,8 +244,8 @@ export default function AuctionLiveClient({
             <div className="auction-final-grid">
               {state.teams.map((team) => (
                 <article key={team.id}>
-                  <header><div><span>{team.name}</span><b>{team.captain_nickname}</b><small>{team.captain_match_tier ? `내전 ${["","Ⅰ","Ⅱ","Ⅲ","Ⅳ","Ⅴ"][team.captain_match_tier]}티어` : "내전 티어 미정"} · {team.captain_average_tier || "롤 티어 미정"}</small></div><strong>잔여 {team.budget.toLocaleString()}점</strong></header>
-                  <div>{(teamPlayers[team.id] || []).map((player: Player) => <p key={player.id}><b>{player.nickname}</b><span>{(player.sold_price || 0).toLocaleString()}점</span></p>)}</div>
+                  <header><div><span>{team.name}</span><b className="auction-sponsor-name"><SponsorNickname nickname={team.captain_nickname} /></b><small>{team.captain_match_tier ? `내전 ${["","Ⅰ","Ⅱ","Ⅲ","Ⅳ","Ⅴ"][team.captain_match_tier]}티어` : "내전 티어 미정"} · {team.captain_average_tier || "롤 티어 미정"}</small></div><strong>잔여 {team.budget.toLocaleString()}점</strong></header>
+                  <div>{(teamPlayers[team.id] || []).map((player: Player) => <p key={player.id}><b className="auction-sponsor-name"><SponsorNickname nickname={player.nickname} /></b><span>{(player.sold_price || 0).toLocaleString()}점</span></p>)}</div>
                 </article>
               ))}
             </div>
@@ -302,7 +304,7 @@ export default function AuctionLiveClient({
             <header>
               <div>
                 <span>{team.name}</span>
-                <h3>{team.captain_nickname}</h3><small>{team.captain_match_tier ? `내전 ${["","Ⅰ","Ⅱ","Ⅲ","Ⅳ","Ⅴ"][team.captain_match_tier]}티어` : "내전 티어 미정"} · {team.captain_average_tier || "롤 티어 미정"}</small>
+                <h3 className="auction-sponsor-name"><SponsorNickname nickname={team.captain_nickname} /></h3><small>{team.captain_match_tier ? `내전 ${["","Ⅰ","Ⅱ","Ⅲ","Ⅳ","Ⅴ"][team.captain_match_tier]}티어` : "내전 티어 미정"} · {team.captain_average_tier || "롤 티어 미정"}</small>
               </div>
               <strong>{team.budget.toLocaleString()}점</strong>
             </header>
@@ -310,7 +312,7 @@ export default function AuctionLiveClient({
             <div className="auction-team-members">
               {(teamPlayers[team.id] || []).map((player: Player) => (
                 <div key={player.id}>
-                  <b>{player.nickname}</b>
+                  <b className="auction-sponsor-name"><SponsorNickname nickname={player.nickname} /></b>
                   <span>{player.sold_price}점</span>
                 </div>
               ))}
@@ -366,7 +368,7 @@ export default function AuctionLiveClient({
           </div>
         </article>
       </section>
-      {soldFlash && <div className="auction-sold-flash"><span>SOLD</span><strong>{soldFlash.nickname}</strong><p>{soldFlash.team} · {soldFlash.price.toLocaleString()}점</p></div>}
+      {soldFlash && <div className="auction-sold-flash"><span>SOLD</span><strong className="auction-sponsor-name"><SponsorNickname nickname={soldFlash.nickname} /></strong><p>{soldFlash.team} · {soldFlash.price.toLocaleString()}점</p></div>}
     </div>
   );
 }

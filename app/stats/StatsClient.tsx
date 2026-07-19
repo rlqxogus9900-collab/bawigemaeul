@@ -1,5 +1,6 @@
 "use client";
 
+import SponsorNickname from "@/app/components/SponsorNickname";
 import { useMemo, useState } from "react";
 
 type LineStat = {
@@ -90,7 +91,7 @@ export default function StatsClient({ members }: Props) {
                 const stat = line === "전체" ? member.overall : (member.byLine[line] || emptyStat);
                 return (
                   <tr key={member.id}>
-                    <td><b>{member.nickname}</b></td>
+                    <td><b><SponsorNickname nickname={member.nickname} /></b></td>
                     <td>
                       <span className={`roman-tier-badge tier-${member.matchTier || 0}`}>
                         {member.matchTier ? romanTier[member.matchTier] : "-"}

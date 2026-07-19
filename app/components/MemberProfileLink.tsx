@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import SponsorNickname from "@/app/components/SponsorNickname";
 
 type Profile = {
   id: string;
@@ -78,7 +79,7 @@ export default function MemberProfileLink({
   }
 
   if (!memberId) {
-    return <span className={className}>{nickname}</span>;
+    return <SponsorNickname nickname={nickname} className={className} />;
   }
 
   return (
@@ -88,7 +89,7 @@ export default function MemberProfileLink({
         className={`member-profile-link ${className}`}
         onClick={showProfile}
       >
-        {nickname}
+        <SponsorNickname nickname={nickname} />
       </button>
 
       {open && (
@@ -133,7 +134,7 @@ export default function MemberProfileLink({
                     <span>
                       {profile.role === "staff" ? "운영진" : "클랜원"}
                     </span>
-                    <h2>{profile.nickname}</h2>
+                    <h2><SponsorNickname nickname={profile.nickname} /></h2>
                     <p>{profile.riot_id || "Riot ID 미등록"}</p>
                   </div>
                   <div className="profile-match-tier">
