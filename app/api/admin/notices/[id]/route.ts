@@ -11,6 +11,11 @@ export async function POST(
   const { id } = await params;
   const form = await request.formData();
   const db = getSupabaseAdmin();
+  let imageUrls: string[] = [];
+  try {
+    const raw = JSON.parse(String(form.get("image_urls_json") || "[]"));
+    if (Array.isArray(raw)) imageUrls = raw.filter(value => typeof value === "string").slice(0, 5);
+  } catch {}
 
   if (String(form.get("_action") || "") === "delete") {
     await db.from("notices").delete().eq("id", id);
@@ -18,7 +23,8 @@ export async function POST(
     await db.from("notices").update({
       title: String(form.get("title") || "").trim(),
       content: String(form.get("content") || "").trim(),
-      is_pinned: form.get("is_pinned") === "on"
+      is_pinned: form.get("is_pinned") === "on",
+      image_urls: imageUrls
     }).eq("id", id);
   }
 

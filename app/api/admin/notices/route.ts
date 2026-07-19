@@ -9,6 +9,11 @@ export async function POST(request: Request) {
   const form = await request.formData();
   const title = String(form.get("title") || "").trim();
   const content = String(form.get("content") || "").trim();
+  let imageUrls: string[] = [];
+  try {
+    const raw = JSON.parse(String(form.get("image_urls_json") || "[]"));
+    if (Array.isArray(raw)) imageUrls = raw.filter(value => typeof value === "string").slice(0, 5);
+  } catch {}
 
   if (title && content) {
     const { data: notice } = await getSupabaseAdmin()
@@ -16,7 +21,8 @@ export async function POST(request: Request) {
       .insert({
         title,
         content,
-        is_pinned: form.get("is_pinned") === "on"
+        is_pinned: form.get("is_pinned") === "on",
+        image_urls: imageUrls
       })
       .select("id")
       .single();
