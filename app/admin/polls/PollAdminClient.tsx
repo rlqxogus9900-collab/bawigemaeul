@@ -1,4 +1,5 @@
 "use client";
+import SponsorNickname from "@/app/components/SponsorNickname";
 
 type PollRow = {
   id: string;
@@ -245,7 +246,7 @@ export default function PollAdminClient({
                         }
                       >
                         <span>{isCaptain ? "⭐" : "👤"}</span>
-                        <b>{participant.member_nickname}</b>
+                        <b><SponsorNickname nickname={participant.member_nickname} /></b>
                         <small>
                           {isCaptain ? "팀장 해제" : "팀장 지정"}
                         </small>

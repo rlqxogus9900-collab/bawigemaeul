@@ -5,24 +5,19 @@ import { useEffect, useState } from "react";
 type IconKey = "bronze" | "silver" | "gold" | "rainbow";
 type IconMap = Record<string, IconKey>;
 
-let cachedIcons: IconMap | null = null;
-let iconRequest: Promise<IconMap> | null = null;
+function normalizeNickname(value: string) {
+  return value
+    .normalize("NFKC")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/#.*$/, "");
+}
 
-function loadIcons() {
-  if (cachedIcons) return Promise.resolve(cachedIcons);
-  if (!iconRequest) {
-    iconRequest = fetch("/api/sponsors/icons", { cache: "no-store" })
-      .then(response => response.ok ? response.json() : { icons: {} })
-      .then(result => {
-        cachedIcons = result?.icons || {};
-        return cachedIcons as IconMap;
-      })
-      .catch(() => {
-        cachedIcons = {};
-        return cachedIcons;
-      });
-  }
-  return iconRequest;
+async function loadIcons(): Promise<IconMap> {
+  const response = await fetch(`/api/sponsors/icons?t=${Date.now()}`, { cache: "no-store" });
+  const result = response.ok ? await response.json() : { icons: {} };
+  return result?.icons || {};
 }
 
 export default function SponsorNickname({
@@ -35,13 +30,13 @@ export default function SponsorNickname({
   nameOnly?: boolean;
 }) {
   const [icon, setIcon] = useState<IconKey | null>(
-    cachedIcons?.[nickname.trim().toLowerCase()] || null
+    null
   );
 
   useEffect(() => {
     let active = true;
     loadIcons().then(icons => {
-      if (active) setIcon(icons[nickname.trim().toLowerCase()] || null);
+      if (active) setIcon(icons[normalizeNickname(nickname)] || null);
     });
     return () => { active = false; };
   }, [nickname]);

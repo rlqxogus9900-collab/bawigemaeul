@@ -1,3 +1,4 @@
+import SponsorNickname from "@/app/components/SponsorNickname";
 import Link from "next/link";
 import { requireStaff } from "@/lib/session";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
@@ -96,7 +97,7 @@ export default async function AdminDashboardPage() {
       <section className="admin-dashboard-hero">
         <div>
           <span>STAFF DASHBOARD</span>
-          <h1>{user.nickname}님, 관리자 대시보드입니다.</h1>
+          <h1><SponsorNickname nickname={user.nickname} />님, 관리자 대시보드입니다.</h1>
           <p>현재 클랜 운영 상태와 자주 쓰는 관리 메뉴를 한곳에서 확인합니다.</p>
         </div>
         <Link className="button primary" href="/">

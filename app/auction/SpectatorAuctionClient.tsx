@@ -180,7 +180,7 @@ export default function SpectatorAuctionClient() {
         <>
           <section className="auction-viewer-stage">
             <small>현재 경매 선수</small>
-            <h1>{currentPlayer?.nickname || "다음 선수 대기"}</h1>
+            <h1>{currentPlayer ? <SponsorNickname nickname={currentPlayer.nickname} /> : "다음 선수 대기"}</h1>
             <div>
               <span>현재가</span>
               <strong>{room.current_bid.toLocaleString()}</strong><small className="auction-minimum-bid-copy">최소 입찰 {currentMinimumBid.toLocaleString()}점</small>

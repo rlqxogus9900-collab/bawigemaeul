@@ -229,7 +229,7 @@ export default function AuctionBroadcastClient() {
 
           <section className="broadcast-stage">
             <small>현재 경매 선수</small>
-            <h2 className="broadcast-player-nickname">{currentPlayer?.nickname || "다음 선수 대기"}</h2>
+            <h2 className="broadcast-player-nickname">{currentPlayer ? <SponsorNickname nickname={currentPlayer.nickname} /> : "다음 선수 대기"}</h2>
             <div className={`broadcast-countdown ${timeLeft <= 5 ? "urgent" : ""} ${timeLeft === 0 ? "expired" : ""}`}>
               <span>{timeLeft === 0 ? "시간 종료" : "남은 시간"}</span>
               <strong>{timeLeft}</strong><em>초</em>
@@ -293,7 +293,7 @@ export default function AuctionBroadcastClient() {
       )}
       {flash?.kind === "unsold" && (
         <div className="auction-event-flash auction-event-unsold">
-          <span>NO BID</span><strong>유찰</strong><p>{flash.nickname}</p>
+          <span>NO BID</span><strong>유찰</strong><p><SponsorNickname nickname={flash.nickname} /></p>
         </div>
       )}
       {flash?.kind === "finish" && (

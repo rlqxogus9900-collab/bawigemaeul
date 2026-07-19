@@ -1,3 +1,4 @@
+import SponsorNickname from "@/app/components/SponsorNickname";
 import { requireStaff } from "@/lib/session";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import RosterActivitySync from "./RosterActivitySync";
@@ -100,7 +101,7 @@ export default async function AdminRosterPage() {
 
                 return (
                   <tr key={member.id}>
-                    <td><b>{member.nickname}</b></td>
+                    <td><b><SponsorNickname nickname={member.nickname} /></b></td>
                     <td>{member.riot_id}</td>
                     <td>{member.current_tier || "미정"}</td>
                     <td>{member.highest_tier || "미정"}</td>

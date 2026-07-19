@@ -211,7 +211,7 @@ export default function AuctionLiveClient({
 
         <div key={`${room.current_player_id || "none"}-${bidPulse}`} className="auction-current auction-current-animated">
           <small>현재 선수</small>
-          <strong>{currentPlayer?.nickname || "선수를 선택하세요"}</strong>
+          <strong>{currentPlayer ? <SponsorNickname nickname={currentPlayer.nickname} /> : "선수를 선택하세요"}</strong>
           {currentPlayer && <small className="auction-player-profile-line">{currentPlayer.main_line || "미정"} / {currentPlayer.sub_line || "미정"} · {currentPlayer.match_tier ? `${["", "Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ"][currentPlayer.match_tier]}티어` : "티어 미정"}{currentPlayer.note ? ` · ${currentPlayer.note}` : ""}</small>}
           {currentPlayer && <small className="auction-minimum-bid-copy">최소 입찰 {currentMinimumBid.toLocaleString()}점</small>}
           <div>
@@ -340,7 +340,7 @@ export default function AuctionLiveClient({
                 disabled={!isStaff || busy}
                 onClick={() => adminAction("nominate", { playerId: player.id })}
               >
-                {player.nickname}
+                <SponsorNickname nickname={player.nickname} />
                 <small>{player.status === "unsold" ? "유찰" : ""}</small>
               </button>
             ))}
@@ -360,7 +360,7 @@ export default function AuctionLiveClient({
               <div className="auction-bid-row" key={auctionBid.id}>
                 <b>{state.teams.find((team) => team.id === auctionBid.team_id)?.name || "팀"}</b>
                 <span>{auctionBid.amount.toLocaleString()}점</span>
-                <small>{auctionBid.bidder_nickname || "입찰자"}</small>
+                <small>{auctionBid.bidder_nickname ? <SponsorNickname nickname={auctionBid.bidder_nickname} /> : "입찰자"}</small>
                 <time>{new Date(auctionBid.created_at).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</time>
               </div>
             ))}

@@ -1,3 +1,4 @@
+import SponsorNickname from "@/app/components/SponsorNickname";
 import { requireStaff } from "@/lib/session";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
@@ -16,7 +17,7 @@ export default async function ActivityPage() {
         <table>
           <thead><tr><th>닉네임</th><th>Riot ID</th><th>상태</th><th>마지막 클랜 게임</th><th>제외 사유</th><th>관리</th></tr></thead>
           <tbody>{members?.map(m => <tr key={m.id}>
-            <td>{m.nickname}</td><td>{m.riot_id}</td>
+            <td><SponsorNickname nickname={m.nickname} /></td><td>{m.riot_id}</td>
             <td><span className={`status ${m.activity_excluded ? "excluded" : m.activity_status}`}>{m.activity_excluded ? "제외" : m.activity_status === "active" ? "활동" : "비활동"}</span></td>
             <td>{m.last_clan_game_at ? new Date(m.last_clan_game_at).toLocaleDateString("ko-KR") : "-"}</td>
             <td>{m.activity_exclusion_reason || "-"}</td>

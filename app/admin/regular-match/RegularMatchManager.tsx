@@ -1,4 +1,5 @@
 "use client";
+import SponsorNickname from "@/app/components/SponsorNickname";
 
 import { useMemo, useState } from "react";
 
@@ -170,7 +171,7 @@ export default function RegularMatchManager({
                   return (
                     <article key={vote.member_id}>
                       <div>
-                        <strong>{vote.member_nickname}</strong>
+                        <strong><SponsorNickname nickname={vote.member_nickname} /></strong>
                         <span>
                           {member?.main_line || "라인 미정"} ·
                           {member?.match_tier ? ` ${member.match_tier}티어` : " 티어 미정"}
@@ -195,7 +196,7 @@ export default function RegularMatchManager({
               <p className="muted">참가자 중 팀장을 자동으로 제외한 명단입니다.</p>
               <div className="auction-roster-preview">
                 {auctionRoster.map(vote => (
-                  <span key={vote.member_id}>{vote.member_nickname}</span>
+                  <span key={vote.member_id}><SponsorNickname nickname={vote.member_nickname} /></span>
                 ))}
                 {!auctionRoster.length && <em>경매 대상 없음</em>}
               </div>
@@ -203,7 +204,7 @@ export default function RegularMatchManager({
               <h3>지정된 팀장</h3>
               <div className="auction-roster-preview captain-preview">
                 {eventCaptains.map(captain => (
-                  <span key={captain.member_id}>⭐ {captain.member_nickname}</span>
+                  <span key={captain.member_id}>⭐ <SponsorNickname nickname={captain.member_nickname} /></span>
                 ))}
                 {!eventCaptains.length && <em>팀장 미지정</em>}
               </div>

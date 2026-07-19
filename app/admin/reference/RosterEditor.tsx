@@ -1,4 +1,5 @@
 "use client";
+import SponsorNickname from "@/app/components/SponsorNickname";
 
 import { useState } from "react";
 
@@ -66,7 +67,7 @@ export default function RosterEditor({ initialMembers }: { initialMembers: Membe
           <tbody>
             {members.map(member => (
               <tr key={member.id}>
-                <td><b>{member.nickname}</b></td>
+                <td><b><SponsorNickname nickname={member.nickname} /></b></td>
                 <td>{member.riot_id}</td>
                 <td>
                   <select

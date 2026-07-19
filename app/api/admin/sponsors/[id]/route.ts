@@ -17,7 +17,8 @@ export async function POST(
     await db.from("sponsors").delete().eq("id", id);
   } else {
     const displayName = String(form.get("display_name") || "").trim();
-    if (!displayName) {
+    const sponsorNickname = String(form.get("sponsor_nickname") || displayName).trim();
+    if (!displayName || !sponsorNickname) {
       return NextResponse.redirect(new URL("/admin/sponsors?error=1", request.url), 303);
     }
 
@@ -26,6 +27,7 @@ export async function POST(
 
     await db.from("sponsors").update({
       display_name: displayName,
+      sponsor_nickname: sponsorNickname,
       icon_key: allowedIcons.has(iconKey) ? iconKey : "none",
       memo: String(form.get("memo") || "").trim() || null,
       sort_order: Number(form.get("sort_order") || 0),

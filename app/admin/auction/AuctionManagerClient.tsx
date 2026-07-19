@@ -1,4 +1,5 @@
 "use client";
+import SponsorNickname from "@/app/components/SponsorNickname";
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
@@ -175,7 +176,7 @@ export default function AuctionManagerClient() {
           </div>
           <div className="auction-admin-captains">
             {state.teams.map(team => <article key={team.id}>
-              <header><span>{team.name} 팀장</span><strong>{team.captain_nickname}</strong></header>
+              <header><span>{team.name} 팀장</span><strong><SponsorNickname nickname={team.captain_nickname} /></strong></header>
               <p><b>내전 티어</b><span>{team.captain_match_tier ? `${roman[team.captain_match_tier]}티어` : "미정"}</span></p>
               <p><b>롤 티어</b><span>{team.captain_average_tier || "미정"}</span></p>
               <p><b>기본 예산</b><span>{team.base_budget.toLocaleString()}점</span></p>

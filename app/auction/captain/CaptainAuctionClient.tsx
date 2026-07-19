@@ -266,7 +266,7 @@ export default function CaptainAuctionClient({
                   disabled={busy || room.status === "finished"}
                   onClick={() => adminAction("nominate", { playerId: player.id })}
                 >
-                  {player.nickname}{player.status === "unsold" ? " · 유찰" : ""}
+                  <SponsorNickname nickname={player.nickname} />{player.status === "unsold" ? " · 유찰" : ""}
                 </button>
               ))}
             </div>
@@ -278,7 +278,7 @@ export default function CaptainAuctionClient({
         <div className="captain-identity">
           <div>
             <span>{activeTeam?.name || "팀 미정"}</span>
-            <h2>{activeTeam?.captain_nickname || currentNickname}</h2>
+            <h2><SponsorNickname nickname={activeTeam?.captain_nickname || currentNickname || ""} /></h2>
             {activeTeam && (
               <small>
                 내전 {activeTeam.captain_match_tier ? `${["", "Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ"][activeTeam.captain_match_tier]}티어` : "미정"}
@@ -291,7 +291,7 @@ export default function CaptainAuctionClient({
 
         <div className="captain-current-player">
           <small>현재 선수</small>
-          <h1 className="captain-player-nickname">{currentPlayer?.nickname || (room.status === "finished" ? "경매 종료" : "선수 지명 대기")}</h1>
+          <h1 className="captain-player-nickname">{currentPlayer ? <SponsorNickname nickname={currentPlayer.nickname} /> : (room.status === "finished" ? "경매 종료" : "선수 지명 대기")}</h1>
           {currentPlayer && <p className="auction-player-profile-line">주라인 {currentPlayer.main_line || "미정"} · 부라인 {currentPlayer.sub_line || "미정"} · 내전티어 {currentPlayer.match_tier ? `${["", "Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ"][currentPlayer.match_tier]}티어` : "미정"}{currentPlayer.note ? ` · ${currentPlayer.note}` : ""}</p>}
           {currentPlayer && <p className="auction-minimum-bid-copy">최소 입찰 {currentMinimumBid.toLocaleString()}점</p>}
           {room.status === "live" && currentPlayer && (
@@ -334,7 +334,7 @@ export default function CaptainAuctionClient({
             {state.bids.slice(0, 8).map((bidItem) => (
               <p key={bidItem.id}>
                 <b>{state.teams.find((team) => team.id === bidItem.team_id)?.name || "팀"}</b>
-                <span>{bidItem.amount.toLocaleString()}점 · {bidItem.bidder_nickname}</span>
+                <span>{bidItem.amount.toLocaleString()}점 · <SponsorNickname nickname={bidItem.bidder_nickname} /></span>
               </p>
             ))}
             {!state.bids.length && <em>입찰 기록이 없습니다.</em>}
@@ -364,7 +364,7 @@ export default function CaptainAuctionClient({
 
       {flash?.kind === "unsold" && (
         <div className="auction-event-flash auction-event-unsold">
-          <span>NO BID</span><strong>유찰</strong><p>{flash.nickname}</p>
+          <span>NO BID</span><strong>유찰</strong><p><SponsorNickname nickname={flash.nickname} /></p>
         </div>
       )}
       {flash?.kind === "finish" && (

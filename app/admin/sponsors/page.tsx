@@ -24,7 +24,7 @@ export default async function SponsorsAdminPage({
           <div>
             <span>STAFF ONLY</span>
             <h1>후원 관리</h1>
-            <p className="muted">후원자 이름 옆에 표시할 바위게 아이콘을 설정합니다.</p>
+            <p className="muted">후원자의 홈페이지 닉네임과 바위게 아이콘을 설정합니다. 설정한 아이콘은 모든 명단·게시판·댓글에 표시됩니다.</p>
           </div>
         </div>
 
@@ -32,7 +32,8 @@ export default async function SponsorsAdminPage({
         {params.error && <div className="error">입력값을 확인하세요.</div>}
 
         <form className="sponsor-add-form" action="/api/admin/sponsors" method="post">
-          <input name="display_name" placeholder="표시할 이름" required />
+          <input name="display_name" placeholder="후원 목록 표시 이름" required />
+          <input name="sponsor_nickname" placeholder="홈페이지 닉네임 (정확히 입력)" required />
           <select name="icon_key" defaultValue="bronze" aria-label="후원 아이콘">
             <option value="none">아이콘 없음</option>
             <option value="bronze">브론즈 바위게</option>
@@ -59,6 +60,7 @@ export default async function SponsorsAdminPage({
             <article key={sponsor.id} className="sponsor-admin-row">
               <form className="sponsor-edit-form" action={`/api/admin/sponsors/${sponsor.id}`} method="post">
                 <input name="display_name" defaultValue={sponsor.display_name} required />
+                <input name="sponsor_nickname" defaultValue={sponsor.sponsor_nickname || sponsor.display_name} placeholder="홈페이지 닉네임" required />
                 <select name="icon_key" defaultValue={sponsor.icon_key || "none"} aria-label={`${sponsor.display_name} 후원 아이콘`}>
                   <option value="none">아이콘 없음</option>
                   <option value="bronze">브론즈 바위게</option>

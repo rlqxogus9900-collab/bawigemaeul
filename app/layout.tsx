@@ -1,3 +1,4 @@
+import SponsorNickname from "@/app/components/SponsorNickname";
 import "./globals.css";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
@@ -60,7 +61,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <>
                   <NotificationCenter />
                   <span className={`account-pill ${user.role}`}>
-                    {user.nickname} / {user.role === "staff" ? "운영진" : "클랜원"}
+                    <SponsorNickname nickname={user.nickname} /> / {user.role === "staff" ? "운영진" : "클랜원"}
                   </span>
                   <Link className="top-button" href="/change-password" prefetch>
                     비밀번호 변경
