@@ -1,6 +1,5 @@
 import Link from "next/link";
 import Image from "next/image";
-import { unstable_cache } from "next/cache";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { SITE_VERSION } from "@/lib/site-version";
 
@@ -9,13 +8,12 @@ export const revalidate = 0;
 
 const latestUpdate = {
   version: SITE_VERSION,
-  title: "홈 최근 공지 개편",
-  summary: "최신 공지 1건 강조 표시 및 공지 목록 분리"
+  title: "클랜원 수 및 업데이트 내역 연동",
+  summary: "실제 활동 명단 인원 자동 집계와 최신 변경 내역 동기화"
 };
 
 
-const getCachedHomeSummary = unstable_cache(
-  async () => {
+async function getHomeSummary() {
     const db = getSupabaseAdmin();
 
     const [
@@ -65,13 +63,8 @@ const getCachedHomeSummary = unstable_cache(
       })),
       sponsors: sponsors || []
     };
-  },
-  ["home-summary-v13843"],
-  {
-    revalidate: 120,
-    tags: ["home-summary"]
-  }
-);
+}
+
 
 async function getLatestNotices() {
   const { data } = await getSupabaseAdmin()
@@ -86,7 +79,7 @@ async function getLatestNotices() {
 export default async function HomePage() {
   const [notices, summary] = await Promise.all([
     getLatestNotices(),
-    getCachedHomeSummary()
+    getHomeSummary()
   ]);
 
   const {
