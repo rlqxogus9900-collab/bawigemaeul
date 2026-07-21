@@ -14,7 +14,8 @@ type Member = {
   sub_line: string | null;
 };
 
-type TeamResult = { teamA: Member[]; teamB: Member[]; score: number; tierDiff: number };
+type AssignedMember = { member: Member; role: string; fit: number };
+type TeamResult = { teamA: AssignedMember[]; teamB: AssignedMember[]; score: number; tierDiff: number };
 
 const ROMAN = ["", "Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ"];
 const ROLES = ["탑", "정글", "미드", "원딜", "서폿"];
@@ -55,14 +56,21 @@ function permutations<T>(items: T[]): T[][] {
 
 const ROLE_PERMUTATIONS = permutations(ROLES);
 
-function teamRolePenalty(team: Member[]) {
-  let best = Infinity;
+function assignTeamRoles(team: Member[]) {
+  let bestScore = Infinity;
+  let bestRoles = ROLES;
   for (const roles of ROLE_PERMUTATIONS) {
     let score = 0;
     for (let i = 0; i < team.length; i += 1) score += roleFit(team[i], roles[i]);
-    if (score < best) best = score;
+    if (score < bestScore) {
+      bestScore = score;
+      bestRoles = roles;
+    }
   }
-  return best;
+  return {
+    score: bestScore,
+    assigned: team.map((member, index) => ({ member, role: bestRoles[index], fit: roleFit(member, bestRoles[index]) })),
+  };
 }
 
 function combinations(values: number[], size: number, start = 0, picked: number[] = [], output: number[][] = []) {
@@ -89,8 +97,10 @@ function buildCandidates(players: Member[]) {
     const powerA = teamA.reduce((sum, member) => sum + tierPower(member), 0);
     const powerB = teamB.reduce((sum, member) => sum + tierPower(member), 0);
     const tierDiff = Math.abs(powerA - powerB);
-    const rolePenalty = teamRolePenalty(teamA) + teamRolePenalty(teamB);
-    candidates.push({ teamA, teamB, tierDiff, score: tierDiff * 28 + rolePenalty * 4 });
+    const assignedA = assignTeamRoles(teamA);
+    const assignedB = assignTeamRoles(teamB);
+    const rolePenalty = assignedA.score + assignedB.score;
+    candidates.push({ teamA: assignedA.assigned, teamB: assignedB.assigned, tierDiff, score: tierDiff * 28 + rolePenalty * 4 });
   }
   return candidates.sort((a, b) => a.score - b.score || a.tierDiff - b.tierDiff);
 }
@@ -217,17 +227,19 @@ export default function NormalMatchBalancer({ members }: { members: Member[] }) 
   );
 }
 
-function TeamCard({ title, members }: { title: string; members: Member[] }) {
-  const sorted = [...members].sort((a, b) => ROLES.indexOf(normalizedLine(a.main_line)) - ROLES.indexOf(normalizedLine(b.main_line)));
+function TeamCard({ title, members }: { title: string; members: AssignedMember[] }) {
+  const sorted = [...members].sort((a, b) => ROLES.indexOf(a.role) - ROLES.indexOf(b.role));
   return (
     <article className="card normal-match-team-card">
-      <header><span>{title}</span><strong>{members.reduce((sum, member) => sum + tierPower(member), 0).toFixed(1)}</strong></header>
+      <header><span>{title}</span><strong>{members.reduce((sum, item) => sum + tierPower(item.member), 0).toFixed(1)}</strong></header>
       <div>
-        {sorted.map(member => (
+        {sorted.map(({ member, role, fit }) => (
           <div className="normal-match-team-member" key={member.id}>
-            <span className="normal-match-line-badge">{normalizedLine(member.main_line)}</span>
+            <span className="normal-match-line-badge">{role}</span>
             <strong><SponsorNickname nickname={member.nickname} /></strong>
-            <small>{memberTier(member)} · 부 {member.sub_line || "미정"}</small>
+            <small>{memberTier(member)} · 주 {member.main_line || "미정"} · 부 {member.sub_line || "미정"}</small>
+            {fit >= 7 && <em className="normal-match-role-warning">⚠ 자동 배정</em>}
+            {fit === 2 && <em className="normal-match-role-sub">부라인</em>}
           </div>
         ))}
       </div>

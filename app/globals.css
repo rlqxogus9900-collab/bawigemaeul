@@ -3400,3 +3400,17 @@ html,body{
 .normal-match-team-columns{display:grid;grid-template-columns:minmax(0,1fr) 58px minmax(0,1fr);align-items:center;gap:12px;margin-top:20px}.normal-match-versus{display:grid;place-items:center;width:58px;height:58px;border:1px solid #725f29;border-radius:50%;background:#231d0c;color:#f1ce51;font-size:18px;font-weight:900}.normal-match-team-card{overflow:hidden;padding:0}.normal-match-team-card header{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid #2d503c;background:#0d2a1c}.normal-match-team-card header span{font-size:22px;font-weight:900}.normal-match-team-card header strong{color:#e8c953}.normal-match-team-card>div{display:grid}.normal-match-team-member{display:grid;grid-template-columns:54px minmax(0,1fr);gap:4px 10px;align-items:center;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.06)}.normal-match-team-member:last-child{border-bottom:0}.normal-match-team-member strong{min-width:0}.normal-match-team-member small{grid-column:2;color:#91a69a}.normal-match-line-badge{grid-row:1/3;display:grid;place-items:center;min-height:34px;border:1px solid #3f654f;border-radius:9px;color:#d7be65;font-size:12px;font-weight:800}.normal-match-balance-note{margin-top:14px;padding:12px 15px;border-radius:10px;background:#182811;color:#aebba5;text-align:center}.normal-match-balance-note b{color:#e8c953}
 @media(max-width:900px){.normal-match-player-grid{grid-template-columns:1fr}.normal-match-team-columns{grid-template-columns:1fr}.normal-match-versus{margin:auto}.normal-match-result-head{align-items:flex-start;flex-direction:column}.normal-match-result-head .button{align-self:stretch}.normal-match-add-row{grid-template-columns:1fr}}
 @media(max-width:600px){.normal-match-hero{padding:22px}.normal-match-hero h1{font-size:28px}.normal-match-builder,.normal-match-teams{padding:16px}.normal-match-section-head{align-items:flex-start}.normal-match-section-head>strong{font-size:27px}}
+
+/* Online Beta 1.3.8.47 - 일반 내전 자동 라인 배정 */
+.normal-match-team-member { position: relative; }
+.normal-match-role-warning,
+.normal-match-role-sub {
+  margin-left: auto;
+  font-style: normal;
+  font-size: 11px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.normal-match-role-warning { color: #ffd66b; background: rgba(255, 177, 48, .12); border: 1px solid rgba(255, 177, 48, .3); }
+.normal-match-role-sub { color: #8fd6ff; background: rgba(78, 170, 255, .1); border: 1px solid rgba(78, 170, 255, .25); }
