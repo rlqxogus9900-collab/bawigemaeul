@@ -8,6 +8,12 @@ type Option = {
   vote_count: number;
 };
 
+type Voter = {
+  optionId: string;
+  memberId: string;
+  nickname: string;
+};
+
 function formatDateTime(value: string | null) {
   if (!value) return "미정";
   return new Date(value).toLocaleString("ko-KR", {
@@ -43,6 +49,7 @@ export default function PollBlock({
   pollType,
   options,
   selectedOptionIds,
+  voters,
   allowMultiple,
   disabled,
   loggedIn,
@@ -56,6 +63,7 @@ export default function PollBlock({
   pollType: "general" | "regular_match";
   options: Option[];
   selectedOptionIds: string[];
+  voters: Voter[];
   allowMultiple: boolean;
   disabled: boolean;
   loggedIn: boolean;
@@ -182,6 +190,15 @@ export default function PollBlock({
                 <span>{option.vote_count}표 · {percent}%</span>
               </div>
               <i style={{ width: `${percent}%` }} />
+              <div className="poll-voter-list">
+                {voters.filter(voter => voter.optionId === option.id).length > 0 ? (
+                  voters
+                    .filter(voter => voter.optionId === option.id)
+                    .map(voter => <span key={`${option.id}-${voter.memberId}`}>{voter.nickname}</span>)
+                ) : (
+                  <span className="empty">아직 투표한 사람이 없습니다.</span>
+                )}
+              </div>
             </button>
           );
         })}

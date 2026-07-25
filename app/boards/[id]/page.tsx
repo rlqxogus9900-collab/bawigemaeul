@@ -122,13 +122,22 @@ export default async function BoardPostPage({
         .order("sort_order", { ascending: true })
     : { data: [] };
 
-  const { data: myPollVotes } = poll && user
-    ? await db
-        .from("board_poll_votes")
-        .select("option_id")
-        .eq("poll_id", poll.id)
-        .eq("member_id", user.id)
-    : { data: [] };
+  const [{ data: myPollVotes }, { data: allPollVotes }] = poll
+    ? await Promise.all([
+        user
+          ? db
+              .from("board_poll_votes")
+              .select("option_id")
+              .eq("poll_id", poll.id)
+              .eq("member_id", user.id)
+          : Promise.resolve({ data: [] }),
+        db
+          .from("board_poll_votes")
+          .select("option_id,member_id,member_nickname")
+          .eq("poll_id", poll.id)
+          .order("created_at", { ascending: true })
+      ])
+    : [{ data: [] }, { data: [] }];
 
   const pollDisabled = Boolean(
     poll &&
@@ -180,6 +189,11 @@ export default async function BoardPostPage({
             pollType={poll.poll_type}
             options={(pollOptions || []) as never[]}
             selectedOptionIds={(myPollVotes || []).map(vote => vote.option_id)}
+            voters={(allPollVotes || []).map(vote => ({
+              optionId: vote.option_id,
+              memberId: vote.member_id,
+              nickname: vote.member_nickname
+            }))}
             allowMultiple={poll.allow_multiple}
             disabled={pollDisabled}
             loggedIn={Boolean(user)}

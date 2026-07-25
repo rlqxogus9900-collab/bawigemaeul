@@ -35,7 +35,16 @@ export async function POST(req: NextRequest) {
       await db.from("auction_rooms").update({ current_player_id: null, current_bid: 0, current_team_id: null, updated_at: new Date().toISOString() }).eq("id", room.id);
     } else if (body.action === "unsold") {
       if (!room.current_player_id) return NextResponse.json({ error: "선택된 선수가 없습니다." }, { status: 400 });
-      await db.from("auction_players").update({ status: "unsold" }).eq("id", room.current_player_id);
+
+      // 유효한 최고 입찰이 있으면 어떤 화면에서 유찰 요청이 와도 낙찰로 보호한다.
+      if (room.current_team_id && room.current_bid > 0) {
+        const { data: team } = await db.from("auction_teams").select("*").eq("id", room.current_team_id).single();
+        if (!team || team.budget < room.current_bid) return NextResponse.json({ error: "예산이 부족합니다." }, { status: 400 });
+        await db.from("auction_teams").update({ budget: team.budget - room.current_bid }).eq("id", team.id);
+        await db.from("auction_players").update({ status: "sold", sold_team_id: team.id, sold_price: room.current_bid }).eq("id", room.current_player_id);
+      } else {
+        await db.from("auction_players").update({ status: "unsold" }).eq("id", room.current_player_id);
+      }
       await db.from("auction_rooms").update({ current_player_id: null, current_bid: 0, current_team_id: null, updated_at: new Date().toISOString() }).eq("id", room.id);
     } else if (body.action === "finish") {
       await db.from("auction_rooms").update({ status: "finished", current_player_id: null, current_team_id: null, current_bid: 0, updated_at: new Date().toISOString() }).eq("id", room.id);

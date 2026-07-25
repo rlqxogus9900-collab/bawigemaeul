@@ -144,12 +144,15 @@ export default function CaptainAuctionClient({
       const response = await fetch("/api/admin/auction/action", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ roomId: room.id, action: "unsold" })
+        body: JSON.stringify({
+          roomId: room.id,
+          action: room.current_bid > 0 && room.current_team_id ? "sell" : "unsold"
+        })
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) {
         autoUnsoldPlayerId.current = null;
-        setError(result.error || "자동 유찰 처리 실패");
+        setError(result.error || "자동 낙찰·유찰 처리 실패");
       }
       await load();
       setBusy(false);

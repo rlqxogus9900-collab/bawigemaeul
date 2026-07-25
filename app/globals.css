@@ -3414,3 +3414,20 @@ html,body{
 }
 .normal-match-role-warning { color: #ffd66b; background: rgba(255, 177, 48, .12); border: 1px solid rgba(255, 177, 48, .3); }
 .normal-match-role-sub { color: #8fd6ff; background: rgba(78, 170, 255, .1); border: 1px solid rgba(78, 170, 255, .25); }
+
+.poll-voter-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+  position: relative;
+  z-index: 1;
+}
+.poll-voter-list span {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.08);
+  font-size: 12px;
+  font-weight: 600;
+}
+.poll-voter-list span.empty { opacity: .55; font-weight: 400; }
