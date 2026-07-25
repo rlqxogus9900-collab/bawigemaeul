@@ -12,6 +12,14 @@ function text(value: unknown, fallback = "") {
   return fallback;
 }
 
+
+function matchTypeLabel(value: unknown) {
+  const raw = text(value, "regular_match");
+  if (raw === "regular_match" || raw === "regular" || raw === "정기내전") return "정기내전";
+  if (raw === "tournament" || raw === "대회") return "대회";
+  return raw;
+}
+
 function list(value: unknown) {
   if (Array.isArray(value)) return value.map(item => text(item)).filter(Boolean);
   if (typeof value !== "string" || !value.trim()) return [];
@@ -50,7 +58,7 @@ export default async function HallOfFamePage() {
       playedAtLabel: playedAt ? new Date(playedAt).toLocaleDateString("ko-KR") : "날짜 미등록",
       mvp: text(match.mvp_name ?? match.mvp),
       eventTitle: text(match.title ?? match.event_title ?? match.match_title, "정기내전"),
-      eventType: text(match.event_type ?? match.match_type, "정기내전"),
+      eventType: matchTypeLabel(match.match_type ?? match.event_type),
       score: setsA && setsB ? `${teamA} ${setsA} : ${setsB} ${teamB}` : "",
       members
     };

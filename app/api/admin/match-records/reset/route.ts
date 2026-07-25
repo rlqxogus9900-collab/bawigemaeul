@@ -5,7 +5,7 @@ export async function DELETE() {
   try {
     await requireStaff();
     const db = getSupabaseAdmin();
-    const { error } = await db.from("regular_match_results").delete().not("id", "is", null);
+    const { error } = await db.from("regular_match_results").delete().eq("match_type", "regular_match");
     if (error) throw error;
     return NextResponse.json({ ok: true });
   } catch (error) { return NextResponse.json({ error: error instanceof Error ? error.message : "초기화 실패" }, { status: 500 }); }

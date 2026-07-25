@@ -8,8 +8,8 @@ export const revalidate = 0;
 
 const latestUpdate = {
   version: SITE_VERSION,
-  title: "클랜원 수 및 업데이트 내역 연동",
-  summary: "실제 활동 명단 인원 자동 집계와 최신 변경 내역 동기화"
+  title: "정기내전·대회 기록 분류 수정",
+  summary: "정기내전 상세 기록이 대회 기록으로 함께 표시되던 문제 수정"
 };
 
 
@@ -30,6 +30,7 @@ async function getHomeSummary() {
       db
         .from("regular_match_results")
         .select("winner_name,played_at,team_a_name,team_a_sets,team_b_sets,team_b_name")
+        .eq("match_type", "regular_match")
         .order("played_at", { ascending: false })
         .limit(1),
       db

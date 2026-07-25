@@ -15,6 +15,7 @@ export async function POST(req: NextRequest) {
     const { error } = await getSupabaseAdmin().from("regular_match_results").insert({
       team_a_name: teamA, team_b_name: teamB, team_a_sets: setsA, team_b_sets: setsB,
       winner_name: setsA > setsB ? teamA : teamB,
+      match_type: "regular_match",
       played_at: body.playedAt || new Date().toISOString()
     });
     if (error) throw error;
