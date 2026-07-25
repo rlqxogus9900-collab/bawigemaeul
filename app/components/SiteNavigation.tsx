@@ -27,6 +27,7 @@ const fixedGroups: FixedGroup[] = [
     icon: "🦀",
     items: [
       ["/", "⌂", "홈"],
+      ["/notices", "📢", "공지사항"],
       ["/updates", "🆕", "업데이트"],
       ["/rules", "📜", "클랜 규칙"],
       ["/schedule", "📅", "일정"],
