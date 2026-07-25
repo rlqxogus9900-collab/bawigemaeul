@@ -11,6 +11,7 @@ type Room = {
   current_player_id: string | null;
   current_bid: number;
   bid_step: number;
+  auction_duration_seconds?: number;
   tier_min_bids?: Record<string, number> | null;
   current_team_id: string | null;
 };
@@ -129,11 +130,11 @@ export default function AuctionBroadcastClient() {
 
   useEffect(() => {
     if (!state.room?.current_player_id || state.room.status !== "live") {
-      setTimeLeft(15);
+      setTimeLeft(Number(state.room?.auction_duration_seconds || 15));
       return;
     }
-    setTimeLeft(15);
-  }, [state.room?.current_player_id, state.room?.status]);
+    setTimeLeft(Number(state.room?.auction_duration_seconds || 15));
+  }, [state.room?.current_player_id, state.room?.status, state.room?.auction_duration_seconds]);
 
   useEffect(() => {
     if (!state.room?.current_player_id || state.room.status !== "live") return;

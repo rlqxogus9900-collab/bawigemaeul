@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 
 type Room = {
   id: string; title: string; status: "ready" | "live" | "finished";
-  starting_budget: number; bid_step: number; tier_balance_enabled: boolean; tier_bonus_per_tier: number;
+  starting_budget: number; bid_step: number; auction_duration_seconds?: number; tier_balance_enabled: boolean; tier_bonus_per_tier: number;
   tier_min_bids?: Record<string, number> | null; current_player_id?: string | null; current_bid?: number;
 };
 type Team = {
@@ -25,6 +25,7 @@ export default function AuctionManagerClient() {
   const [state, setState] = useState<AuctionState>({ room: null, teams: [], players: [], bids: [] });
   const [startingBudget, setStartingBudget] = useState(1000);
   const [bidStep, setBidStep] = useState(10);
+  const [auctionDurationSeconds, setAuctionDurationSeconds] = useState(15);
   const [tierBalanceEnabled, setTierBalanceEnabled] = useState(true);
   const [tierBonusPerTier, setTierBonusPerTier] = useState(100);
   const [tierMinBids, setTierMinBids] = useState<Record<string, number>>({ "1": 300, "2": 250, "3": 200, "4": 150, "5": 100 });
@@ -58,7 +59,7 @@ export default function AuctionManagerClient() {
     const response = await fetch("/api/admin/auction/create", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        startingBudget, bidStep, tierBalanceEnabled, tierBonusPerTier, tierMinBids, mode: createMode,
+        startingBudget, bidStep, auctionDurationSeconds, tierBalanceEnabled, tierBonusPerTier, tierMinBids, mode: createMode,
         title: manualTitle,
         captains: manualCaptains.split(/[\n,]/).map(v => v.trim()).filter(Boolean),
         players: manualPlayers.split(/[\n,]/).map(v => v.trim()).filter(Boolean)
@@ -138,6 +139,7 @@ export default function AuctionManagerClient() {
         <div className="auction-create-row auction-create-admin auction-settings-grid">
           <label>기본 시작 예산<input min={0} type="number" value={startingBudget} onChange={(e) => setStartingBudget(Number(e.target.value))} /></label>
           <label>기본 입찰 단위<input min={1} type="number" value={bidStep} onChange={(e) => setBidStep(Number(e.target.value))} /></label>
+          <label>선수당 경매 시간<input min={5} max={300} type="number" value={auctionDurationSeconds} onChange={(e) => setAuctionDurationSeconds(Math.min(300, Math.max(5, Number(e.target.value) || 15)))} /><small>5~300초</small></label>
           <label>티어당 추가 점수<input min={0} type="number" disabled={!tierBalanceEnabled} value={tierBonusPerTier} onChange={(e) => setTierBonusPerTier(Number(e.target.value))} /></label>
           <label className="auction-tier-toggle"><span>팀장 티어 보정</span><button type="button" className={tierBalanceEnabled ? "enabled" : ""} onClick={() => setTierBalanceEnabled(v => !v)}>{tierBalanceEnabled ? "사용 ON" : "사용 OFF"}</button></label>
         </div>

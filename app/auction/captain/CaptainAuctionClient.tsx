@@ -9,6 +9,7 @@ type Room = {
   title: string;
   status: "ready" | "live" | "finished";
   bid_step: number;
+  auction_duration_seconds?: number;
   current_player_id: string | null;
   current_bid: number;
   tier_min_bids?: Record<string, number> | null;
@@ -123,13 +124,13 @@ export default function CaptainAuctionClient({
   useEffect(() => {
     autoUnsoldPlayerId.current = null;
     if (!state.room?.current_player_id || state.room.status !== "live") {
-      setTimeLeft(15);
+      setTimeLeft(Number(state.room?.auction_duration_seconds || 15));
       return;
     }
-    setTimeLeft(15);
+    setTimeLeft(Number(state.room?.auction_duration_seconds || 15));
     setBidAmount("");
     setSubmittedMessage("");
-  }, [state.room?.current_player_id, state.room?.status]);
+  }, [state.room?.current_player_id, state.room?.status, state.room?.auction_duration_seconds]);
 
   useEffect(() => {
     if (!state.room?.current_player_id || state.room.status !== "live") return;

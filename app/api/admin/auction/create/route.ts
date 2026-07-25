@@ -8,6 +8,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => ({}));
     const startingBudget = Math.max(0, Number(body.startingBudget || 1000));
     const bidStep = Math.max(1, Number(body.bidStep || 10));
+    const auctionDurationSeconds = Math.min(300, Math.max(5, Math.floor(Number(body.auctionDurationSeconds || 15))));
     const tierBalanceEnabled = body.tierBalanceEnabled !== false;
     const tierBonusPerTier = Math.max(0, Number(body.tierBonusPerTier || 100));
     const rawTierMinBids = body.tierMinBids && typeof body.tierMinBids === "object" ? body.tierMinBids : {};
@@ -58,7 +59,7 @@ export async function POST(req: NextRequest) {
     const strongestTier = validTiers.length ? Math.min(...validTiers) : 1;
 
     await db.from("auction_rooms").update({ status: "finished" }).in("status", ["ready", "live"]);
-    const { data: room, error } = await db.from("auction_rooms").insert({ poll_id: pollId, title, starting_budget: startingBudget, bid_step: bidStep, tier_balance_enabled: tierBalanceEnabled, tier_bonus_per_tier: tierBonusPerTier, tier_min_bids: tierMinBids, created_by: user.id }).select("*").single();
+    const { data: room, error } = await db.from("auction_rooms").insert({ poll_id: pollId, title, starting_budget: startingBudget, bid_step: bidStep, auction_duration_seconds: auctionDurationSeconds, tier_balance_enabled: tierBalanceEnabled, tier_bonus_per_tier: tierBonusPerTier, tier_min_bids: tierMinBids, created_by: user.id }).select("*").single();
     if (error || !room) throw error || new Error("경매방 생성 실패");
 
     const teams = captainRows.map((captain, index) => {
