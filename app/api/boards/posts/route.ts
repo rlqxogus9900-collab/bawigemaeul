@@ -149,15 +149,15 @@ export async function POST(request: Request) {
       }))
     );
 
-    await notifyAllActiveMembers({
-      type: "poll",
-      title: isRegularMatch ? `새 정기내전 투표: ${title}` : `새 투표: ${title}`,
-      message: isRegularMatch
-        ? "정기내전 참가 여부를 선택해주세요."
-        : "새로운 투표가 등록되었습니다.",
-      link: `/boards/${post.id}`,
-      excludeMemberId: user.id
-    });
+    if (isRegularMatch) {
+      await notifyAllActiveMembers({
+        type: "poll",
+        title: `새 정기내전 투표: ${title}`,
+        message: "정기내전 참가 여부를 선택해주세요.",
+        link: `/boards/${post.id}`,
+        excludeMemberId: user.id
+      });
+    }
   }
 
   return NextResponse.redirect(new URL(`/boards/${post.id}`, request.url), 303);

@@ -6,6 +6,12 @@ export const dynamic = "force-dynamic";
 const updates = [
   {
     version: SITE_VERSION,
+    date: "2026.07.26",
+    title: "일반 투표 알림 제외",
+    items: ["일반 투표 작성 시 전체 클랜원 알림이 생성되지 않도록 변경", "정기내전 투표 알림은 기존대로 유지", "공지사항 알림은 기존대로 유지"]
+  },
+  {
+    version: SITE_VERSION,
     date: "2026.07.25",
     title: "경매 제한시간 설정",
     items: ["경매방 생성 시 선수당 제한시간을 직접 설정", "5초부터 300초까지 입력 가능", "팀장 화면과 방송 화면 타이머에 설정값을 동일하게 반영", "시간 종료 시 기존 자동 낙찰·유찰 처리 유지"]
