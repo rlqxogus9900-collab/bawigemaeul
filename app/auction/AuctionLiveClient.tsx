@@ -49,11 +49,14 @@ type Bid = {
   created_at: string;
 };
 
+type Submission = { team_id: string; submitted: boolean; amount: number | null; updated_at: string };
+
 type AuctionState = {
   room: Room | null;
   teams: Team[];
   players: Player[];
   bids: Bid[];
+  submissions: Submission[];
 };
 
 export default function AuctionLiveClient({
@@ -69,12 +72,12 @@ export default function AuctionLiveClient({
     room: null,
     teams: [],
     players: [],
-    bids: []
+    bids: [],
+    submissions: []
   });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [soundOn, setSoundOn] = useState(true);
-  const previousBid = useRef(0);
   const previousSoldIds = useRef(new Set<string>());
   const soldStateReady = useRef(false);
   const [bidPulse, setBidPulse] = useState(0);
@@ -101,31 +104,6 @@ export default function AuctionLiveClient({
     return () => window.clearInterval(timer);
   }, [load]);
 
-  useEffect(() => {
-    const bid = state.room?.current_bid || 0;
-    if (previousBid.current > 0 && bid > previousBid.current) {
-      setBidPulse((value) => value + 1);
-      if (soundOn) {
-      const AudioContextClass =
-        window.AudioContext ||
-        (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-      if (AudioContextClass) {
-        const ctx = new AudioContextClass();
-        const oscillator = ctx.createOscillator();
-        const gain = ctx.createGain();
-        oscillator.frequency.value = 620;
-        gain.gain.setValueAtTime(0.05, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
-        oscillator.connect(gain);
-        gain.connect(ctx.destination);
-        oscillator.start();
-        oscillator.stop(ctx.currentTime + 0.12);
-      }
-      }
-    }
-    previousBid.current = bid;
-  }, [state.room?.current_bid, soundOn]);
-
   const adminAction = async (action: string, extra: Record<string, unknown> = {}) => {
     if (!state.room) return;
     setBusy(true);
@@ -143,30 +121,13 @@ export default function AuctionLiveClient({
     setBusy(false);
   };
 
-  const bid = async (teamId: string) => {
-    if (!state.room) return;
-    setBusy(true);
-    setError("");
-
-    const r = await fetch("/api/auction/bid", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ roomId: state.room.id, teamId })
-    });
-
-    const result = await r.json().catch(() => ({}));
-    if (!r.ok) setError(result.error || "입찰 실패");
-    await load();
-    setBusy(false);
-  };
-
 
   const room = state.room;
   const currentPlayer = state.players.find((player) => player.id === room?.current_player_id);
   const currentMinimumBid = currentPlayer?.match_tier
     ? Math.max(Number(state.room?.bid_step || 1), Number(state.room?.tier_min_bids?.[String(currentPlayer.match_tier)] || 0))
     : Number(state.room?.bid_step || 1);
-  const leadingTeam = state.teams.find((team) => team.id === room?.current_team_id);
+  const submittedCount = state.submissions.length;
   const myTeam = state.teams.find((team) => team.captain_member_id === currentUserId);
   const waiting = state.players.filter(
     (player) => player.status === "waiting" || player.status === "unsold"
@@ -215,14 +176,10 @@ export default function AuctionLiveClient({
           {currentPlayer && <small className="auction-player-profile-line">{currentPlayer.main_line || "미정"} / {currentPlayer.sub_line || "미정"} · {currentPlayer.match_tier ? `${["", "Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ"][currentPlayer.match_tier]}티어` : "티어 미정"}{currentPlayer.note ? ` · ${currentPlayer.note}` : ""}</small>}
           {currentPlayer && <small className="auction-minimum-bid-copy">최소 입찰 {currentMinimumBid.toLocaleString()}점</small>}
           <div>
-            <span>현재가</span>
-            <b className="auction-price-pulse">{room.current_bid.toLocaleString()}점</b>
+            <span>제출 현황</span>
+            <b className="auction-price-pulse">{submittedCount}/{state.teams.length}팀</b>
           </div>
-          <em>
-            {leadingTeam
-              ? `${leadingTeam.name} · ${leadingTeam.captain_nickname}`
-              : "입찰 대기"}
-          </em>
+          <em>입찰 금액은 마감 후 공개됩니다.</em>
         </div>
 
         {currentNickname && (
@@ -260,22 +217,13 @@ export default function AuctionLiveClient({
           )}
 
           {state.teams.map((team) => {
-            const canBid = isStaff || team.captain_member_id === currentUserId;
-            return (
-              <button
-                key={team.id}
-                className={myTeam?.id === team.id ? "my-team-bid" : ""}
-                disabled={busy || !currentPlayer || room.status !== "live" || !canBid}
-                onClick={() => bid(team.id)}
-              >
-                {team.name} +{room.bid_step}
-              </button>
-            );
+            const submission = state.submissions.find((item) => item.team_id === team.id);
+            return <span className="auction-submission-chip" key={team.id}>{team.name} {submission ? "✓ 제출" : "대기"}</span>;
           })}
 
           {isStaff && (
             <>
-              <button disabled={busy || !leadingTeam} onClick={() => adminAction("sell")}>
+              <button disabled={busy || !currentPlayer} onClick={() => adminAction("sell")}>
                 낙찰
               </button>
               <button disabled={busy || !currentPlayer} onClick={() => adminAction("unsold")}>
@@ -296,7 +244,6 @@ export default function AuctionLiveClient({
           <article
             className={
               "card auction-team-card " +
-              (leadingTeam?.id === team.id ? "is-leading " : "") +
               (myTeam?.id === team.id ? "is-my-team" : "")
             }
             key={team.id}

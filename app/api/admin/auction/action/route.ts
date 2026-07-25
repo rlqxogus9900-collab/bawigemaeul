@@ -26,26 +26,48 @@ export async function POST(req: NextRequest) {
       if (amount > team.budget) return NextResponse.json({ error: "팀 예산이 부족합니다." }, { status: 400 });
       await db.from("auction_bids").insert({ room_id: room.id, player_id: room.current_player_id, team_id: team.id, amount, bidder_member_id: user.id, bidder_nickname: user.nickname });
       await db.from("auction_rooms").update({ current_bid: amount, current_team_id: team.id, updated_at: new Date().toISOString() }).eq("id", room.id);
-    } else if (body.action === "sell") {
-      if (!room.current_player_id || !room.current_team_id || room.current_bid <= 0) return NextResponse.json({ error: "유효한 입찰이 없습니다." }, { status: 400 });
-      const { data: team } = await db.from("auction_teams").select("*").eq("id", room.current_team_id).single();
-      if (!team || team.budget < room.current_bid) return NextResponse.json({ error: "예산이 부족합니다." }, { status: 400 });
-      await db.from("auction_teams").update({ budget: team.budget - room.current_bid }).eq("id", team.id);
-      await db.from("auction_players").update({ status: "sold", sold_team_id: team.id, sold_price: room.current_bid }).eq("id", room.current_player_id);
-      await db.from("auction_rooms").update({ current_player_id: null, current_bid: 0, current_team_id: null, updated_at: new Date().toISOString() }).eq("id", room.id);
-    } else if (body.action === "unsold") {
+    } else if (body.action === "sell" || body.action === "unsold") {
       if (!room.current_player_id) return NextResponse.json({ error: "선택된 선수가 없습니다." }, { status: 400 });
 
-      // 유효한 최고 입찰이 있으면 어떤 화면에서 유찰 요청이 와도 낙찰로 보호한다.
-      if (room.current_team_id && room.current_bid > 0) {
-        const { data: team } = await db.from("auction_teams").select("*").eq("id", room.current_team_id).single();
-        if (!team || team.budget < room.current_bid) return NextResponse.json({ error: "예산이 부족합니다." }, { status: 400 });
-        await db.from("auction_teams").update({ budget: team.budget - room.current_bid }).eq("id", team.id);
-        await db.from("auction_players").update({ status: "sold", sold_team_id: team.id, sold_price: room.current_bid }).eq("id", room.current_player_id);
-      } else {
-        await db.from("auction_players").update({ status: "unsold" }).eq("id", room.current_player_id);
+      const { data: submittedBids, error: bidError } = await db.from("auction_bids")
+        .select("team_id,amount,created_at")
+        .eq("room_id", room.id)
+        .eq("player_id", room.current_player_id)
+        .order("created_at", { ascending: false });
+      if (bidError) throw bidError;
+
+      const latestByTeam = new Map<string, { team_id: string; amount: number }>();
+      for (const bid of submittedBids || []) {
+        if (!latestByTeam.has(bid.team_id)) latestByTeam.set(bid.team_id, { team_id: bid.team_id, amount: Number(bid.amount) });
       }
-      await db.from("auction_rooms").update({ current_player_id: null, current_bid: 0, current_team_id: null, updated_at: new Date().toISOString() }).eq("id", room.id);
+      const validBids = [...latestByTeam.values()].sort((a, b) => b.amount - a.amount);
+
+      if (!validBids.length) {
+        await db.from("auction_players").update({ status: "unsold" }).eq("id", room.current_player_id);
+        await db.from("auction_rooms").update({ current_player_id: null, current_bid: 0, current_team_id: null, updated_at: new Date().toISOString() }).eq("id", room.id);
+      } else {
+        const highest = validBids[0].amount;
+        const tied = validBids.filter((bid) => bid.amount === highest);
+        const chosenTeamId = body.teamId ? String(body.teamId) : null;
+        let winner = tied.length === 1 ? tied[0] : tied.find((bid) => bid.team_id === chosenTeamId) || null;
+
+        if (!winner) {
+          const { data: tiedTeams } = await db.from("auction_teams").select("id,name").in("id", tied.map((bid) => bid.team_id));
+          return NextResponse.json({
+            error: `최고가 ${highest.toLocaleString()}점 동점입니다. 관리자가 동점 팀 중 낙찰 팀을 선택하세요.`,
+            tie: true,
+            amount: highest,
+            teamIds: tied.map((bid) => bid.team_id),
+            teamNames: (tiedTeams || []).map((team) => team.name)
+          }, { status: 409 });
+        }
+
+        const { data: team } = await db.from("auction_teams").select("*").eq("id", winner.team_id).single();
+        if (!team || team.budget < winner.amount) return NextResponse.json({ error: "낙찰 팀 예산이 부족합니다." }, { status: 400 });
+        await db.from("auction_teams").update({ budget: team.budget - winner.amount }).eq("id", team.id);
+        await db.from("auction_players").update({ status: "sold", sold_team_id: team.id, sold_price: winner.amount }).eq("id", room.current_player_id);
+        await db.from("auction_rooms").update({ current_player_id: null, current_bid: 0, current_team_id: null, updated_at: new Date().toISOString() }).eq("id", room.id);
+      }
     } else if (body.action === "finish") {
       await db.from("auction_rooms").update({ status: "finished", current_player_id: null, current_team_id: null, current_bid: 0, updated_at: new Date().toISOString() }).eq("id", room.id);
     }

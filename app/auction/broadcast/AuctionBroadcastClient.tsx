@@ -52,10 +52,11 @@ type Flash =
   | { kind: "finish" }
   | null;
 
-type AuctionState = { room: Room | null; teams: Team[]; players: Player[]; bids: Bid[] };
+type Submission = { team_id: string; submitted: boolean; amount: number | null; updated_at: string };
+type AuctionState = { room: Room | null; teams: Team[]; players: Player[]; bids: Bid[]; submissions: Submission[] };
 
 export default function AuctionBroadcastClient() {
-  const [state, setState] = useState<AuctionState>({ room: null, teams: [], players: [], bids: [] });
+  const [state, setState] = useState<AuctionState>({ room: null, teams: [], players: [], bids: [], submissions: [] });
   const [safeArea, setSafeArea] = useState(true);
   const [uiHidden, setUiHidden] = useState(false);
   const [soundOn, setSoundOn] = useState(true);
@@ -64,7 +65,6 @@ export default function AuctionBroadcastClient() {
 
   const previousState = useRef<AuctionState | null>(null);
   const stateReady = useRef(false);
-  const previousBid = useRef(0);
 
   const playTone = useCallback((frequency: number, duration: number, volume = 0.06) => {
     if (!soundOn) return;
@@ -128,18 +128,12 @@ export default function AuctionBroadcastClient() {
   }, [load]);
 
   useEffect(() => {
-    const bid = state.room?.current_bid || 0;
-    if (previousBid.current > 0 && bid > previousBid.current) playTone(760, 0.16);
-    previousBid.current = bid;
-  }, [state.room?.current_bid, playTone]);
-
-  useEffect(() => {
     if (!state.room?.current_player_id || state.room.status !== "live") {
       setTimeLeft(15);
       return;
     }
     setTimeLeft(15);
-  }, [state.room?.current_player_id, state.room?.current_bid, state.room?.status]);
+  }, [state.room?.current_player_id, state.room?.status]);
 
   useEffect(() => {
     if (!state.room?.current_player_id || state.room.status !== "live") return;
@@ -147,14 +141,14 @@ export default function AuctionBroadcastClient() {
       setTimeLeft((value) => Math.max(0, value - 1));
     }, 1000);
     return () => window.clearInterval(countdown);
-  }, [state.room?.current_player_id, state.room?.status, state.room?.current_bid]);
+  }, [state.room?.current_player_id, state.room?.status]);
 
   const room = state.room;
   const currentPlayer = state.players.find((player) => player.id === room?.current_player_id);
   const currentMinimumBid = currentPlayer?.match_tier
     ? Math.max(Number(state.room?.bid_step || 1), Number(state.room?.tier_min_bids?.[String(currentPlayer.match_tier)] || 0))
     : Number(state.room?.bid_step || 1);
-  const leadingTeam = state.teams.find((team) => team.id === room?.current_team_id);
+  const submittedCount = state.submissions.length;
 
   const teamPlayers = useMemo(
     () =>
@@ -235,16 +229,16 @@ export default function AuctionBroadcastClient() {
               <strong>{timeLeft}</strong><em>초</em>
             </div>
             <div className="broadcast-price">
-              <span>현재가</span>
-              <strong>{room.current_bid.toLocaleString()}</strong><small className="auction-minimum-bid-copy">최소 입찰 {currentMinimumBid.toLocaleString()}점</small>
-              <em>점</em>
+              <span>제출 완료</span>
+              <strong>{submittedCount}</strong><small className="auction-minimum-bid-copy">최소 입찰 {currentMinimumBid.toLocaleString()}점</small>
+              <em>/{state.teams.length}팀</em>
             </div>
-            <p>{leadingTeam ? `${leadingTeam.name} · ${leadingTeam.captain_nickname}` : "첫 입찰을 기다리는 중"}</p>
+            <p>각 팀의 입찰 금액은 마감 전까지 비공개입니다.</p>
           </section>
 
           <section className="broadcast-team-grid">
             {state.teams.map((team) => (
-              <article className={leadingTeam?.id === team.id ? "leading" : ""} key={team.id}>
+              <article className={state.submissions.some((item) => item.team_id === team.id) ? "submitted" : ""} key={team.id}>
                 <header>
                   <div>
                     <span>{team.name}</span>
@@ -275,11 +269,11 @@ export default function AuctionBroadcastClient() {
           </section>
 
           <footer className="broadcast-history">
-            {(state.bids || []).slice(0, 6).map((bid) => (
-              <div key={bid.id}>
-                <b>{state.teams.find((team) => team.id === bid.team_id)?.name || "팀"}</b>
-                <span>{bid.amount.toLocaleString()}점</span>
-                <small><SponsorNickname nickname={bid.bidder_nickname} /></small>
+            {state.teams.map((team) => (
+              <div key={team.id}>
+                <b>{team.name}</b>
+                <span>{state.submissions.some((item) => item.team_id === team.id) ? "✓ 제출 완료" : "… 대기"}</span>
+                <small><SponsorNickname nickname={team.captain_nickname} /></small>
               </div>
             ))}
           </footer>

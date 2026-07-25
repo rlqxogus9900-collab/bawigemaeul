@@ -13,6 +13,7 @@ type Room = {
   current_bid: number;
   tier_min_bids?: Record<string, number> | null;
   current_team_id: string | null;
+  updated_at?: string;
 };
 type Team = {
   id: string;
@@ -44,7 +45,8 @@ type Bid = {
   bidder_nickname: string;
   created_at: string;
 };
-type State = { room: Room | null; teams: Team[]; players: Player[]; bids: Bid[] };
+type Submission = { team_id: string; submitted: boolean; amount: number | null; updated_at: string };
+type State = { room: Room | null; teams: Team[]; players: Player[]; bids: Bid[]; submissions: Submission[] };
 type Flash =
   | { kind: "unsold"; nickname: string }
   | { kind: "finish" }
@@ -59,13 +61,15 @@ export default function CaptainAuctionClient({
   currentNickname: string | null;
   isStaff: boolean;
 }) {
-  const [state, setState] = useState<State>({ room: null, teams: [], players: [], bids: [] });
+  const [state, setState] = useState<State>({ room: null, teams: [], players: [], bids: [], submissions: [] });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [staffTeamId, setStaffTeamId] = useState<string>("");
   const [finishOpen, setFinishOpen] = useState(false);
   const [flash, setFlash] = useState<Flash>(null);
   const [timeLeft, setTimeLeft] = useState(15);
+  const [bidAmount, setBidAmount] = useState("");
+  const [submittedMessage, setSubmittedMessage] = useState("");
 
   const previousState = useRef<State | null>(null);
   const stateReady = useRef(false);
@@ -123,13 +127,15 @@ export default function CaptainAuctionClient({
       return;
     }
     setTimeLeft(15);
-  }, [state.room?.current_player_id, state.room?.current_bid, state.room?.status]);
+    setBidAmount("");
+    setSubmittedMessage("");
+  }, [state.room?.current_player_id, state.room?.status]);
 
   useEffect(() => {
     if (!state.room?.current_player_id || state.room.status !== "live") return;
     const countdown = window.setInterval(() => setTimeLeft((value) => Math.max(0, value - 1)), 1000);
     return () => window.clearInterval(countdown);
-  }, [state.room?.current_player_id, state.room?.current_bid, state.room?.status]);
+  }, [state.room?.current_player_id, state.room?.status]);
 
   useEffect(() => {
     const room = state.room;
@@ -168,7 +174,8 @@ export default function CaptainAuctionClient({
   const currentMinimumBid = currentPlayer?.match_tier
     ? Math.max(Number(state.room?.bid_step || 1), Number(state.room?.tier_min_bids?.[String(currentPlayer.match_tier)] || 0))
     : Number(state.room?.bid_step || 1);
-  const leadingTeam = state.teams.find((team) => team.id === room?.current_team_id);
+  const mySubmission = state.submissions.find((item) => item.team_id === activeTeam?.id);
+  const submittedCount = state.submissions.length;
   const activePlayers = useMemo(
     () => state.players.filter((player) => player.sold_team_id === activeTeam?.id),
     [state.players, activeTeam?.id]
@@ -194,15 +201,22 @@ export default function CaptainAuctionClient({
 
   const bid = async () => {
     if (!room || !activeTeam) return;
+    const amount = Number(bidAmount);
+    if (!Number.isInteger(amount) || amount <= 0) {
+      setError("입찰 금액을 숫자로 입력하세요.");
+      return;
+    }
     setBusy(true);
     setError("");
+    setSubmittedMessage("");
     const response = await fetch("/api/auction/bid", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ roomId: room.id, teamId: activeTeam.id })
+      body: JSON.stringify({ roomId: room.id, teamId: activeTeam.id, amount })
     });
     const result = await response.json().catch(() => ({}));
-    if (!response.ok) setError(result.error || "입찰 실패");
+    if (!response.ok) setError(result.error || "입찰 제출 실패");
+    else setSubmittedMessage(`${amount.toLocaleString()}점으로 제출되었습니다.`);
     await load();
     setBusy(false);
   };
@@ -252,7 +266,7 @@ export default function CaptainAuctionClient({
                 {room.status === "ready" && (
                   <button disabled={busy} onClick={() => adminAction("start")}>경매 시작</button>
                 )}
-                <button disabled={busy || !leadingTeam || room.status !== "live"} onClick={() => adminAction("sell")}>낙찰</button>
+                <button disabled={busy || !currentPlayer || room.status !== "live"} onClick={() => adminAction("sell", { teamId: activeTeam?.id })}>낙찰</button>
                 <button disabled={busy || !currentPlayer || room.status !== "live"} onClick={() => adminAction("unsold")}>유찰</button>
                 <button className="danger" disabled={busy} onClick={() => setFinishOpen(true)}>경매 종료</button>
               </>
@@ -302,22 +316,45 @@ export default function CaptainAuctionClient({
               <span>{timeLeft === 0 ? "시간 종료" : "남은 시간"}</span><strong>{timeLeft}</strong><em>초</em>
             </div>
           )}
-          <div><span>현재가</span><strong>{room.current_bid.toLocaleString()}점</strong></div>
-          <p>{leadingTeam ? `${leadingTeam.name} 최고 입찰 중` : "입찰 대기"}</p>
+          <div><span>제출 현황</span><strong>{submittedCount}/{state.teams.length}팀</strong></div>
+          <p>다른 팀의 입찰 금액은 마감 전까지 공개되지 않습니다.</p>
         </div>
 
-        <button
-          className={"captain-bid-button " + (leadingTeam?.id === activeTeam?.id ? "is-leading" : "")}
-          disabled={busy || !activeTeam || !currentPlayer || room.status !== "live"}
-          onClick={bid}
-        >
-          {busy
-            ? "처리 중..."
-            : leadingTeam?.id === activeTeam?.id
-              ? `현재 최고 입찰 · 추가 ${room.bid_step}점`
-              : `${activeTeam?.name || "팀"}으로 +${room.bid_step}점 입찰`}
-        </button>
+        <div className="captain-sealed-bid-form">
+          <label>
+            <span>입찰 금액</span>
+            <input
+              inputMode="numeric"
+              type="number"
+              min={currentMinimumBid}
+              max={activeTeam?.budget || 0}
+              step="1"
+              value={bidAmount}
+              placeholder={mySubmission?.amount ? String(mySubmission.amount) : `${currentMinimumBid} 이상`}
+              onChange={(event) => setBidAmount(event.target.value)}
+              disabled={busy || !activeTeam || !currentPlayer || room.status !== "live" || timeLeft === 0}
+            />
+            <em>점</em>
+          </label>
+          <button
+            className="captain-bid-button"
+            disabled={busy || !activeTeam || !currentPlayer || room.status !== "live" || timeLeft === 0}
+            onClick={bid}
+          >
+            {busy ? "제출 중..." : mySubmission ? "금액 수정 제출" : "입찰 금액 제출"}
+          </button>
+        </div>
+        {mySubmission?.amount != null && <p className="captain-own-submission">내 제출 금액: <b>{mySubmission.amount.toLocaleString()}점</b></p>}
+        {submittedMessage && <p className="form-success">{submittedMessage}</p>}
         {error && <p className="form-error">{error}</p>}
+        {isStaff && currentPlayer && (
+          <div className="captain-admin-submissions">
+            {state.teams.map((team) => {
+              const submission = state.submissions.find((item) => item.team_id === team.id);
+              return <p key={team.id}><b>{team.name}</b><span>{submission?.amount != null ? `${submission.amount.toLocaleString()}점` : "미제출"}</span></p>;
+            })}
+          </div>
+        )}
       </section>
 
       <section className="captain-side-grid">
