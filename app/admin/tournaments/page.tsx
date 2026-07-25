@@ -1,5 +1,15 @@
-import Link from "next/link";
 import { requireStaff } from "@/lib/session";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
-export const dynamic='force-dynamic';
-export default async function Page(){await requireStaff();const {data}=await getSupabaseAdmin().from('regular_match_results').select('*').eq('match_type','tournament').order('played_at',{ascending:false}).limit(100);return <div className="admin-functional-page"><section className="card"><div className="dashboard-head"><div><span>STAFF ONLY</span><h1>대회·내전 기록</h1><p className="muted">대회로 등록된 경기만 표시합니다. 정기내전 상세 기록은 이곳에 포함되지 않습니다.</p></div><Link className="button primary" href="/admin/match-records">기록 등록·수정</Link></div></section><section className="card"><div className="record-admin-list">{(data||[]).map((x:any)=><article key={x.id}><div><b>{x.team_a_name} {x.team_a_sets} : {x.team_b_sets} {x.team_b_name}</b><span>{new Date(x.played_at).toLocaleDateString('ko-KR')} · 우승 {x.winner_name}</span></div></article>)}{!data?.length&&<p className="empty-copy">등록된 대회 기록이 없습니다.</p>}</div></section></div>}
+import PlayerStatManager from "./PlayerStatManager";
+export const dynamic = "force-dynamic";
+export default async function Page() {
+  await requireStaff();
+  const db = getSupabaseAdmin();
+  const [{ data: members }, { data: stats }] = await Promise.all([
+    db.from("members").select("id,nickname").eq("is_active", true).order("nickname"),
+    db.from("regular_match_player_stats").select("id,member_id,line,kills,deaths,assists,is_win,played_at").order("played_at", { ascending: false }).limit(300)
+  ]);
+  const memberMap = new Map((members || []).map((m: any) => [m.id, m.nickname]));
+  const records = (stats || []).map((x: any) => ({ ...x, nickname: memberMap.get(x.member_id) || "탈퇴/삭제된 클랜원" }));
+  return <PlayerStatManager members={(members || []) as never[]} records={records as never[]} />;
+}
