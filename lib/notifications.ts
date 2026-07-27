@@ -1,4 +1,5 @@
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { getSiteSettings } from "@/lib/site-settings";
 
 export type NotificationType = "notice" | "poll" | "comment" | "system";
 
@@ -9,6 +10,9 @@ export async function notifyAllActiveMembers(input: {
   link?: string;
   excludeMemberId?: string;
 }) {
+  const settings = await getSiteSettings();
+  if (input.type === "notice" && !settings.notice_notifications) return;
+  if (input.type === "poll" && !settings.regular_match_notifications) return;
   const db = getSupabaseAdmin();
   let query = db
     .from("members")

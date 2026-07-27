@@ -1,7 +1,19 @@
-import FeaturePage from "@/app/components/FeaturePage";
 import { requireStaff } from "@/lib/session";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import SettingsManager from "./SettingsManager";
 
-export default async function Page() {
+export const dynamic = "force-dynamic";
+
+const defaults = {
+  activity_days: 7,
+  notice_notifications: true,
+  regular_match_notifications: true,
+  event_notifications: true,
+  homepage_popup: true
+};
+
+export default async function Page(){
   await requireStaff();
-  return <FeaturePage eyebrow="STAFF ONLY" title="관리자 설정" description="활동 판정 기간과 홈페이지 운영 설정을 관리합니다." icon="⚙" admin={true} />;
+  const { data } = await getSupabaseAdmin().from("site_settings").select("settings").eq("id","main").maybeSingle();
+  return <SettingsManager initial={{...defaults,...((data?.settings as object)||{})}}/>;
 }
