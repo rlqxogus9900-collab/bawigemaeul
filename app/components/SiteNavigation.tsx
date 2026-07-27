@@ -21,44 +21,10 @@ type FixedGroup = {
 };
 
 const fixedGroups: FixedGroup[] = [
-  {
-    id: "clan",
-    name: "클랜",
-    icon: "🦀",
-    items: [
-      ["/", "⌂", "홈"],
-      ["/notices", "📢", "공지사항"],
-      ["/updates", "🆕", "업데이트"],
-      ["/rules", "📜", "클랜 규칙"],
-      ["/schedule", "📅", "일정"],
-      ["/hall-of-fame", "🏆", "명예의 전당"]
-    ]
-  },
-  {
-    id: "match",
-    name: "내전",
-    icon: "⚔",
-    items: [
-      ["/reference", "☷", "내전 참고 명단"],
-      ["/normal-match", "⚔", "일반 내전"],
-      ["/auction", "📡", "실시간 경매"],
-      ["/auction/captain", "👑", "실시간 경매 팀장 전용"],
-      ["/stats", "▥", "정기내전 통계"],
-      ["/coin", "◉", "코인토스"]
-    ]
-  },
-  {
-    id: "game",
-    name: "게임 정보",
-    icon: "◆",
-    items: [["/guides", "◆", "챔피언 공략"], ["/riot-search", "🔎", "롤 전적 조회"]]
-  },
-  {
-    id: "support",
-    name: "클랜 운영",
-    icon: "📮",
-    items: [["/whistle", "📮", "바위게 신문고"]]
-  }
+{id:"home",name:"홈",icon:"🏠",items:[[ "/", "🏠","홈"]]},
+{id:"clan",name:"클랜",icon:"👥",items:[[ "/hall-of-fame","🏆","명예의 전당"]]},
+{id:"match",name:"내전",icon:"⚔️",items:[[ "/normal-match","⚔️","모집"],["/admin/polls","🗳","투표"],["/auction","🔨","경매"],["/stats","📊","통계"]]},
+{id:"support",name:"운영",icon:"📅",items:[[ "/schedule","📅","일정"],["/whistle","📮","신문고"]]}
 ];
 
 const staffItems = [
