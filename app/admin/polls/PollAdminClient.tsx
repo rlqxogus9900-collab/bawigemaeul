@@ -104,6 +104,22 @@ export default function PollAdminClient({
     window.location.reload();
   }
 
+  async function deletePoll(pollId: string, title: string) {
+    if (!window.confirm(`'${title}' 투표를 삭제하시겠습니까?\n투표 선택과 참가 정보도 모두 삭제됩니다.`)) return;
+
+    const response = await fetch(`/api/admin/polls/${pollId}`, {
+      method: "DELETE"
+    });
+    const result = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      window.alert(result?.message || "투표 삭제에 실패했습니다.");
+      return;
+    }
+
+    window.location.reload();
+  }
+
   async function toggleCaptain(
     pollId: string,
     memberId: string,
@@ -214,6 +230,12 @@ export default function PollAdminClient({
                     }
                   >
                     {poll.status === "open" ? "투표 종료" : "투표 재개"}
+                  </button>
+                  <button
+                    className="button danger"
+                    onClick={() => deletePoll(poll.id, postTitle(poll))}
+                  >
+                    투표 삭제
                   </button>
                 </div>
               </div>

@@ -20,12 +20,43 @@ type FixedGroup = {
   items: [string, string, string][];
 };
 
-const fixedGroups: FixedGroup[] = [
-{id:"home",name:"홈",icon:"🏠",items:[[ "/", "🏠","홈"]]},
-{id:"clan",name:"클랜",icon:"👥",items:[[ "/hall-of-fame","🏆","명예의 전당"]]},
-{id:"match",name:"내전",icon:"⚔️",items:[[ "/normal-match","⚔️","모집"],["/admin/polls","🗳","투표"],["/auction","🔨","경매"],["/stats","📊","통계"]]},
-{id:"support",name:"운영",icon:"📅",items:[[ "/schedule","📅","일정"],["/whistle","📮","신문고"]]}
-];
+function getFixedGroups(user: User, eventHref: string): FixedGroup[] {
+  return [
+    {
+      id: "home",
+      name: "홈",
+      icon: "🏠",
+      items: [
+        ["/", "🏠", "홈"],
+        ["/notices", "📢", "공지사항"],
+        ["/updates", "📝", "업데이트"],
+        [eventHref, "🎉", "이벤트"],
+        ["/roster", "👥", "명단"],
+        ["/hall-of-fame", "🏆", "명예의 전당"]
+      ]
+    },
+    {
+      id: "match",
+      name: "내전",
+      icon: "⚔️",
+      items: [
+        ["/normal-match", "⚖️", "자동 팀짜기"],
+        [user?.role === "staff" ? "/admin/polls" : "/schedule", "🗳", "투표"],
+        ["/auction", "📺", "실시간 경매 방송"],
+        ["/auction/captain", "👑", "경매 팀장 전용"]
+      ]
+    },
+    {
+      id: "support",
+      name: "운영",
+      icon: "📅",
+      items: [
+        ["/schedule", "📅", "일정"],
+        ["/whistle", "📮", "신문고"]
+      ]
+    }
+  ];
+}
 
 const staffItems = [
   ["/admin", "▦", "관리자 대시보드"],
@@ -50,12 +81,15 @@ const staffItems = [
 
 export default function SiteNavigation({
   user,
-  boardCategories
+  boardCategories,
+  eventHref
 }: {
   user: User;
   boardCategories: BoardCategory[];
+  eventHref: string;
 }) {
   const pathname = usePathname();
+  const fixedGroups = getFixedGroups(user, eventHref);
   const searchParams = useSearchParams();
   const currentBoard = searchParams.get("board");
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -164,10 +198,10 @@ export default function SiteNavigation({
                         <Link
                           key={href}
                           href={href}
-                          target={href === "/auction" ? "_blank" : undefined}
-                          rel={href === "/auction" ? "noopener noreferrer" : undefined}
+                          target={href === "/auction" || href === "/auction/captain" ? "_blank" : undefined}
+                          rel={href === "/auction" || href === "/auction/captain" ? "noopener noreferrer" : undefined}
                           className={active(href) ? "active" : ""}
-                          onClick={event => href === "/auction" ? setMobileOpen(false) : startNavigation(event, href)}
+                          onClick={event => href === "/auction" || href === "/auction/captain" ? setMobileOpen(false) : startNavigation(event, href)}
                         >
                           <span>{icon}</span><b>{label}</b>
                         </Link>
@@ -179,53 +213,7 @@ export default function SiteNavigation({
             })}
           </div>
 
-          {boardCategories.length > 0 && (
-            <div className="cafe-menu-section">
-              <div className="cafe-section-title">게시판</div>
 
-              {boardCategories.map(category => {
-                const groupKey = `board-${category.id}`;
-
-                return (
-                  <div className="cafe-board-group" key={category.id}>
-                    <button
-                      type="button"
-                      className="cafe-board-group-title"
-                      onClick={() => toggleGroup(groupKey)}
-                    >
-                      <span><i>{category.icon}</i>{category.name}</span>
-                      <em>{openGroups[groupKey] ? "▼" : "▲"}</em>
-                    </button>
-
-                    {openGroups[groupKey] && (
-                      <div className="cafe-board-submenu">
-                        {category.subcategories.map(subcategory => (
-                          <Link
-                            key={subcategory.id}
-                            href={`/boards?board=${subcategory.id}`}
-                            className={
-                              pathname === "/boards" && currentBoard === subcategory.id
-                                ? "active"
-                                : ""
-                            }
-                            onClick={event =>
-                              startNavigation(
-                                event,
-                                `/boards?board=${subcategory.id}`,
-                                subcategory.id
-                              )
-                            }
-                          >
-                            <span>└</span><b>{subcategory.name}</b>
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
 
           {user?.role === "staff" && (
             <div className="cafe-menu-section">

@@ -49,12 +49,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     })
     .filter(category => category.subcategories.length > 0);
 
+  const eventSubcategory = rawBoardCategories
+    .flatMap(category => category.board_subcategories || [])
+    .find(subcategory => subcategory.is_visible !== false && /이벤트/.test(subcategory.name));
+  const eventHref = eventSubcategory ? `/boards?board=${eventSubcategory.id}` : "/boards";
+
   return (
     <html lang="ko">
       <body>
         <SiteNavigation
           user={user ? { nickname: user.nickname, role: user.role } : null}
           boardCategories={boardCategories}
+          eventHref={eventHref}
         />
 
         <div className="online-shell">
