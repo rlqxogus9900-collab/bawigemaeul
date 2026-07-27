@@ -8,8 +8,8 @@ export const revalidate = 0;
 
 const latestUpdate = {
   version: SITE_VERSION,
-  title: "정기내전·대회 기록 분류 수정",
-  summary: "정기내전 상세 기록이 대회 기록으로 함께 표시되던 문제 수정"
+  title: "커뮤니티 통합·라인 분포 최신화",
+  summary: "자유·질문 글을 한 화면에서 보고 현재 명단 기준으로 라인 분포를 다시 계산"
 };
 
 
@@ -45,13 +45,23 @@ async function getHomeSummary() {
         .limit(10)
     ]);
 
+    const normalizeLine = (value: unknown) => {
+      const raw = String(value || "").trim().toLowerCase();
+      const aliases: Record<string, string> = {
+        "탑": "탑", top: "탑",
+        "정글": "정글", jungle: "정글", jg: "정글",
+        "미드": "미드", mid: "미드",
+        "원딜": "원딜", adc: "원딜", bot: "원딜",
+        "서폿": "서폿", support: "서폿", sup: "서폿"
+      };
+      return aliases[raw] || "";
+    };
+
     const lineCountMap = new Map<string, number>();
     for (const member of members || []) {
-      if (!member.main_line) continue;
-      lineCountMap.set(
-        member.main_line,
-        (lineCountMap.get(member.main_line) || 0) + 1
-      );
+      const line = normalizeLine(member.main_line);
+      if (!line) continue;
+      lineCountMap.set(line, (lineCountMap.get(line) || 0) + 1);
     }
 
     return {

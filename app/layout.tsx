@@ -27,18 +27,26 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const canSee = (accessLevel: string | null) =>
     accessLevel !== "staff" || user?.role === "staff";
 
+  const communityNames = new Set(["자유게시판", "질문게시판", "공략게시판", "밸런스게임"]);
   const boardCategories = rawBoardCategories
     .filter(category => category.is_visible !== false && canSee(category.access_level))
-    .map(category => ({
-      id: category.id,
-      name: category.name,
-      icon: category.icon,
-      sort_order: category.sort_order,
-      subcategories: [...(category.board_subcategories || [])]
+    .map(category => {
+      const visible = [...(category.board_subcategories || [])]
         .filter(sub => sub.is_visible !== false && canSee(sub.access_level))
-        .sort((a, b) => a.sort_order - b.sort_order)
-        .map(sub => ({ id: sub.id, name: sub.name }))
-    }))
+        .sort((a, b) => a.sort_order - b.sort_order);
+      const community = visible.filter(sub => communityNames.has(sub.name));
+      const rest = visible.filter(sub => !communityNames.has(sub.name));
+      return {
+        id: category.id,
+        name: category.name,
+        icon: category.icon,
+        sort_order: category.sort_order,
+        subcategories: [
+          ...(community.length ? [{ id: "community", name: "커뮤니티" }] : []),
+          ...rest.map(sub => ({ id: sub.id, name: sub.name }))
+        ]
+      };
+    })
     .filter(category => category.subcategories.length > 0);
 
   return (

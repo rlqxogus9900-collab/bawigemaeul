@@ -33,6 +33,7 @@ type Post = {
   post_type: string;
   created_at: string;
   subcategory_id: string;
+  subcategory_name?: string;
 };
 
 export default function BoardBrowser({
@@ -45,7 +46,8 @@ export default function BoardBrowser({
   currentPage,
   totalCount,
   postsPerPage,
-  sort
+  sort,
+  communityBoardIds
 }: {
   categories: Category[];
   posts: Post[];
@@ -57,6 +59,7 @@ export default function BoardBrowser({
   totalCount: number;
   postsPerPage: number;
   sort: string;
+  communityBoardIds: string[];
 }) {
   const router = useRouter();
 
@@ -68,8 +71,10 @@ export default function BoardBrowser({
     }))
   );
 
-  const selected =
-    all.find(item => item.id === selectedBoardId) || all[0];
+  const isCommunity = selectedBoardId === "community";
+  const selected = isCommunity
+    ? { id: "community", name: "커뮤니티", description: "자유·질문·공략·밸런스게임 글을 한곳에서 확인합니다.", categoryName: "커뮤니티", categoryIcon: "💬" }
+    : all.find(item => item.id === selectedBoardId) || all[0];
 
   const totalPages = Math.max(1, Math.ceil(totalCount / postsPerPage));
   const pageNumbers = Array.from({ length: totalPages }, (_, index) => index + 1)
@@ -106,18 +111,18 @@ export default function BoardBrowser({
           }
           aria-label="게시판 선택"
         >
-          {categories.map(category => (
-            <optgroup
-              key={category.id}
-              label={`${category.icon} ${category.name}`}
-            >
-              {category.board_subcategories.map(sub => (
-                <option key={sub.id} value={sub.id}>
-                  {sub.name}
-                </option>
-              ))}
-            </optgroup>
-          ))}
+          {communityBoardIds.length > 0 && <option value="community">💬 커뮤니티</option>}
+          {categories.map(category => {
+            const visibleSubs = category.board_subcategories.filter(sub => !communityBoardIds.includes(sub.id));
+            if (!visibleSubs.length) return null;
+            return (
+              <optgroup key={category.id} label={`${category.icon} ${category.name}`}>
+                {visibleSubs.map(sub => (
+                  <option key={sub.id} value={sub.id}>{sub.name}</option>
+                ))}
+              </optgroup>
+            );
+          })}
         </select>
       </section>
 
@@ -137,7 +142,7 @@ export default function BoardBrowser({
             {canWrite ? (
               <Link
                 className="button primary"
-                href={`/boards/new?board=${selected?.id || ""}`}
+                href={isCommunity ? `/boards/new?board=${communityBoardIds[0] || ""}&community=1` : `/boards/new?board=${selected?.id || ""}`}
               >
                 글쓰기
               </Link>
@@ -214,7 +219,7 @@ export default function BoardBrowser({
                   key={post.id}
                   className={post.is_pinned ? "pinned-row" : ""}
                 >
-                  <td>{post.is_pinned ? "📌 고정" : post.post_type === "poll" ? "📊 투표" : "일반"}</td>
+                  <td>{post.is_pinned ? "📌 고정" : post.post_type === "poll" ? "📊 투표" : `[${post.subcategory_name || "자유"}]`}</td>
                   <td>
                     <Link
                       className="board-post-link"

@@ -261,11 +261,13 @@ function DateTimeSelect({
 export default function BoardPostComposer({
   boardId,
   boardName,
-  isStaff
+  isStaff,
+  writingBoards = []
 }: {
   boardId: string;
   boardName: string;
   isStaff: boolean;
+  writingBoards?: { id: string; name: string }[];
 }) {
   const koreaNow = useMemo(() => getKoreaNow(), []);
   const defaultYear = koreaNow.year;
@@ -273,6 +275,7 @@ export default function BoardPostComposer({
   const defaultDay = koreaNow.day;
 
   const [postMode, setPostMode] = useState<PostMode>("normal");
+  const [selectedBoardId, setSelectedBoardId] = useState(boardId);
   const [pollMode, setPollMode] = useState<PollMode>("general");
   const [options, setOptions] = useState(["선택지 1", "선택지 2"]);
 
@@ -330,7 +333,7 @@ export default function BoardPostComposer({
 
   return (
     <form className="board-editor-form" action="/api/boards/posts" method="post">
-      <input type="hidden" name="subcategory_id" value={boardId} />
+      <input type="hidden" name="subcategory_id" value={selectedBoardId} />
       <input type="hidden" name="post_type" value={postMode} />
       <input type="hidden" name="poll_type" value={pollMode} />
       <input
@@ -338,6 +341,20 @@ export default function BoardPostComposer({
         name="poll_options_json"
         value={JSON.stringify(options)}
       />
+
+      {writingBoards.length > 0 && (
+        <label className="community-topic-picker">
+          말머리
+          <select value={selectedBoardId} onChange={event => setSelectedBoardId(event.target.value)} required>
+            {writingBoards.map(item => (
+              <option key={item.id} value={item.id}>
+                {item.name.replace("게시판", "")}
+              </option>
+            ))}
+          </select>
+          <small>자유·질문·공략·밸런스게임 중 글 성격에 맞게 선택하세요.</small>
+        </label>
+      )}
 
       <div className="post-type-picker">
         <button

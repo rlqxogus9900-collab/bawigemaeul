@@ -3,8 +3,10 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import BoardBrowser from "./BoardBrowser";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 const POSTS_PER_PAGE = 15;
+const COMMUNITY_NAMES = ["자유게시판", "질문게시판", "공략게시판", "밸런스게임"];
 
 export default async function BoardsPage({
   searchParams
@@ -20,8 +22,7 @@ export default async function BoardsPage({
     ? String(params.sort)
     : "latest";
 
-  const canSee = (level: string | null) =>
-    level !== "staff" || user?.role === "staff";
+  const canSee = (level: string | null) => level !== "staff" || user?.role === "staff";
 
   const { data: categories } = await db
     .from("board_categories")
@@ -43,30 +44,34 @@ export default async function BoardsPage({
     }))
     .filter(category => category.board_subcategories.length > 0);
 
-  const validIds = new Set(
-    normalized.flatMap(category => category.board_subcategories.map(sub => sub.id))
-  );
-  const selectedBoardId =
-    params.board && validIds.has(params.board)
-      ? params.board
-      : normalized[0]?.board_subcategories?.[0]?.id || "";
+  const allSubs = normalized.flatMap(category => category.board_subcategories);
+  const communitySubs = allSubs.filter(sub => COMMUNITY_NAMES.includes(sub.name));
+  const communityIds = communitySubs.map(sub => sub.id);
+  const requestedBoard = String(params.board || "");
+  const isCommunity = requestedBoard === "community" || communityIds.includes(requestedBoard) || (!requestedBoard && communityIds.length > 0);
+
+  const validIds = new Set(allSubs.map(sub => sub.id));
+  const selectedBoardId = isCommunity
+    ? "community"
+    : requestedBoard && validIds.has(requestedBoard)
+      ? requestedBoard
+      : allSubs[0]?.id || "";
+
+  const selectedIds = selectedBoardId === "community" ? communityIds : [selectedBoardId].filter(Boolean);
+  const subNameById = new Map(allSubs.map(sub => [sub.id, sub.name]));
 
   let totalCount = 0;
-  let posts: unknown[] = [];
+  let posts: any[] = [];
   let currentPage = requestedPage;
 
-  if (selectedBoardId) {
+  if (selectedIds.length) {
     const safeQuery = query.replace(/[,%]/g, " ").trim();
     let countQuery = db
       .from("board_posts")
       .select("id", { count: "exact", head: true })
-      .eq("subcategory_id", selectedBoardId);
+      .in("subcategory_id", selectedIds);
 
-    if (safeQuery) {
-      countQuery = countQuery.or(
-        `title.ilike.%${safeQuery}%,author_nickname.ilike.%${safeQuery}%`
-      );
-    }
+    if (safeQuery) countQuery = countQuery.or(`title.ilike.%${safeQuery}%,author_nickname.ilike.%${safeQuery}%`);
 
     const { count } = await countQuery;
     totalCount = count || 0;
@@ -78,36 +83,19 @@ export default async function BoardsPage({
     let postsQuery = db
       .from("board_posts")
       .select("id,title,author_member_id,author_nickname,is_pinned,view_count,comment_count,like_count,post_type,created_at,subcategory_id")
-      .eq("subcategory_id", selectedBoardId)
+      .in("subcategory_id", selectedIds)
       .order("is_pinned", { ascending: false });
 
-    if (sort === "popular") {
-      postsQuery = postsQuery
-        .order("like_count", { ascending: false })
-        .order("comment_count", { ascending: false })
-        .order("created_at", { ascending: false });
-    } else if (sort === "views") {
-      postsQuery = postsQuery
-        .order("view_count", { ascending: false })
-        .order("created_at", { ascending: false });
-    } else if (sort === "comments") {
-      postsQuery = postsQuery
-        .order("comment_count", { ascending: false })
-        .order("created_at", { ascending: false });
-    } else {
-      postsQuery = postsQuery.order("created_at", { ascending: false });
-    }
+    if (sort === "popular") postsQuery = postsQuery.order("like_count", { ascending: false }).order("comment_count", { ascending: false }).order("created_at", { ascending: false });
+    else if (sort === "views") postsQuery = postsQuery.order("view_count", { ascending: false }).order("created_at", { ascending: false });
+    else if (sort === "comments") postsQuery = postsQuery.order("comment_count", { ascending: false }).order("created_at", { ascending: false });
+    else postsQuery = postsQuery.order("created_at", { ascending: false });
 
     postsQuery = postsQuery.range(from, to);
-
-    if (safeQuery) {
-      postsQuery = postsQuery.or(
-        `title.ilike.%${safeQuery}%,author_nickname.ilike.%${safeQuery}%`
-      );
-    }
+    if (safeQuery) postsQuery = postsQuery.or(`title.ilike.%${safeQuery}%,author_nickname.ilike.%${safeQuery}%`);
 
     const result = await postsQuery;
-    posts = result.data || [];
+    posts = (result.data || []).map(post => ({ ...post, subcategory_name: subNameById.get(post.subcategory_id) || "일반" }));
   }
 
   return (
@@ -122,6 +110,7 @@ export default async function BoardsPage({
       totalCount={totalCount}
       postsPerPage={POSTS_PER_PAGE}
       sort={sort}
+      communityBoardIds={communityIds}
     />
   );
 }
