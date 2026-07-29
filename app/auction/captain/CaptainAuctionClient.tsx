@@ -71,6 +71,9 @@ export default function CaptainAuctionClient({
   const [timeLeft, setTimeLeft] = useState(15);
   const [bidAmount, setBidAmount] = useState("");
   const [submittedMessage, setSubmittedMessage] = useState("");
+  const latestSubmissionAt = state.submissions.reduce((latest, item) =>
+    item.updated_at > latest ? item.updated_at : latest, ""
+  );
 
   const previousState = useRef<State | null>(null);
   const stateReady = useRef(false);
@@ -123,14 +126,17 @@ export default function CaptainAuctionClient({
 
   useEffect(() => {
     autoUnsoldPlayerId.current = null;
-    if (!state.room?.current_player_id || state.room.status !== "live") {
-      setTimeLeft(Number(state.room?.auction_duration_seconds || 15));
-      return;
-    }
     setTimeLeft(Number(state.room?.auction_duration_seconds || 15));
     setBidAmount("");
     setSubmittedMessage("");
   }, [state.room?.current_player_id, state.room?.status, state.room?.auction_duration_seconds]);
+
+  // 같은 선수에게 새 입찰 또는 금액 수정 제출이 들어오면 모든 팀장 화면의 제한시간을 다시 시작합니다.
+  useEffect(() => {
+    if (!state.room?.current_player_id || state.room.status !== "live" || !latestSubmissionAt) return;
+    autoUnsoldPlayerId.current = null;
+    setTimeLeft(Number(state.room.auction_duration_seconds || 15));
+  }, [latestSubmissionAt, state.room?.current_player_id, state.room?.status, state.room?.auction_duration_seconds]);
 
   useEffect(() => {
     if (!state.room?.current_player_id || state.room.status !== "live") return;

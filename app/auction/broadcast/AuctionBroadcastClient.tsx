@@ -63,6 +63,9 @@ export default function AuctionBroadcastClient() {
   const [soundOn, setSoundOn] = useState(true);
   const [flash, setFlash] = useState<Flash>(null);
   const [timeLeft, setTimeLeft] = useState(15);
+  const latestSubmissionAt = state.submissions.reduce((latest, item) =>
+    item.updated_at > latest ? item.updated_at : latest, ""
+  );
 
   const previousState = useRef<AuctionState | null>(null);
   const stateReady = useRef(false);
@@ -129,12 +132,14 @@ export default function AuctionBroadcastClient() {
   }, [load]);
 
   useEffect(() => {
-    if (!state.room?.current_player_id || state.room.status !== "live") {
-      setTimeLeft(Number(state.room?.auction_duration_seconds || 15));
-      return;
-    }
     setTimeLeft(Number(state.room?.auction_duration_seconds || 15));
   }, [state.room?.current_player_id, state.room?.status, state.room?.auction_duration_seconds]);
+
+  // 입찰 제출 시 방송 화면도 팀장 화면과 같은 제한시간으로 즉시 초기화합니다.
+  useEffect(() => {
+    if (!state.room?.current_player_id || state.room.status !== "live" || !latestSubmissionAt) return;
+    setTimeLeft(Number(state.room.auction_duration_seconds || 15));
+  }, [latestSubmissionAt, state.room?.current_player_id, state.room?.status, state.room?.auction_duration_seconds]);
 
   useEffect(() => {
     if (!state.room?.current_player_id || state.room.status !== "live") return;
