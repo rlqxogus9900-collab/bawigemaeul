@@ -90,6 +90,22 @@ export default function RegularMatchManager({
     window.location.reload();
   }
 
+
+  async function deleteEvent() {
+    if (!selectedEventId || !selectedEvent) return;
+    if (!window.confirm(`“${selectedEvent.title}” 정기내전 투표를 삭제하시겠습니까?\n참여 기록과 팀장 지정도 함께 삭제됩니다.`)) return;
+
+    const response = await fetch(`/api/admin/regular-match/${selectedEventId}`, {
+      method: "DELETE"
+    });
+    if (!response.ok) {
+      const result = await response.json().catch(() => null);
+      window.alert(result?.message || "정기내전 투표 삭제에 실패했습니다.");
+      return;
+    }
+    window.location.reload();
+  }
+
   async function toggleCaptain(member: Member) {
     if (!selectedEventId) return;
     const isCaptain = captainIds.has(member.id);
@@ -154,6 +170,9 @@ export default function RegularMatchManager({
               </button>
               <button className="button danger" onClick={() => setStatus("closed")}>
                 모집 종료
+              </button>
+              <button className="button danger" onClick={deleteEvent}>
+                투표 삭제
               </button>
             </div>
           )}

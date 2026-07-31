@@ -77,7 +77,7 @@ export default async function SchedulePage() {
           <p>정기내전 모집 일정과 투표 마감, 참가 현황을 한눈에 확인합니다.</p>
         </div>
         <div className="schedule-hero-actions">
-          <Link className="button" href="/normal-match">정기내전 모집 보기</Link>
+          <Link className="button" href="/match-vote">정기내전 투표 보기</Link>
           {user?.role === "staff" && (
             <Link className="button primary" href="/admin/regular-match">일정 관리</Link>
           )}
@@ -134,7 +134,7 @@ export default async function SchedulePage() {
                           <span>투표 마감 <b>{formatKoreanDate(event.vote_deadline)}</b></span>
                         </div>
                         <div className="schedule-event-actions">
-                          <Link className="button small" href="/normal-match">참가 현황 및 투표</Link>
+                          <Link className="button small" href="/match-vote">참가 현황 및 투표</Link>
                           {user?.role === "staff" && <Link className="button small outline" href="/admin/regular-match">수정·관리</Link>}
                         </div>
                       </div>
