@@ -44,6 +44,11 @@ export default function MatchVoteClient({
   isStaff: boolean;
 }) {
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [editingEvent, setEditingEvent] = useState<EventRow | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editMatchAt, setEditMatchAt] = useState("");
+  const [editDeadline, setEditDeadline] = useState("");
   const now = Date.now();
   const sorted = useMemo(() => [...events].sort((a, b) => {
     const aOpen = a.status === "open" && (!a.vote_deadline || new Date(a.vote_deadline).getTime() > now);
@@ -51,6 +56,43 @@ export default function MatchVoteClient({
     if (aOpen !== bOpen) return Number(bOpen) - Number(aOpen);
     return new Date(b.match_at || b.vote_deadline || 0).getTime() - new Date(a.match_at || a.vote_deadline || 0).getTime();
   }), [events, now]);
+
+
+  function toLocalInput(value: string | null) {
+    if (!value) return "";
+    const date = new Date(value);
+    const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+    return local.toISOString().slice(0, 16);
+  }
+
+  function openEdit(event: EventRow) {
+    setEditingEvent(event);
+    setEditTitle(event.title);
+    setEditDescription(event.description || "");
+    setEditMatchAt(toLocalInput(event.match_at));
+    setEditDeadline(toLocalInput(event.vote_deadline));
+  }
+
+  async function saveEdit() {
+    if (!editingEvent || !editTitle.trim() || !editMatchAt || !editDeadline) {
+      window.alert("제목, 경기 시간, 투표 마감 시간을 입력해주세요.");
+      return;
+    }
+    setSavingId(editingEvent.id);
+    const response = await fetch(`/api/admin/regular-match/${editingEvent.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: editTitle, description: editDescription, matchAt: editMatchAt, voteDeadline: editDeadline })
+    });
+    setSavingId(null);
+    if (!response.ok) {
+      const result = await response.json().catch(() => null);
+      window.alert(result?.message || "투표 수정에 실패했습니다.");
+      return;
+    }
+    setEditingEvent(null);
+    window.location.reload();
+  }
 
   async function submitVote(eventId: string, choice: "attending" | "undecided") {
     if (!currentUserId) {
@@ -115,7 +157,10 @@ export default function MatchVoteClient({
                   <p>{event.description || "정기내전 참가 여부를 선택해주세요."}</p>
                 </div>
                 {isStaff && (
-                  <button className="match-vote-delete" onClick={() => deleteEvent(event)}>삭제</button>
+                  <div className="match-vote-staff-actions">
+                    <button className="button" onClick={() => openEdit(event)}>수정</button>
+                    <button className="match-vote-delete" onClick={() => deleteEvent(event)}>삭제</button>
+                  </div>
                 )}
               </header>
 
@@ -147,6 +192,22 @@ export default function MatchVoteClient({
         })}
         {!sorted.length && <div className="card match-empty">등록된 정기내전 투표가 없습니다.</div>}
       </div>
+
+      {editingEvent && (
+        <div className="match-vote-edit-backdrop" onClick={() => setEditingEvent(null)}>
+          <section className="card match-vote-edit-modal" onClick={event => event.stopPropagation()}>
+            <h2>정기내전 투표 수정</h2>
+            <input value={editTitle} onChange={event => setEditTitle(event.target.value)} placeholder="투표 제목" />
+            <label>경기 시간<input type="datetime-local" value={editMatchAt} onChange={event => setEditMatchAt(event.target.value)} /></label>
+            <label>투표 마감 시간<input type="datetime-local" value={editDeadline} onChange={event => setEditDeadline(event.target.value)} /></label>
+            <textarea rows={4} value={editDescription} onChange={event => setEditDescription(event.target.value)} placeholder="안내사항" />
+            <div>
+              <button className="button primary" disabled={savingId === editingEvent.id} onClick={saveEdit}>수정 저장</button>
+              <button className="button" onClick={() => setEditingEvent(null)}>취소</button>
+            </div>
+          </section>
+        </div>
+      )}
     </>
   );
 }

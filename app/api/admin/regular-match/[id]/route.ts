@@ -9,15 +9,39 @@ export async function PATCH(
   await requireStaff();
   const { id } = await params;
   const body = await request.json().catch(() => null);
-  const status = body?.status === "closed" ? "closed" : "open";
+  const updates: Record<string, string | null> = {
+    updated_at: new Date().toISOString()
+  };
+
+  if (body?.status === "open" || body?.status === "closed") {
+    updates.status = body.status;
+  }
+  if (typeof body?.title === "string") {
+    const title = body.title.trim();
+    if (!title) return NextResponse.json({ message: "제목을 입력해주세요." }, { status: 400 });
+    updates.title = title;
+  }
+  if (typeof body?.description === "string") {
+    updates.description = body.description.trim() || null;
+  }
+  if (typeof body?.matchAt === "string") {
+    const date = new Date(body.matchAt);
+    if (Number.isNaN(date.getTime())) return NextResponse.json({ message: "경기 시간을 확인해주세요." }, { status: 400 });
+    updates.match_at = date.toISOString();
+  }
+  if (typeof body?.voteDeadline === "string") {
+    const date = new Date(body.voteDeadline);
+    if (Number.isNaN(date.getTime())) return NextResponse.json({ message: "투표 마감 시간을 확인해주세요." }, { status: 400 });
+    updates.vote_deadline = date.toISOString();
+  }
 
   const { error } = await getSupabaseAdmin()
     .from("regular_match_events")
-    .update({ status, updated_at: new Date().toISOString() })
+    .update(updates)
     .eq("id", id);
 
   if (error) {
-    return NextResponse.json({ message: "상태 변경에 실패했습니다." }, { status: 500 });
+    return NextResponse.json({ message: "정기내전 투표 수정에 실패했습니다." }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });

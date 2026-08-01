@@ -3491,3 +3491,13 @@ html,body{
   .match-vote-rosters{grid-template-columns:1fr}
   .match-vote-card-footer{grid-template-columns:1fr 1fr}
 }
+
+/* 1.3.8.67 regular match vote editing */
+.regular-match-edit-panel{margin:18px 0;padding:18px;border:1px solid rgba(197,164,85,.35);border-radius:16px;background:rgba(8,25,22,.72)}
+.regular-match-edit-panel h2{margin:0 0 14px}
+.regular-match-edit-panel label,.match-vote-edit-modal label{display:grid;gap:6px;color:#d8e6dd;font-weight:700}
+.regular-match-edit-panel .regular-match-create-form>div,.match-vote-edit-modal>div{display:flex;gap:10px;flex-wrap:wrap}
+.match-vote-staff-actions{display:flex;gap:8px;align-items:center}
+.match-vote-edit-backdrop{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:20px;background:rgba(0,0,0,.72)}
+.match-vote-edit-modal{width:min(560px,100%);display:grid;gap:14px}
+.match-vote-edit-modal input,.match-vote-edit-modal textarea{width:100%}

@@ -47,6 +47,11 @@ export default function RegularMatchManager({
 }) {
   const [selectedEventId, setSelectedEventId] = useState(events[0]?.id || "");
   const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editMatchAt, setEditMatchAt] = useState("");
+  const [editDeadline, setEditDeadline] = useState("");
 
   const selectedEvent = events.find(event => event.id === selectedEventId);
   const eventVotes = votes.filter(vote => vote.event_id === selectedEventId);
@@ -58,6 +63,49 @@ export default function RegularMatchManager({
     () => attending.filter(vote => !captainIds.has(vote.member_id)),
     [attending, eventCaptains]
   );
+
+
+  function toLocalInput(value: string | null) {
+    if (!value) return "";
+    const date = new Date(value);
+    const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+    return local.toISOString().slice(0, 16);
+  }
+
+  function openEdit() {
+    if (!selectedEvent) return;
+    setEditTitle(selectedEvent.title);
+    setEditDescription(selectedEvent.description || "");
+    setEditMatchAt(toLocalInput(selectedEvent.match_at));
+    setEditDeadline(toLocalInput(selectedEvent.vote_deadline));
+    setEditing(true);
+  }
+
+  async function saveEdit() {
+    if (!selectedEventId || !editTitle.trim() || !editMatchAt || !editDeadline) {
+      window.alert("제목, 경기 시간, 투표 마감 시간을 입력해주세요.");
+      return;
+    }
+    setSaving(true);
+    const response = await fetch(`/api/admin/regular-match/${selectedEventId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: editTitle,
+        description: editDescription,
+        matchAt: editMatchAt,
+        voteDeadline: editDeadline
+      })
+    });
+    setSaving(false);
+    if (!response.ok) {
+      const result = await response.json().catch(() => null);
+      window.alert(result?.message || "투표 수정에 실패했습니다.");
+      return;
+    }
+    setEditing(false);
+    window.location.reload();
+  }
 
   async function createEvent(formData: FormData) {
     setSaving(true);
@@ -165,6 +213,9 @@ export default function RegularMatchManager({
 
           {selectedEvent && (
             <div>
+              <button className="button" onClick={openEdit}>
+                투표 수정
+              </button>
               <button className="button" onClick={() => setStatus("open")}>
                 모집 재개
               </button>
@@ -177,6 +228,22 @@ export default function RegularMatchManager({
             </div>
           )}
         </div>
+
+        {editing && selectedEvent && (
+          <div className="regular-match-edit-panel">
+            <h2>정기내전 투표 수정</h2>
+            <div className="regular-match-create-form">
+              <input value={editTitle} onChange={event => setEditTitle(event.target.value)} placeholder="투표 제목" />
+              <label>경기 시간<input type="datetime-local" value={editMatchAt} onChange={event => setEditMatchAt(event.target.value)} /></label>
+              <label>투표 마감 시간<input type="datetime-local" value={editDeadline} onChange={event => setEditDeadline(event.target.value)} /></label>
+              <textarea rows={3} value={editDescription} onChange={event => setEditDescription(event.target.value)} placeholder="안내사항" />
+              <div>
+                <button type="button" className="button primary" disabled={saving} onClick={saveEdit}>{saving ? "저장 중..." : "수정 저장"}</button>
+                <button type="button" className="button" onClick={() => setEditing(false)}>취소</button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {selectedEvent ? (
           <div className="regular-match-admin-grid">
