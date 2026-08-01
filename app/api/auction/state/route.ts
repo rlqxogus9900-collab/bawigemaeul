@@ -14,7 +14,7 @@ export async function GET() {
   const [{ data: teams }, { data: players }, { data: bids }] = await Promise.all([
     db.from("auction_teams").select("*").eq("room_id", room.id).order("sort_order"),
     db.from("auction_players").select("*").eq("room_id", room.id).order("sort_order"),
-    db.from("auction_bids").select("*").eq("room_id", room.id).order("created_at", { ascending: false }).limit(200)
+    db.from("auction_bids").select("*").eq("room_id", room.id).order("created_at", { ascending: false }).limit(60)
   ]);
 
   const currentBids = (bids || []).filter((bid) => bid.player_id === room.current_player_id);
@@ -32,6 +32,6 @@ export async function GET() {
 
   return NextResponse.json(
     { room, teams: teams || [], players: players || [], bids: visibleBids, submissions },
-    { headers: { "Cache-Control": "no-store, no-cache, must-revalidate" } }
+    { headers: { "Cache-Control": "private, max-age=1, stale-while-revalidate=2" } }
   );
 }

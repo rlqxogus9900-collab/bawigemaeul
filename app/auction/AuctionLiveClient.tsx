@@ -84,6 +84,7 @@ export default function AuctionLiveClient({
   const [soldFlash, setSoldFlash] = useState<{ nickname: string; team: string; price: number } | null>(null);
 
   const load = useCallback(async () => {
+    if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
     const r = await fetch("/api/auction/state", { cache: "no-store" });
     if (!r.ok) return;
     const next: AuctionState = await r.json();
@@ -100,7 +101,7 @@ export default function AuctionLiveClient({
   }, []);
   useEffect(() => {
     load();
-    const timer = window.setInterval(load, 2000);
+    const timer = window.setInterval(load, 5000);
     return () => window.clearInterval(timer);
   }, [load]);
 

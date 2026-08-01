@@ -89,6 +89,7 @@ export default function AuctionBroadcastClient() {
   }, [soundOn]);
 
   const load = useCallback(async () => {
+    if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
     const response = await fetch("/api/auction/state", { cache: "no-store" });
     if (!response.ok) return;
     const next = (await response.json()) as AuctionState;
@@ -127,7 +128,7 @@ export default function AuctionBroadcastClient() {
 
   useEffect(() => {
     load();
-    const timer = window.setInterval(load, 2000);
+    const timer = window.setInterval(load, 5000);
     return () => window.clearInterval(timer);
   }, [load]);
 

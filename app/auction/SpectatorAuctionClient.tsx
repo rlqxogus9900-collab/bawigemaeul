@@ -58,6 +58,7 @@ export default function SpectatorAuctionClient() {
   const previousBid = useRef(0);
 
   const load = useCallback(async () => {
+    if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
     const response = await fetch("/api/auction/state", { cache: "no-store" });
     if (!response.ok) return;
     const next: State = await response.json();
@@ -82,7 +83,7 @@ export default function SpectatorAuctionClient() {
 
   useEffect(() => {
     load();
-    const timer = window.setInterval(load, 2000);
+    const timer = window.setInterval(load, 5000);
     return () => window.clearInterval(timer);
   }, [load]);
 

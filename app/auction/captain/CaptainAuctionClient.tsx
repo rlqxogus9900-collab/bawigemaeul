@@ -112,7 +112,7 @@ export default function CaptainAuctionClient({
 
   useEffect(() => {
     load();
-    const timer = window.setInterval(load, 2000);
+    const timer = window.setInterval(load, 5000);
     const onVisible = () => { if (!document.hidden) void load(); };
     document.addEventListener("visibilitychange", onVisible);
     return () => {

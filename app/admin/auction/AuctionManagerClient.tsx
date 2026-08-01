@@ -53,13 +53,14 @@ export default function AuctionManagerClient({ regularMatchEvents }: { regularMa
   const [memberOptions, setMemberOptions] = useState<Array<{ nickname: string; main_line: string | null; sub_line: string | null; match_tier: number | null }>>([]);
 
   const load = useCallback(async () => {
+    if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
     const response = await fetch("/api/auction/state", { cache: "no-store" });
     if (response.ok) setState(await response.json());
   }, []);
   useEffect(() => {
     load();
     fetch("/api/admin/auction/player", { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(data => setMemberOptions(data?.members || [])).catch(() => {});
-    const timer = window.setInterval(load, 1500);
+    const timer = window.setInterval(load, 5000);
     return () => window.clearInterval(timer);
   }, [load]);
 
