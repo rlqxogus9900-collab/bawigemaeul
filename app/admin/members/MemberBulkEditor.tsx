@@ -56,7 +56,7 @@ export default function MemberBulkEditor({
       setMessage("본인 계정은 삭제할 수 없습니다.");
       return;
     }
-    if (!window.confirm(`${row.nickname} 계정을 명단과 로그인 계정에서 삭제할까요?`)) return;
+    if (!window.confirm(`${row.nickname} 회원을 완전 삭제할까요?\n\n명단, 로그인 계정, 가입 신청, 투표·알림·개인 통계가 모두 삭제되며 같은 정보로 다시 가입할 수 있습니다.`)) return;
     setMessage("");
     const response = await fetch(`/api/admin/members/${row.id}`, { method: "DELETE" });
     const result = await response.json().catch(() => null);
@@ -65,7 +65,7 @@ export default function MemberBulkEditor({
       return;
     }
     setRows(current => current.filter(member => member.id !== row.id));
-    setMessage(`${row.nickname} 계정을 삭제했습니다.`);
+    setMessage(`${row.nickname} 회원을 완전 삭제했습니다. 같은 정보로 다시 가입할 수 있습니다.`);
   }
 
   async function saveAll() {
