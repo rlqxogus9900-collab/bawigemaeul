@@ -85,6 +85,7 @@ export default async function AdminDashboardPage() {
 
   const quickLinks = [
     ["/admin/members", "♙", "클랜원 설정", "신규 등록·권한·활동 상태 관리"],
+    ["/admin/signup-approvals", "✅", "가입 승인", "신규 회원가입 신청 승인·반려"],
     ["/admin/polls", "🗳", "투표 관리", "정기내전 참가자와 팀장 설정"],
     ["/admin/boards", "🗂", "게시판 관리", "게시판 생성·순서·공개 범위 관리"],
     ["/admin/notices", "✍", "공지 관리", "홈과 공지사항에 노출할 글 관리"],

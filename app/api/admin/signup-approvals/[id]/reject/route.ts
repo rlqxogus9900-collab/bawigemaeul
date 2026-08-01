@@ -1,0 +1,2 @@
+import { NextResponse } from "next/server"; import { requireStaff } from "@/lib/session"; import { getSupabaseAdmin } from "@/lib/supabase-admin";
+export async function POST(request:Request,{params}:{params:Promise<{id:string}>}){await requireStaff();const {id}=await params;const f=await request.formData();await getSupabaseAdmin().from("members").update({approval_status:"rejected",is_active:false,rejection_reason:String(f.get("reason")||"반려됨")}).eq("id",id);return NextResponse.redirect(new URL("/admin/signup-approvals",request.url),303);}

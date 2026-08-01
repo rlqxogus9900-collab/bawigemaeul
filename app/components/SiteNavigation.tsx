@@ -71,6 +71,7 @@ const staffItems = [
   ["/admin/roster", "👥", "명단"],
   ["/admin/reference", "☷", "내전 참고 명단 관리"],
   ["/admin/members", "♙", "명단 설정"],
+  ["/admin/signup-approvals", "✅", "가입 승인 관리"],
   ["/admin/activity", "▣", "활동 관리"],
   ["/admin/regular-match", "🗳", "정기내전 모집 관리"],
   ["/admin/polls", "🗳", "정기내전 투표 관리"],
