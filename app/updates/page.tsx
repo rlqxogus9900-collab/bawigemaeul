@@ -13,7 +13,7 @@ type UpdateEntry = {
 
 const updates: UpdateEntry[] = [
   {
-    version: "1.3.9.3",
+    version: "1.3.9.4",
     date: "2026-08-02",
     title: "명단 제외 시 회원 완전 삭제",
     items: [
