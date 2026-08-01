@@ -127,7 +127,7 @@ export default function AuctionBroadcastClient() {
 
   useEffect(() => {
     load();
-    const timer = window.setInterval(load, 1000);
+    const timer = window.setInterval(load, 2000);
     return () => window.clearInterval(timer);
   }, [load]);
 

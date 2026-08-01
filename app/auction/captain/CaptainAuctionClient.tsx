@@ -76,13 +76,17 @@ export default function CaptainAuctionClient({
   );
 
   const previousState = useRef<State | null>(null);
+  const loadingState = useRef(false);
   const stateReady = useRef(false);
   const autoUnsoldPlayerId = useRef<string | null>(null);
 
   const load = useCallback(async () => {
-    const response = await fetch("/api/auction/state", { cache: "no-store" });
-    if (!response.ok) return;
-    const next = (await response.json()) as State;
+    if (loadingState.current || (typeof document !== "undefined" && document.hidden)) return;
+    loadingState.current = true;
+    try {
+      const response = await fetch("/api/auction/state", { cache: "no-store" });
+      if (!response.ok) return;
+      const next = (await response.json()) as State;
 
     if (stateReady.current && previousState.current) {
       const prev = previousState.current;
@@ -98,15 +102,23 @@ export default function CaptainAuctionClient({
       }
     }
 
-    previousState.current = next;
-    stateReady.current = true;
-    setState(next);
+      previousState.current = next;
+      stateReady.current = true;
+      setState(next);
+    } finally {
+      loadingState.current = false;
+    }
   }, []);
 
   useEffect(() => {
     load();
-    const timer = window.setInterval(load, 1000);
-    return () => window.clearInterval(timer);
+    const timer = window.setInterval(load, 2000);
+    const onVisible = () => { if (!document.hidden) void load(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, [load]);
 
   useEffect(() => {
@@ -187,6 +199,14 @@ export default function CaptainAuctionClient({
     () => state.players.filter((player) => player.sold_team_id === activeTeam?.id),
     [state.players, activeTeam?.id]
   );
+  const teamPlayers = useMemo(() => {
+    const grouped: Record<string, Player[]> = {};
+    for (const team of state.teams) grouped[team.id] = [];
+    for (const player of state.players) {
+      if (player.sold_team_id && grouped[player.sold_team_id]) grouped[player.sold_team_id].push(player);
+    }
+    return grouped;
+  }, [state.teams, state.players]);
   const waitingPlayers = state.players.filter(
     (player) => player.status === "waiting" || player.status === "unsold"
   );
@@ -372,29 +392,42 @@ export default function CaptainAuctionClient({
         )}
       </section>
 
-      <section className="captain-side-grid">
-        <article className="card">
-          <div className="dashboard-head"><div><span>SELECTED TEAM</span><h2>{isStaff ? "선택 팀 선수" : "우리 팀 선수"}</h2></div></div>
-          <div className="captain-player-list">
-            {activePlayers.map((player) => (
-              <p key={player.id}><b className="auction-sponsor-name"><SponsorNickname nickname={player.nickname} /></b><span>{(player.sold_price || 0).toLocaleString()}점</span></p>
-            ))}
-            {!activePlayers.length && <em>아직 낙찰 선수가 없습니다.</em>}
-          </div>
-        </article>
+      <section className="card captain-all-team-overview">
+        <div className="dashboard-head"><div><span>TEAM STATUS</span><h2>팀별 선수 · 남은 예산</h2></div><b>현재 입찰 금액만 비공개</b></div>
+        <div className="captain-team-status-grid">
+          {state.teams.map((team) => {
+            const players = teamPlayers[team.id] || [];
+            const isMine = team.id === activeTeam?.id;
+            return (
+              <article key={team.id} className={isMine ? "mine" : ""}>
+                <header>
+                  <div><span>{team.name}</span><b><SponsorNickname nickname={team.captain_nickname} /></b></div>
+                  <strong>{team.budget.toLocaleString()}점</strong>
+                </header>
+                <small>시작 {team.starting_budget.toLocaleString()} · 사용 {(team.starting_budget - team.budget).toLocaleString()}</small>
+                <div className="captain-player-list">
+                  {players.map((player) => (
+                    <p key={player.id}><b className="auction-sponsor-name"><SponsorNickname nickname={player.nickname} /></b><span>{(player.sold_price || 0).toLocaleString()}점</span></p>
+                  ))}
+                  {!players.length && <em>낙찰 선수 없음</em>}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </section>
 
-        <article className="card">
-          <div className="dashboard-head"><div><span>RECENT BIDS</span><h2>최근 입찰</h2></div></div>
-          <div className="captain-player-list">
-            {state.bids.slice(0, 8).map((bidItem) => (
-              <p key={bidItem.id}>
-                <b>{state.teams.find((team) => team.id === bidItem.team_id)?.name || "팀"}</b>
-                <span>{bidItem.amount.toLocaleString()}점 · <SponsorNickname nickname={bidItem.bidder_nickname} /></span>
-              </p>
-            ))}
-            {!state.bids.length && <em>입찰 기록이 없습니다.</em>}
-          </div>
-        </article>
+      <section className="card captain-recent-bids-card">
+        <div className="dashboard-head"><div><span>RECENT BIDS</span><h2>최근 완료 입찰</h2></div></div>
+        <div className="captain-player-list">
+          {state.bids.slice(0, 8).map((bidItem) => (
+            <p key={bidItem.id}>
+              <b>{state.teams.find((team) => team.id === bidItem.team_id)?.name || "팀"}</b>
+              <span>{bidItem.amount.toLocaleString()}점 · <SponsorNickname nickname={bidItem.bidder_nickname} /></span>
+            </p>
+          ))}
+          {!state.bids.length && <em>완료된 입찰 기록이 없습니다.</em>}
+        </div>
       </section>
 
       {finishOpen && (

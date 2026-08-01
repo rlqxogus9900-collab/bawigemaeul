@@ -100,7 +100,7 @@ export default function AuctionLiveClient({
   }, []);
   useEffect(() => {
     load();
-    const timer = window.setInterval(load, 1200);
+    const timer = window.setInterval(load, 2000);
     return () => window.clearInterval(timer);
   }, [load]);
 

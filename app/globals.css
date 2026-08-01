@@ -3513,3 +3513,17 @@ html,body{
 .match-vote-member-trigger:hover .match-vote-member-tooltip,.match-vote-member-trigger:focus .match-vote-member-tooltip,.match-vote-member-trigger:focus-visible .match-vote-member-tooltip{opacity:1;visibility:visible;transform:translate(-50%,0)}
 .match-vote-member-trigger:focus{outline:none}.match-vote-member-trigger:focus-visible{outline:2px solid rgba(225,190,85,.72);outline-offset:4px;border-radius:999px}
 @media(max-width:760px){.match-vote-member-tooltip{position:fixed;left:50%;bottom:auto;top:50%;max-width:calc(100vw - 36px);transform:translate(-50%,-46%)}.match-vote-member-trigger:hover .match-vote-member-tooltip,.match-vote-member-trigger:focus .match-vote-member-tooltip,.match-vote-member-trigger:focus-visible .match-vote-member-tooltip{transform:translate(-50%,-50%)}.match-vote-member-tooltip:after{display:none}}
+
+/* Online Beta 1.3.8.70 - auction team status and lighter polling */
+.captain-all-team-overview{margin-top:18px}
+.captain-team-status-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.captain-team-status-grid>article{padding:14px;border:1px solid rgba(255,255,255,.09);border-radius:14px;background:rgba(255,255,255,.025)}
+.captain-team-status-grid>article.mine{border-color:rgba(214,176,92,.65);box-shadow:0 0 0 1px rgba(214,176,92,.15) inset}
+.captain-team-status-grid header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:4px}
+.captain-team-status-grid header div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.captain-team-status-grid header span{font-size:11px;color:var(--muted)}
+.captain-team-status-grid header b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.captain-team-status-grid header strong{color:var(--gold);white-space:nowrap}
+.captain-team-status-grid>article>small{display:block;margin-bottom:10px;color:var(--muted)}
+@media(max-width:700px){.captain-team-status-grid{grid-template-columns:1fr 1fr}.captain-team-status-grid>article{padding:11px}}
+@media(max-width:470px){.captain-team-status-grid{grid-template-columns:1fr}}
