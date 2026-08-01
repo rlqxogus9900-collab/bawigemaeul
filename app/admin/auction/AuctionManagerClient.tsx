@@ -21,7 +21,15 @@ type AuctionState = {
 };
 const roman: Record<number, string> = { 1: "Ⅰ", 2: "Ⅱ", 3: "Ⅲ", 4: "Ⅳ", 5: "Ⅴ" };
 
-export default function AuctionManagerClient() {
+type RegularMatchEvent = {
+  id: string;
+  title: string;
+  match_at: string | null;
+  vote_deadline: string | null;
+  status: "open" | "closed";
+};
+
+export default function AuctionManagerClient({ regularMatchEvents }: { regularMatchEvents: RegularMatchEvent[] }) {
   const [state, setState] = useState<AuctionState>({ room: null, teams: [], players: [], bids: [] });
   const [startingBudget, setStartingBudget] = useState(1000);
   const [bidStep, setBidStep] = useState(10);
@@ -33,6 +41,7 @@ export default function AuctionManagerClient() {
   const [deleting, setDeleting] = useState(false);
   const [message, setMessage] = useState("");
   const [createMode, setCreateMode] = useState<"poll" | "manual">("poll");
+  const [selectedEventId, setSelectedEventId] = useState(regularMatchEvents[0]?.id || "");
   const [manualTitle, setManualTitle] = useState("수동 실시간 경매");
   const [manualCaptains, setManualCaptains] = useState("");
   const [manualPlayers, setManualPlayers] = useState("");
@@ -62,7 +71,7 @@ export default function AuctionManagerClient() {
       const response = await fetch("/api/admin/auction/create", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          startingBudget, bidStep, auctionDurationSeconds, tierBalanceEnabled, tierBonusPerTier, tierMinBids, mode: createMode,
+          startingBudget, bidStep, auctionDurationSeconds, tierBalanceEnabled, tierBonusPerTier, tierMinBids, mode: createMode, eventId: selectedEventId,
           title: manualTitle,
           captains: manualCaptains.split(/[\n,]/).map(v => v.trim()).filter(Boolean),
           players: manualPlayers.split(/[\n,]/).map(v => v.trim()).filter(Boolean)
@@ -139,6 +148,19 @@ export default function AuctionManagerClient() {
           <button type="button" className={createMode === "poll" ? "active" : ""} onClick={() => setCreateMode("poll")}>투표에서 만들기</button>
           <button type="button" className={createMode === "manual" ? "active" : ""} onClick={() => setCreateMode("manual")}>투표 없이 수동 생성</button>
         </div>
+        {createMode === "poll" && <div className="auction-manual-create">
+          <label>경매에 사용할 정기내전 투표
+            <select value={selectedEventId} onChange={(e) => setSelectedEventId(e.target.value)}>
+              <option value="">정기내전 투표를 선택하세요</option>
+              {regularMatchEvents.map(event => (
+                <option key={event.id} value={event.id}>
+                  {event.title} · {event.status === "open" ? "진행 중" : "종료"}
+                </option>
+              ))}
+            </select>
+          </label>
+          {!regularMatchEvents.length && <p className="form-error">정기내전 투표가 없습니다. 먼저 정기내전 투표를 만들어주세요.</p>}
+        </div>}
         {createMode === "manual" && <div className="auction-manual-create">
           <label>경매 이름<input value={manualTitle} onChange={(e) => setManualTitle(e.target.value)} /></label>
           <label>팀장 닉네임 <small>쉼표 또는 줄바꿈, 2명 이상</small><textarea value={manualCaptains} onChange={(e) => setManualCaptains(e.target.value)} placeholder={"팀장1, 팀장2"} /></label>
@@ -163,7 +185,7 @@ export default function AuctionManagerClient() {
           </div>
         </div>
         <div className="auction-room-setting-actions">
-          <button className="button auction-create-main-button" disabled={busy || deleting || Boolean(active)} onClick={createRoom}>
+          <button className="button auction-create-main-button" disabled={busy || deleting || Boolean(active) || (createMode === "poll" && !selectedEventId)} onClick={createRoom}>
             {busy ? "생성 중..." : active ? "진행 중인 경매가 있습니다" : state.room?.status === "finished" ? "결과 보관 후 새 경매 시작" : "경매방 만들기"}
           </button>
           {state.room && (

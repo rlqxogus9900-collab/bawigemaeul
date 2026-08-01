@@ -32,15 +32,36 @@ export async function POST(req: NextRequest) {
       const captainSet = new Set(captainNames);
       playerRows = playerNames.filter(name => !captainSet.has(name)).map(name => { const member = memberByName.get(name); return ({ member_id: member?.id || null, member_nickname: name, main_line: member?.main_line || "미정", sub_line: member?.sub_line || "미정", match_tier: member?.match_tier || null }); });
     } else {
-      const { data: poll } = await db.from("board_polls").select("id,match_at,board_posts(title)").eq("poll_type", "regular_match").eq("is_auction_source", true).maybeSingle();
-      if (!poll) return NextResponse.json({ error: "경매 연동 투표가 없습니다. 투표 없이 만들려면 수동 생성을 선택하세요." }, { status: 400 });
-      pollId = poll.id;
-      const linkedPost = Array.isArray(poll.board_posts) ? poll.board_posts[0] : poll.board_posts;
-      title = linkedPost?.title || "정기내전 실시간 경매";
-      const { data: option } = await db.from("board_poll_options").select("id").eq("poll_id", poll.id).eq("label", "참가").maybeSingle();
-      const { data: votes } = option ? await db.from("board_poll_votes").select("member_id,member_nickname").eq("poll_id", poll.id).eq("option_id", option.id) : { data: [] };
-      const { data: captains } = await db.from("board_poll_captains").select("member_id,member_nickname").eq("poll_id", poll.id);
-      if (!captains?.length) return NextResponse.json({ error: "팀장을 먼저 지정하세요." }, { status: 400 });
+      const eventId = String(body.eventId || "").trim();
+      if (!eventId) return NextResponse.json({ error: "경매에 사용할 정기내전 투표를 선택하세요." }, { status: 400 });
+
+      const { data: event, error: eventError } = await db
+        .from("regular_match_events")
+        .select("id,title,match_at,status")
+        .eq("id", eventId)
+        .maybeSingle();
+      if (eventError) throw eventError;
+      if (!event) return NextResponse.json({ error: "선택한 정기내전 투표를 찾을 수 없습니다." }, { status: 404 });
+
+      // auction_rooms.poll_id는 예전 게시판 투표 FK이므로 새 정기내전 투표는 null로 저장합니다.
+      pollId = null;
+      title = event.title || "정기내전 실시간 경매";
+
+      const { data: votes, error: voteError } = await db
+        .from("regular_match_votes")
+        .select("member_id,member_nickname")
+        .eq("event_id", eventId)
+        .eq("choice", "attending");
+      if (voteError) throw voteError;
+
+      const { data: captains, error: captainError } = await db
+        .from("regular_match_captains")
+        .select("member_id,member_nickname")
+        .eq("event_id", eventId);
+      if (captainError) throw captainError;
+      if (!captains?.length) return NextResponse.json({ error: "선택한 투표에서 팀장을 먼저 지정하세요." }, { status: 400 });
+      if ((votes || []).length <= captains.length) return NextResponse.json({ error: "팀장을 제외한 경매 참가 선수가 없습니다." }, { status: 400 });
+
       captainRows = captains;
       const captainIds = new Set(captains.map(c => c.member_id));
       playerRows = (votes || []).filter(v => !captainIds.has(v.member_id));
