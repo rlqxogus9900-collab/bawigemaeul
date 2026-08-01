@@ -22,12 +22,21 @@ export default async function MatchVotePage() {
         .in("event_id", eventIds)
     : { data: [] };
 
+  const memberIds = Array.from(new Set((votes || []).map(vote => vote.member_id).filter(Boolean)));
+  const { data: memberProfiles } = memberIds.length
+    ? await db
+        .from("members")
+        .select("id,nickname,match_tier,main_line,sub_line,reference_note")
+        .in("id", memberIds)
+    : { data: [] };
+
   return (
     <MatchVoteClient
       events={(events || []) as never[]}
       votes={(votes || []) as never[]}
       currentUserId={user?.id || null}
       isStaff={user?.role === "staff"}
+      memberProfiles={(memberProfiles || []) as never[]}
     />
   );
 }

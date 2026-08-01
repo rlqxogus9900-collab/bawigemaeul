@@ -12,12 +12,42 @@ type EventRow = {
   status: "open" | "closed";
 };
 
+type MemberProfile = {
+  id: string;
+  nickname: string;
+  match_tier: number | null;
+  main_line: string | null;
+  sub_line: string | null;
+  reference_note: string | null;
+};
+
 type Vote = {
   event_id: string;
   member_id: string;
   member_nickname: string;
   choice: "attending" | "absent" | "undecided";
 };
+
+
+function tierLabel(value: number | null | undefined) {
+  const roman = ["", "Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ"];
+  return value && roman[value] ? `${roman[value]}티어` : "미정";
+}
+
+function MemberVoteName({ vote, profile }: { vote: Vote; profile?: MemberProfile }) {
+  return (
+    <button type="button" className="match-vote-member-trigger" aria-label={`${vote.member_nickname} 상세 정보`}>
+      <SponsorNickname nickname={vote.member_nickname} />
+      <span className="match-vote-member-tooltip" role="tooltip">
+        <strong>{vote.member_nickname}</strong>
+        <span><b>내전티어</b><em>{tierLabel(profile?.match_tier)}</em></span>
+        <span><b>주라인</b><em>{profile?.main_line || "미정"}</em></span>
+        <span><b>부라인</b><em>{profile?.sub_line || "미정"}</em></span>
+        <span className="note"><b>참고사항</b><em>{profile?.reference_note || "없음"}</em></span>
+      </span>
+    </button>
+  );
+}
 
 function formatDate(value: string | null) {
   if (!value) return "미정";
@@ -36,12 +66,14 @@ export default function MatchVoteClient({
   events,
   votes,
   currentUserId,
-  isStaff
+  isStaff,
+  memberProfiles
 }: {
   events: EventRow[];
   votes: Vote[];
   currentUserId: string | null;
   isStaff: boolean;
+  memberProfiles: MemberProfile[];
 }) {
   const [savingId, setSavingId] = useState<string | null>(null);
   const [editingEvent, setEditingEvent] = useState<EventRow | null>(null);
@@ -50,6 +82,7 @@ export default function MatchVoteClient({
   const [editMatchAt, setEditMatchAt] = useState("");
   const [editDeadline, setEditDeadline] = useState("");
   const now = Date.now();
+  const profileById = useMemo(() => new Map(memberProfiles.map(profile => [profile.id, profile])), [memberProfiles]);
   const sorted = useMemo(() => [...events].sort((a, b) => {
     const aOpen = a.status === "open" && (!a.vote_deadline || new Date(a.vote_deadline).getTime() > now);
     const bOpen = b.status === "open" && (!b.vote_deadline || new Date(b.vote_deadline).getTime() > now);
@@ -169,7 +202,7 @@ export default function MatchVoteClient({
                   <div className="match-vote-roster-title"><span>참가</span><strong>{attending.length}명</strong></div>
                   <div className="match-vote-name-list">
                     {attending.length ? attending.map(vote => (
-                      <span key={vote.member_id}><SponsorNickname nickname={vote.member_nickname} /></span>
+                      <span key={vote.member_id}><MemberVoteName vote={vote} profile={profileById.get(vote.member_id)} /></span>
                     )) : <p>아직 참가자가 없습니다.</p>}
                   </div>
                 </section>
@@ -177,7 +210,7 @@ export default function MatchVoteClient({
                   <div className="match-vote-roster-title"><span>미정</span><strong>{undecided.length}명</strong></div>
                   <div className="match-vote-name-list">
                     {undecided.length ? undecided.map(vote => (
-                      <span key={vote.member_id}><SponsorNickname nickname={vote.member_nickname} /></span>
+                      <span key={vote.member_id}><MemberVoteName vote={vote} profile={profileById.get(vote.member_id)} /></span>
                     )) : <p>미정으로 선택한 인원이 없습니다.</p>}
                   </div>
                 </section>
