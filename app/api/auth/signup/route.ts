@@ -42,6 +42,10 @@ export async function POST(request: Request) {
   ]);
 
   if (nicknameLookupError || riotLookupError) {
+    const message = `${nicknameLookupError?.message || ""} ${riotLookupError?.message || ""}`.toLowerCase();
+    if (message.includes("approval_status") || message.includes("rejection_reason")) {
+      return signupRedirect(request, "schema_missing");
+    }
     return signupRedirect(request, "lookup_failed");
   }
 
@@ -92,6 +96,9 @@ export async function POST(request: Request) {
     const message = result.error.message.toLowerCase();
     if (message.includes("nickname")) return signupRedirect(request, "nickname_duplicate");
     if (message.includes("riot_id") || message.includes("riot id")) return signupRedirect(request, "riot_id_duplicate");
+    if (message.includes("approval_status") || message.includes("rejection_reason")) {
+      return signupRedirect(request, "schema_missing");
+    }
     return signupRedirect(request, "save_failed");
   }
 
