@@ -12,7 +12,8 @@ export default async function SignupPage({searchParams}:{searchParams:Promise<{e
       <label>Riot ID<input name="riot_id" placeholder="닉네임#태그" required/></label>
       <div className="form-grid-2">
         <label>현재 티어<select name="current_tier" defaultValue="미정"><option>미정</option><option>아이언</option><option>브론즈</option><option>실버</option><option>골드</option><option>플래티넘</option><option>에메랄드</option><option>다이아</option><option>마스터</option><option>그랜드마스터</option><option>챌린저</option></select></label>
-        <label>내전 티어<select name="match_tier" defaultValue="미정"><option>미정</option><option>아이언</option><option>브론즈</option><option>실버</option><option>골드</option><option>플래티넘</option><option>에메랄드</option><option>다이아</option><option>마스터</option></select></label>
+        <label>최고 티어<select name="highest_tier" defaultValue="미정"><option>미정</option><option>아이언</option><option>브론즈</option><option>실버</option><option>골드</option><option>플래티넘</option><option>에메랄드</option><option>다이아</option><option>마스터</option><option>그랜드마스터</option><option>챌린저</option></select></label>
+        <label>내전 티어<select name="match_tier" defaultValue="0"><option value="0">미정</option><option value="1">Ⅰ티어</option><option value="2">Ⅱ티어</option><option value="3">Ⅲ티어</option><option value="4">Ⅳ티어</option><option value="5">Ⅴ티어</option></select></label>
         <label>주라인<select name="main_line" defaultValue="미정"><option>미정</option><option>탑</option><option>정글</option><option>미드</option><option>원딜</option><option>서폿</option></select></label>
         <label>부라인<select name="sub_line" defaultValue="미정"><option>미정</option><option>탑</option><option>정글</option><option>미드</option><option>원딜</option><option>서폿</option></select></label>
       </div>
