@@ -3453,3 +3453,41 @@ html,body{
 
 /* 1.3.8.58 커뮤니티 통합 */
 .community-topic-picker{display:grid;gap:8px;margin-bottom:18px;font-weight:800}.community-topic-picker select{min-height:46px}.community-topic-picker small{color:var(--muted);font-weight:500}
+
+/* Online Beta 1.3.8.64 - regular match vote card redesign */
+.match-vote-card-list{display:grid;gap:16px;margin-top:18px}
+.match-vote-card{padding:22px;border:1px solid #294d39;border-radius:18px;background:linear-gradient(145deg,#082016,#06170f);box-shadow:0 12px 32px rgba(0,0,0,.16)}
+.match-vote-card.active{border-color:#8c7738;background:linear-gradient(145deg,#122819,#251f0b)}
+.match-vote-card.closed{opacity:.82}
+.match-vote-card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding-bottom:18px;border-bottom:1px solid #294634}
+.match-vote-card-header h2{margin:10px 0 6px;font-size:24px;color:#f1f5ef}
+.match-vote-card-header p{margin:0;color:#a5b7ad;line-height:1.6}
+.match-vote-status-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px;color:#94a99d;font-size:13px}
+.match-vote-status{padding:5px 9px;border-radius:999px;font-weight:800}
+.match-vote-status.open{background:#173c25;color:#7ce497}
+.match-vote-status.closed{background:#29342d;color:#aeb9b2}
+.match-vote-delete{flex:0 0 auto;border:1px solid #87483f;border-radius:10px;background:#281410;color:#e6a098;padding:9px 13px;cursor:pointer}
+.match-vote-rosters{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+.match-vote-rosters>section{min-height:130px;padding:16px;border:1px solid #294b38;border-radius:14px;background:#071a11}
+.match-vote-rosters>section.attending{border-color:#326a47}
+.match-vote-rosters>section.undecided{border-color:#6e6335}
+.match-vote-roster-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.match-vote-roster-title span{font-weight:800;color:#dce8df}
+.match-vote-roster-title strong{font-size:20px;color:#e4c75f}
+.match-vote-name-list{display:flex;flex-wrap:wrap;gap:8px}
+.match-vote-name-list>span{display:inline-flex;align-items:center;min-height:36px;padding:5px 10px;border:1px solid #2d513c;border-radius:999px;background:#0b2518;color:#e1ebe4}
+.match-vote-name-list p{margin:8px 0;color:#72877b;font-size:13px}
+.match-vote-name-list .sponsor-nickname-inline{display:inline-flex;align-items:center;gap:5px}
+.match-vote-name-list .sponsor-nickname-inline img{width:25px;height:25px;object-fit:contain}
+.match-vote-card-footer{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+.match-vote-card-footer button{min-height:50px;border:1px solid #345441;border-radius:12px;background:#0b2418;color:#bdcbc2;font-weight:800;cursor:pointer}
+.match-vote-card-footer button.attending.active{border-color:#4f9b69;background:#173f28;color:#8ce8a1}
+.match-vote-card-footer button.undecided.active{border-color:#9e8740;background:#3a300f;color:#f1d26c}
+.match-vote-card-footer button:disabled{cursor:not-allowed;opacity:.55}
+@media(max-width:760px){
+  .match-vote-card{padding:16px}
+  .match-vote-card-header{flex-direction:column}
+  .match-vote-delete{align-self:flex-end}
+  .match-vote-rosters{grid-template-columns:1fr}
+  .match-vote-card-footer{grid-template-columns:1fr 1fr}
+}
