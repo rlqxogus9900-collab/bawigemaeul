@@ -207,7 +207,7 @@ export default function CaptainAuctionClient({
   };
 
   const bid = async () => {
-    if (!room || !activeTeam) return;
+    if (!room || !activeTeam || busy) return;
     const amount = Number(bidAmount);
     if (!Number.isInteger(amount) || amount <= 0) {
       setError("입찰 금액을 숫자로 입력하세요.");
@@ -216,16 +216,24 @@ export default function CaptainAuctionClient({
     setBusy(true);
     setError("");
     setSubmittedMessage("");
-    const response = await fetch("/api/auction/bid", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ roomId: room.id, teamId: activeTeam.id, amount })
-    });
-    const result = await response.json().catch(() => ({}));
-    if (!response.ok) setError(result.error || "입찰 제출 실패");
-    else setSubmittedMessage(`${amount.toLocaleString()}점으로 제출되었습니다.`);
-    await load();
-    setBusy(false);
+    try {
+      const response = await fetch("/api/auction/bid", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ roomId: room.id, teamId: activeTeam.id, amount })
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) setError(result.error || "입찰 제출 실패");
+      else {
+        setSubmittedMessage(`${amount.toLocaleString()}점으로 제출되었습니다.`);
+        setTimeLeft(Number(room.auction_duration_seconds || 15));
+      }
+      await load();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "입찰 제출 중 연결 오류가 발생했습니다.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   const finishAuction = async () => {
@@ -339,13 +347,13 @@ export default function CaptainAuctionClient({
               value={bidAmount}
               placeholder={mySubmission?.amount ? String(mySubmission.amount) : `${currentMinimumBid} 이상`}
               onChange={(event) => setBidAmount(event.target.value)}
-              disabled={busy || !activeTeam || !currentPlayer || room.status !== "live" || timeLeft === 0}
+              disabled={busy || !activeTeam || !currentPlayer || room.status !== "live"}
             />
             <em>점</em>
           </label>
           <button
             className="captain-bid-button"
-            disabled={busy || !activeTeam || !currentPlayer || room.status !== "live" || timeLeft === 0}
+            disabled={busy || !activeTeam || !currentPlayer || room.status !== "live"}
             onClick={bid}
           >
             {busy ? "제출 중..." : mySubmission ? "금액 수정 제출" : "입찰 금액 제출"}

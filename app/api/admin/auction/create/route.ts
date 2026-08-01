@@ -58,7 +58,24 @@ export async function POST(req: NextRequest) {
     const validTiers = (captainMembers || []).map(m => Number(m.match_tier)).filter(t => Number.isInteger(t) && t >= 1 && t <= 5);
     const strongestTier = validTiers.length ? Math.min(...validTiers) : 1;
 
-    await db.from("auction_rooms").update({ status: "finished" }).in("status", ["ready", "live"]);
+    // 새 경매 생성 전에 이전 경매의 팀/선수/입찰 데이터를 정리합니다.
+    // 종료된 방이 최신 방으로 다시 잡히거나 FK 때문에 생성이 막히는 문제를 방지합니다.
+    const { data: previousRooms, error: previousRoomError } = await db.from("auction_rooms").select("id");
+    if (previousRoomError) throw previousRoomError;
+    const previousRoomIds = (previousRooms || []).map((item) => item.id);
+    if (previousRoomIds.length) {
+      const cleanupSteps = [
+        db.from("auction_bids").delete().in("room_id", previousRoomIds),
+        db.from("auction_players").delete().in("room_id", previousRoomIds),
+        db.from("auction_teams").delete().in("room_id", previousRoomIds),
+        db.from("auction_rooms").delete().in("id", previousRoomIds)
+      ];
+      for (const cleanup of cleanupSteps) {
+        const { error: cleanupError } = await cleanup;
+        if (cleanupError) throw cleanupError;
+      }
+    }
+
     const { data: room, error } = await db.from("auction_rooms").insert({ poll_id: pollId, title, starting_budget: startingBudget, bid_step: bidStep, auction_duration_seconds: auctionDurationSeconds, tier_balance_enabled: tierBalanceEnabled, tier_bonus_per_tier: tierBonusPerTier, tier_min_bids: tierMinBids, created_by: user.id }).select("*").single();
     if (error || !room) throw error || new Error("경매방 생성 실패");
 

@@ -47,8 +47,15 @@ export async function POST(req: NextRequest) {
     });
     if (bidError) throw bidError;
 
+    // 입찰 또는 수정 제출이 들어올 때마다 서버 기준 경매 시간을 다시 시작합니다.
+    const resetAt = new Date().toISOString();
+    const { error: roomUpdateError } = await db.from("auction_rooms")
+      .update({ updated_at: resetAt })
+      .eq("id", room.id);
+    if (roomUpdateError) throw roomUpdateError;
+
     // 봉인 입찰이므로 최고가/팀은 마감 전까지 공개하지 않습니다.
-    return NextResponse.json({ ok: true, amount });
+    return NextResponse.json({ ok: true, amount, resetAt });
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "입찰 제출 실패" }, { status: 500 });
   }

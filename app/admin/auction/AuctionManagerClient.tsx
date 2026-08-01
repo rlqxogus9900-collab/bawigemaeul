@@ -55,19 +55,27 @@ export default function AuctionManagerClient() {
   }, [load]);
 
   const createRoom = async () => {
-    setBusy(true); setMessage("");
-    const response = await fetch("/api/admin/auction/create", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        startingBudget, bidStep, auctionDurationSeconds, tierBalanceEnabled, tierBonusPerTier, tierMinBids, mode: createMode,
-        title: manualTitle,
-        captains: manualCaptains.split(/[\n,]/).map(v => v.trim()).filter(Boolean),
-        players: manualPlayers.split(/[\n,]/).map(v => v.trim()).filter(Boolean)
-      })
-    });
-    const result = await response.json().catch(() => ({}));
-    setMessage(response.ok ? "새 경매방을 만들었습니다. 모든 경매 화면에 바로 표시됩니다." : result.error || "경매방 생성 실패");
-    await load(); setBusy(false);
+    if (busy || deleting) return;
+    setBusy(true);
+    setMessage("");
+    try {
+      const response = await fetch("/api/admin/auction/create", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          startingBudget, bidStep, auctionDurationSeconds, tierBalanceEnabled, tierBonusPerTier, tierMinBids, mode: createMode,
+          title: manualTitle,
+          captains: manualCaptains.split(/[\n,]/).map(v => v.trim()).filter(Boolean),
+          players: manualPlayers.split(/[\n,]/).map(v => v.trim()).filter(Boolean)
+        })
+      });
+      const result = await response.json().catch(() => ({}));
+      setMessage(response.ok ? "새 경매방을 만들었습니다. 모든 경매 화면에 바로 표시됩니다." : result.error || "경매방 생성 실패");
+      await load();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "경매방 생성 중 연결 오류가 발생했습니다.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   const deleteRoom = async () => {
