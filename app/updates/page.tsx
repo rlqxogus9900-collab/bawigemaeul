@@ -3,7 +3,25 @@ import { SITE_VERSION } from "@/lib/site-version";
 
 export const dynamic = "force-dynamic";
 
-const updates = [
+type UpdateEntry = {
+  version: string;
+  date: string;
+  title: string;
+  items?: string[];
+  changes?: string[];
+};
+
+const updates: UpdateEntry[] = [
+  {
+    version: "1.3.9.0",
+    date: "2026-08-01",
+    title: "Stable 빌드 안정화",
+    items: [
+      "업데이트 내역 데이터 형식을 통일해 Vercel TypeScript 빌드 오류를 수정했습니다.",
+      "변경 내역 필드가 누락되어도 업데이트 페이지가 안전하게 렌더링되도록 보완했습니다.",
+      "배포 실패로 홈페이지가 갱신되지 않던 문제를 해결했습니다."
+    ]
+  },
   {
     version: "1.3.8.71",
     date: "2026-08-01",
@@ -756,7 +774,7 @@ export default function UpdatesPage() {
             <div className="update-content">
               <h2>{update.title}</h2>
               <ul>
-                {update.items.map(item => <li key={item}>{item}</li>)}
+                {(update.items ?? update.changes ?? []).map(item => <li key={item}>{item}</li>)}
               </ul>
             </div>
           </article>
