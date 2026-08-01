@@ -36,6 +36,14 @@ function getFixedGroups(user: User, eventHref: string): FixedGroup[] {
       ]
     },
     {
+      id: "community",
+      name: "커뮤니티",
+      icon: "💬",
+      items: [
+        ["/boards?board=community", "💬", "통합게시판"]
+      ]
+    },
+    {
       id: "match",
       name: "내전",
       icon: "⚔️",
@@ -111,6 +119,9 @@ export default function SiteNavigation({
   }, [pathname, currentBoard]);
 
   const active = (href: string) => {
+    if (href === "/boards?board=community") {
+      return pathname === "/boards" && (currentBoard === "community" || !currentBoard);
+    }
     if (href === "/") return pathname === "/";
     if (href === "/admin") return pathname === "/admin";
     if (href === "/auction") return pathname === "/auction" || pathname === "/auction/broadcast";
