@@ -3527,3 +3527,6 @@ html,body{
 .captain-team-status-grid>article>small{display:block;margin-bottom:10px;color:var(--muted)}
 @media(max-width:700px){.captain-team-status-grid{grid-template-columns:1fr 1fr}.captain-team-status-grid>article{padding:11px}}
 @media(max-width:470px){.captain-team-status-grid{grid-template-columns:1fr}}
+
+/* 1.3.9.6 vacation */
+.vacation-page-shell{display:grid;gap:20px}.vacation-form-card{max-width:760px}.vacation-date-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.vacation-form label{display:grid;gap:7px;font-weight:700}.vacation-list{display:grid;gap:12px}.vacation-item{padding:16px;border:1px solid var(--line,#ddd);border-radius:14px;background:rgba(255,255,255,.03)}.vacation-item.active{border-color:#e6b94d;box-shadow:0 0 0 1px rgba(230,185,77,.2)}.vacation-item>div{display:flex;justify-content:space-between;gap:12px}.vacation-item p{margin:8px 0 0}.status.vacation{background:#2f6f8f;color:#fff}.table-wrap td small{display:block;margin-top:4px;color:var(--muted,#888)}@media(max-width:700px){.vacation-date-grid{grid-template-columns:1fr}}
