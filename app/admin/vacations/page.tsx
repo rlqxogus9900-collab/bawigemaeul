@@ -66,8 +66,8 @@ export default async function AdminVacationsPage({ searchParams }: { searchParam
       <div className="table-wrap"><table><thead><tr><th>클랜원</th><th>기간</th><th>상태</th><th>사유</th><th>메모</th><th>관리</th></tr></thead>
       <tbody>{(vacations || []).map((v: any) => {
         const member = memberMap.get(v.member_id) as any;
-        const active = v.start_date <= today && v.end_date >= today;
-        const status = active ? "🏖️ 휴가중" : v.end_date < today ? "종료" : "예정";
+        const active = v.end_date >= today;
+        const status = active ? "🏖️ 휴가중" : "종료";
         return <tr key={v.id}><td><b>{member?.nickname || "탈퇴한 사용자"}</b><small>{member?.riot_id || ""}</small></td><td>{v.start_date}<br/>~ {v.end_date}</td><td>{status}</td><td>{v.reason}</td><td>{v.memo || "-"}</td><td><form action={`/api/admin/vacations/${v.id}`} method="post"><button className="button danger" name="action" value="delete">삭제</button></form></td></tr>;
       })}</tbody></table></div>
       {!vacations?.length && !vacationLoadError && <p className="empty-copy">등록된 휴가가 없습니다.</p>}

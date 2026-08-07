@@ -51,9 +51,9 @@ export default async function VacationPage({ searchParams }: { searchParams: Sea
         <div className="vacation-list">
           {(vacations || []).map(v => {
             const today = new Date().toISOString().slice(0, 10);
-            const active = v.start_date <= today && v.end_date >= today;
+            const active = v.end_date >= today;
             return <article key={v.id} className={`vacation-item ${active ? "active" : ""}`}>
-              <div><b>{v.start_date} ~ {v.end_date}</b><span>{active ? "🏖️ 휴가중" : v.end_date < today ? "종료" : "예정"}</span></div>
+              <div><b>{v.start_date} ~ {v.end_date}</b><span>{active ? "🏖️ 휴가중" : "종료"}</span></div>
               <p>{v.reason}</p>{v.memo && <small>{v.memo}</small>}
             </article>;
           })}

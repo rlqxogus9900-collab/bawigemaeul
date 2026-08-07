@@ -13,7 +13,7 @@ export default async function ActivityPage() {
   ]);
   const today = new Date().toISOString().slice(0, 10);
   const activeVacations = new Map((vacations || [])
-    .filter(v => v.start_date <= today && v.end_date >= today)
+    .filter(v => v.end_date >= today)
     .map(v => [v.member_id, v]));
 
   return (
