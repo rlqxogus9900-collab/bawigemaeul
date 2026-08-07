@@ -12,6 +12,7 @@ type Member = {
   main_line: string | null;
   sub_line: string | null;
   reference_note: string | null;
+  vacation?: { start_date: string; end_date: string; reason: string } | null;
 };
 
 const lines = ["전체", "탑", "정글", "미드", "원딜", "서폿"];
@@ -104,6 +105,7 @@ export default function ReferenceRoster({ members }: { members: Member[] }) {
                 <th>내전티어</th>
                 <th>주라인</th>
                 <th>부라인</th>
+                <th>상태</th>
                 <th>참고사항</th>
               </tr>
             </thead>
@@ -120,11 +122,12 @@ export default function ReferenceRoster({ members }: { members: Member[] }) {
                   </td>
                   <td>{member.main_line || "미정"}</td>
                   <td>{member.sub_line || "미정"}</td>
+                  <td>{member.vacation ? <span className="status vacation">🏖️ 휴가중</span> : <span className="status active">활동</span>}</td>
                   <td className="reference-note-cell">{member.reference_note || "-"}</td>
                 </tr>
               ))}
               {!visible.length && (
-                <tr><td colSpan={7} className="muted">조건에 맞는 클랜원이 없습니다.</td></tr>
+                <tr><td colSpan={8} className="muted">조건에 맞는 클랜원이 없습니다.</td></tr>
               )}
             </tbody>
           </table>

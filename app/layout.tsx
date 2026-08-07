@@ -1,6 +1,8 @@
 import SponsorNickname from "@/app/components/SponsorNickname";
 import "./globals.css";
 import Link from "next/link";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { getCachedBoardMenu } from "@/lib/board-menu";
 import SiteNavigation from "@/app/components/SiteNavigation";
@@ -19,10 +21,17 @@ export const metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const [user, rawBoardCategories] = await Promise.all([
+  const [user, rawBoardCategories, requestHeaders] = await Promise.all([
     getSession(),
-    getCachedBoardMenu()
+    getCachedBoardMenu(),
+    headers()
   ]);
+
+  const pathname = requestHeaders.get("x-bawi-pathname") || "/";
+  const publicPage = pathname === "/login" || pathname === "/signup";
+  if (!publicPage && !user) {
+    redirect(`/login?next=${encodeURIComponent(pathname)}`);
+  }
 
   const canSee = (accessLevel: string | null) =>
     accessLevel !== "staff" || user?.role === "staff";

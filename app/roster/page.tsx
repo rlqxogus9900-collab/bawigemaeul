@@ -4,11 +4,19 @@ import ReferenceRoster from "@/app/reference/ReferenceRoster";
 export const dynamic = "force-dynamic";
 
 export default async function RosterPage() {
-  const { data: members } = await getSupabaseAdmin()
-    .from("members")
+  const db = getSupabaseAdmin();
+  const [{ data: members }, { data: vacations }] = await Promise.all([
+    db.from("members")
     .select("id,nickname,riot_id,average_tier,match_tier,main_line,sub_line,reference_note")
     .eq("is_active", true)
-    .order("nickname", { ascending: true });
+    .order("nickname", { ascending: true }),
+    db.from("member_vacations").select("member_id,start_date,end_date,reason")
+  ]);
+
+  const today = new Date().toISOString().slice(0, 10);
+  const vacationByMember = new Map((vacations || [])
+    .filter(v => v.end_date >= today)
+    .map(v => [v.member_id, v]));
 
   return (
     <>
@@ -22,7 +30,7 @@ export default async function RosterPage() {
           </div>
         </div>
       </section>
-      <ReferenceRoster members={(members || []) as never[]} />
+      <ReferenceRoster members={(members || []).map(member => ({ ...member, vacation: vacationByMember.get(member.id) || null })) as never[]} />
     </>
   );
 }

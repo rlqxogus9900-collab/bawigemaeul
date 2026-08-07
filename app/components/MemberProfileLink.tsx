@@ -16,6 +16,7 @@ type Profile = {
   role: string | null;
   activity_status: string | null;
   reference_note: string | null;
+  vacation?: { start_date: string; end_date: string; reason: string } | null;
   stats: {
     winRate: number | null;
     kda: number | null;
@@ -197,13 +198,16 @@ export default function MemberProfileLink({
                   <div>
                     <span>활동 상태</span>
                     <b>
-                      {profile.activity_status === "active"
-                        ? "활동"
-                        : profile.activity_status === "inactive"
-                          ? "비활동"
-                          : "미정"}
+                      {profile.activity_status === "vacation"
+                        ? "🏖️ 휴가중"
+                        : profile.activity_status === "active"
+                          ? "활동"
+                          : profile.activity_status === "inactive"
+                            ? "비활동"
+                            : "미정"}
                     </b>
                   </div>
+                  {profile.vacation && <p>휴가 {profile.vacation.start_date} ~ {profile.vacation.end_date} · {profile.vacation.reason}</p>}
                   {profile.reference_note && <p>{profile.reference_note}</p>}
                 </footer>
               </>

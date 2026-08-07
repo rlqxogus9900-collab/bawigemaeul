@@ -16,8 +16,9 @@ const romanTier: Record<number, string> = {
 export default async function AdminRosterPage() {
   await requireStaff();
 
-  const { data: members } = await getSupabaseAdmin()
-    .from("members")
+  const db = getSupabaseAdmin();
+  const [{ data: members }, { data: vacations }] = await Promise.all([
+    db.from("members")
     .select(`
       id,
       nickname,
@@ -37,7 +38,14 @@ export default async function AdminRosterPage() {
       last_riot_sync_at,
       last_game_at
     `)
-    .order("nickname", { ascending: true });
+    .order("nickname", { ascending: true }),
+    db.from("member_vacations").select("member_id,start_date,end_date,reason")
+  ]);
+
+  const today = new Date().toISOString().slice(0, 10);
+  const activeVacations = new Map((vacations || [])
+    .filter(v => v.end_date >= today)
+    .map(v => [v.member_id, v]));
 
   return (
     <>
@@ -76,8 +84,11 @@ export default async function AdminRosterPage() {
             <tbody>
               {members?.map(member => {
                 const syncStatus = String(member.riot_sync_status || "not_synced");
+                const vacation = activeVacations.get(member.id);
                 const activityText =
-                  !member.is_active
+                  vacation
+                    ? "휴가중"
+                    : !member.is_active
                     ? "계정 비활성"
                     : member.activity_excluded
                       ? "활동 제외"
@@ -116,14 +127,17 @@ export default async function AdminRosterPage() {
                     <td>{member.role === "staff" ? "운영진" : "클랜원"}</td>
                     <td>
                       <span className={
-                        activityText === "활동"
-                          ? "status-active"
-                          : activityText === "비활동"
-                            ? "status-idle"
-                            : "status-neutral"
+                        activityText === "휴가중"
+                          ? "status vacation"
+                          : activityText === "활동"
+                            ? "status-active"
+                            : activityText === "비활동"
+                              ? "status-idle"
+                              : "status-neutral"
                       }>
-                        {activityText}
+                        {activityText === "휴가중" ? "🏖️ 휴가중" : activityText}
                       </span>
+                      {vacation && <small>{vacation.start_date} ~ {vacation.end_date}<br/>{vacation.reason}</small>}
                     </td>
                     <td><span className="last-activity-cell">{lastGameText}</span></td>
                     <td>

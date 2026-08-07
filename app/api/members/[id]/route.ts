@@ -44,8 +44,21 @@ export async function GET(
     );
   }
 
+
+  const today = new Date().toISOString().slice(0, 10);
+  const { data: vacation } = await db
+    .from("member_vacations")
+    .select("start_date,end_date,reason")
+    .eq("member_id", id)
+    .gte("end_date", today)
+    .order("end_date", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
   return NextResponse.json({
     ...member,
+    activity_status: vacation ? "vacation" : member.activity_status,
+    vacation: vacation || null,
     stats: {
       winRate: null,
       kda: null,
