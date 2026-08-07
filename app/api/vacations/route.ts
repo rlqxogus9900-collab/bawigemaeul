@@ -2,22 +2,43 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
+function redirectWithError(request: Request, code: string, detail?: string) {
+  const url = new URL("/vacation", request.url);
+  url.searchParams.set("error", code);
+  if (detail) url.searchParams.set("detail", detail.slice(0, 180));
+  return NextResponse.redirect(url, 303);
+}
+
 export async function POST(request: Request) {
   const user = await getSession();
   if (!user) return NextResponse.redirect(new URL("/login", request.url), 303);
+
   const form = await request.formData();
   const startDate = String(form.get("start_date") || "");
   const endDate = String(form.get("end_date") || "");
   const reason = String(form.get("reason") || "").trim();
   const memo = String(form.get("memo") || "").trim();
+
   if (!startDate || !endDate || !reason || endDate < startDate) {
-    return NextResponse.redirect(new URL("/vacation?error=invalid", request.url), 303);
+    return redirectWithError(request, "invalid");
   }
+
   const db = getSupabaseAdmin();
-  const { error } = await db.from("member_vacations").insert({
-    member_id: user.id, start_date: startDate, end_date: endDate, reason, memo: memo || null
-  });
-  if (error) return NextResponse.redirect(new URL("/vacation?error=save", request.url), 303);
+  const { data: inserted, error } = await db
+    .from("member_vacations")
+    .insert({
+      member_id: user.id,
+      start_date: startDate,
+      end_date: endDate,
+      reason,
+      memo: memo || null
+    })
+    .select("id")
+    .single();
+
+  if (error || !inserted) {
+    return redirectWithError(request, "save", error?.message || "휴가 저장 결과를 확인하지 못했습니다.");
+  }
 
   const { data: staff } = await db.from("members").select("id").eq("role", "staff").eq("is_active", true);
   if (staff?.length) {
@@ -29,5 +50,8 @@ export async function POST(request: Request) {
       link: "/admin/vacations"
     })));
   }
-  return NextResponse.redirect(new URL("/vacation?saved=1", request.url), 303);
+
+  const url = new URL("/vacation", request.url);
+  url.searchParams.set("saved", "1");
+  return NextResponse.redirect(url, 303);
 }
