@@ -32,7 +32,7 @@ function getFixedGroups(user: User, eventHref: string): FixedGroup[] {
         ["/updates", "📝", "업데이트"],
         [eventHref, "🎉", "이벤트"],
         ["/roster", "👥", "명단"],
-        ["/hall-of-fame", "🏆", "명예의 전당"],
+        ["/tournament", "🏆", "대회"],
         ["/stats", "📊", "내전 통계"],
         ["/guides", "🎯", "챔피언 통계"],
         ["/vacation", "🏖️", "휴가 신청"]
@@ -80,7 +80,8 @@ const staffItems = [
   ["/admin/regular-match", "🗳", "정기내전 모집 관리"],
   ["/admin/polls", "🗳", "정기내전 투표 관리"],
   ["/admin/auction", "🔨", "경매 관리"],
-  ["/admin/tournaments", "🏆", "대회·내전 개인 기록"],
+  ["/admin/tournament", "🏆", "대회 관리"],
+  ["/admin/tournaments", "📊", "내전 개인 기록"],
   ["/admin/match-records", "📝", "정기내전 상세 기록"],
   ["/admin/boards", "🗂", "게시판·메뉴 관리"],
   ["/admin/notices", "✍", "공지 관리"],
