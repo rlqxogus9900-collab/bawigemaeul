@@ -8,8 +8,8 @@ export const revalidate = 0;
 
 const latestUpdate = {
   version: SITE_VERSION,
-  title: "커뮤니티 통합·라인 분포 최신화",
-  summary: "자유·질문 글을 한 화면에서 보고 현재 명단 기준으로 라인 분포를 다시 계산"
+  title: "대회 메뉴 정리·휴가 관리 개선",
+  summary: "대회와 명예의 전당을 전용 탭으로 통합하고 운영진 수기 휴가 등록을 추가"
 };
 
 

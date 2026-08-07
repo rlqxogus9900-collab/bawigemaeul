@@ -32,10 +32,18 @@ function getFixedGroups(user: User, eventHref: string): FixedGroup[] {
         ["/updates", "📝", "업데이트"],
         [eventHref, "🎉", "이벤트"],
         ["/roster", "👥", "명단"],
-        ["/tournament", "🏆", "대회"],
         ["/stats", "📊", "내전 통계"],
         ["/guides", "🎯", "챔피언 통계"],
         ["/vacation", "🏖️", "휴가 신청"]
+      ]
+    },
+    {
+      id: "tournament",
+      name: "대회",
+      icon: "🏆",
+      items: [
+        ["/tournament", "🏆", "대회"],
+        ["/hall-of-fame", "🥇", "명예의 전당"]
       ]
     },
     {
