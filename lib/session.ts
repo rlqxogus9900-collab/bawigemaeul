@@ -8,6 +8,7 @@ export type SessionUser = {
   id: string;
   nickname: string;
   role: "member" | "staff";
+  must_change_password?: boolean;
 };
 
 function secret() {
@@ -57,7 +58,7 @@ export async function getSession(): Promise<SessionUser | null> {
     const db = getSupabaseAdmin();
     const { data: member, error } = await db
       .from("members")
-      .select("id,nickname,role,is_active")
+      .select("id,nickname,role,is_active,must_change_password")
       .eq("id", id)
       .maybeSingle();
 
@@ -68,7 +69,8 @@ export async function getSession(): Promise<SessionUser | null> {
     return {
       id: member.id,
       nickname: member.nickname,
-      role: member.role === "staff" ? "staff" : "member"
+      role: member.role === "staff" ? "staff" : "member",
+      must_change_password: Boolean(member.must_change_password)
     };
   } catch {
     return null;

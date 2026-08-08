@@ -77,7 +77,7 @@ export default function MemberBulkEditor({
       setMessage(result?.message || "비밀번호 초기화에 실패했습니다.");
       return;
     }
-    setMessage(`${row.nickname}님의 비밀번호를 1234로 초기화했습니다. 다음 로그인 시 새 비밀번호를 설정해야 합니다.`);
+    setMessage(result?.message || `${row.nickname}님의 비밀번호를 1234로 초기화했습니다. 다음 로그인 시 새 비밀번호를 설정해야 합니다.`);
   }
 
   async function saveAll() {

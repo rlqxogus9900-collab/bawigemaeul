@@ -33,6 +33,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     redirect(`/login?next=${encodeURIComponent(pathname)}`);
   }
 
+  // 운영진이 비밀번호를 초기화한 계정은 기존 로그인 세션이 남아 있어도
+  // 다음 요청부터 반드시 새 비밀번호 설정 화면으로 보냅니다.
+  if (user?.must_change_password && pathname !== "/change-password" && pathname !== "/api/auth/change-password" && pathname !== "/api/auth/logout") {
+    redirect("/change-password");
+  }
+
   const canSee = (accessLevel: string | null) =>
     accessLevel !== "staff" || user?.role === "staff";
 
