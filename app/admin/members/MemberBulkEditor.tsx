@@ -68,6 +68,18 @@ export default function MemberBulkEditor({
     setMessage(`${row.nickname} 회원을 완전 삭제했습니다. 같은 정보로 다시 가입할 수 있습니다.`);
   }
 
+  async function resetPassword(row: MemberRow) {
+    if (!window.confirm(`${row.nickname}님의 비밀번호를 1234로 초기화할까요?\n다음 로그인 시 새 비밀번호 변경이 필수입니다.`)) return;
+    setMessage("");
+    const response = await fetch(`/api/admin/members/${row.id}/reset-password`, { method: "POST" });
+    const result = await response.json().catch(() => null);
+    if (!response.ok) {
+      setMessage(result?.message || "비밀번호 초기화에 실패했습니다.");
+      return;
+    }
+    setMessage(`${row.nickname}님의 비밀번호를 1234로 초기화했습니다. 다음 로그인 시 새 비밀번호를 설정해야 합니다.`);
+  }
+
   async function saveAll() {
     setSaving(true);
     setMessage("");
@@ -203,6 +215,13 @@ export default function MemberBulkEditor({
                 <small>{!row.riot_id || !row.riot_id.includes("#") ? "API ID 미등록 · 집계 안 됨" : row.riot_sync_status === "synced" ? "Riot API 집계 완료" : row.riot_sync_status === "riot_id_not_found" ? "Riot ID 확인 필요" : row.riot_sync_status === "api_error" ? "API 오류" : "아직 집계 안 됨"}</small>
               </div>
             <div className="member-card-danger-zone">
+              <button
+                className="button"
+                type="button"
+                onClick={() => resetPassword(row)}
+              >
+                🔑 비밀번호 초기화
+              </button>
               <button
                 className="button danger member-delete-button"
                 type="button"
