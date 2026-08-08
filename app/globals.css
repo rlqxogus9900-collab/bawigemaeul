@@ -3537,3 +3537,22 @@ html,body{
 .notice{margin:12px 0;padding:12px 14px;border-radius:12px;font-weight:700;line-height:1.45}
 .notice.success{border:1px solid rgba(55,180,110,.45);background:rgba(55,180,110,.12)}
 .notice.error{border:1px solid rgba(220,80,80,.5);background:rgba(220,80,80,.12)}
+
+/* 1.3.9.14 - admin action result toast */
+.member-action-toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 99999;
+  width: min(520px, calc(100vw - 32px));
+  max-height: 40vh;
+  overflow: auto;
+  padding: 14px 16px;
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgba(0,0,0,.28);
+  font-weight: 700;
+  white-space: pre-wrap;
+}
+@media (max-width: 640px) {
+  .member-action-toast { right: 16px; bottom: 16px; }
+}

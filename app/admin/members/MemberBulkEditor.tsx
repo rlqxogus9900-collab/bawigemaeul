@@ -36,6 +36,7 @@ export default function MemberBulkEditor({
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [resettingId, setResettingId] = useState<string | null>(null);
 
   const visibleRows = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -71,13 +72,29 @@ export default function MemberBulkEditor({
   async function resetPassword(row: MemberRow) {
     if (!window.confirm(`${row.nickname}님의 비밀번호를 1234로 초기화할까요?\n다음 로그인 시 새 비밀번호 변경이 필수입니다.`)) return;
     setMessage("");
-    const response = await fetch(`/api/admin/members/${row.id}/reset-password`, { method: "POST" });
-    const result = await response.json().catch(() => null);
-    if (!response.ok) {
-      setMessage(result?.message || "비밀번호 초기화에 실패했습니다.");
-      return;
+    setResettingId(row.id);
+    try {
+      const response = await fetch(`/api/admin/members/${row.id}/reset-password`, {
+        method: "POST",
+        headers: { "Accept": "application/json" },
+        cache: "no-store"
+      });
+      const raw = await response.text();
+      let result: any = null;
+      try { result = raw ? JSON.parse(raw) : null; } catch { result = null; }
+
+      if (!response.ok) {
+        const detail = result?.message || (raw ? raw.slice(0, 240) : `HTTP ${response.status}`);
+        setMessage(`초기화 실패 (${result?.code || response.status}): ${detail}`);
+        return;
+      }
+      setMessage(result?.message || `${row.nickname}님의 비밀번호를 1234로 초기화했습니다.`);
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      setMessage(`초기화 요청 자체가 실패했습니다: ${detail}`);
+    } finally {
+      setResettingId(null);
     }
-    setMessage(result?.message || `${row.nickname}님의 비밀번호를 1234로 초기화했습니다. 다음 로그인 시 새 비밀번호를 설정해야 합니다.`);
   }
 
   async function saveAll() {
@@ -112,7 +129,10 @@ export default function MemberBulkEditor({
         <span className="muted">총 {rows.length}명</span>
       </div>
 
-      {message && <div className={message.includes("실패") ? "error" : "flash"}>{message}</div>}
+      {message && <>
+        <div className={message.includes("실패") || message.includes("오류") ? "error" : "flash"}>{message}</div>
+        <div className={`member-action-toast ${message.includes("실패") || message.includes("오류") ? "error" : "flash"}`} role="status">{message}</div>
+      </>}
 
       <div className="member-setting-grid">
         {visibleRows.map(row => (
@@ -219,8 +239,9 @@ export default function MemberBulkEditor({
                 className="button"
                 type="button"
                 onClick={() => resetPassword(row)}
+                disabled={resettingId === row.id}
               >
-                🔑 비밀번호 초기화
+                {resettingId === row.id ? "초기화 중..." : "🔑 비밀번호 초기화"}
               </button>
               <button
                 className="button danger member-delete-button"
