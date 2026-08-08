@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const PUBLIC_PATHS = new Set(["/login", "/signup"]);
+const PUBLIC_API_PATHS = new Set(["/api/auth/login", "/api/auth/signup", "/api/setup"]);
 
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-bawi-pathname", pathname);
 
-  if (PUBLIC_PATHS.has(pathname)) {
+  if (PUBLIC_PATHS.has(pathname) || PUBLIC_API_PATHS.has(pathname)) {
     return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
