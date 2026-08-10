@@ -23,18 +23,6 @@ export default function ReferenceRoster({ members }: { members: Member[] }) {
   const [line, setLine] = useState("전체");
   const [tier, setTier] = useState("전체");
   const [sort, setSort] = useState("match_tier");
-  const [copyMessage, setCopyMessage] = useState("");
-
-  async function copyText(text: string, message: string) {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopyMessage(message);
-      window.setTimeout(() => setCopyMessage(""), 1800);
-    } catch {
-      setCopyMessage("복사에 실패했습니다.");
-      window.setTimeout(() => setCopyMessage(""), 1800);
-    }
-  }
 
   const visible = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -105,15 +93,6 @@ export default function ReferenceRoster({ members }: { members: Member[] }) {
           <option value="line">주라인순</option>
         </select>
 
-        <button
-          type="button"
-          className="button"
-          onClick={() => copyText(visible.map(member => member.riot_id).filter(Boolean).join("\n"), `Riot ID ${visible.length}명 복사 완료`)}
-          disabled={!visible.length}
-        >
-          📋 전체 Riot ID 복사
-        </button>
-        {copyMessage && <span className="copy-message">{copyMessage}</span>}
       </section>
 
       <section className="card">
@@ -135,12 +114,7 @@ export default function ReferenceRoster({ members }: { members: Member[] }) {
               {visible.map(member => (
                 <tr key={member.id}>
                   <td><MemberProfileLink memberId={member.id} nickname={member.nickname} className="reference-profile-link" /></td>
-                  <td>
-                    <div className="riot-id-copy-cell">
-                      <span>{member.riot_id}</span>
-                      <button type="button" className="riot-id-copy-button" title="Riot ID 복사" aria-label={`${member.riot_id} 복사`} onClick={() => copyText(member.riot_id, `${member.riot_id} 복사 완료`)}>📋</button>
-                    </div>
-                  </td>
+                  <td>{member.riot_id}</td>
                   <td>{member.average_tier || "미정"}</td>
                   <td>
                     <span className={`match-tier-table tier-${member.match_tier || 0}`}>

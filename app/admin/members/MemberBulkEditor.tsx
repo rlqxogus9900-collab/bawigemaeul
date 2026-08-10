@@ -37,6 +37,7 @@ export default function MemberBulkEditor({
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [resettingId, setResettingId] = useState<string | null>(null);
+  const [copyMessage, setCopyMessage] = useState("");
 
   const visibleRows = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -46,6 +47,20 @@ export default function MemberBulkEditor({
       row.riot_id.toLowerCase().includes(q)
     );
   }, [rows, search]);
+
+  async function copyText(text: string, message: string) {
+    if (!text.trim()) {
+      setCopyMessage("복사할 Riot ID가 없습니다.");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopyMessage(message);
+    } catch {
+      setCopyMessage("Riot ID 복사에 실패했습니다.");
+    }
+    window.setTimeout(() => setCopyMessage(""), 1800);
+  }
 
   function updateRow(id: string, field: keyof MemberRow, value: string | number | boolean | null) {
     setRows(current => current.map(row => row.id === id ? { ...row, [field]: value } : row));
@@ -127,6 +142,15 @@ export default function MemberBulkEditor({
           placeholder="닉네임 또는 Riot ID 검색"
         />
         <span className="muted">총 {rows.length}명</span>
+        <button
+          type="button"
+          className="button"
+          onClick={() => copyText(visibleRows.map(row => row.riot_id).filter(Boolean).join("\n"), `Riot ID ${visibleRows.filter(row => row.riot_id).length}명 복사 완료`)}
+          disabled={!visibleRows.some(row => row.riot_id)}
+        >
+          📋 전체 Riot ID 복사
+        </button>
+        {copyMessage && <span className="copy-message">{copyMessage}</span>}
       </div>
 
       {message && <>
@@ -154,7 +178,10 @@ export default function MemberBulkEditor({
               </label>
               <label>
                 Riot ID
-                <input value={row.riot_id} onChange={e => updateRow(row.id, "riot_id", e.target.value)} />
+                <div className="riot-id-copy-cell">
+                  <input value={row.riot_id} onChange={e => updateRow(row.id, "riot_id", e.target.value)} />
+                  <button type="button" className="riot-id-copy-button" title="Riot ID 복사" aria-label={`${row.riot_id} 복사`} onClick={() => copyText(row.riot_id, `${row.riot_id} 복사 완료`)} disabled={!row.riot_id}>📋</button>
+                </div>
               </label>
               <label>
                 현재티어
