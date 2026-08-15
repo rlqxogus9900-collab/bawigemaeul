@@ -240,7 +240,7 @@ export default function AuctionBroadcastClient() {
               <strong>{submittedCount}</strong><small className="auction-minimum-bid-copy">최소 입찰 {currentMinimumBid.toLocaleString()}점</small>
               <em>/{state.teams.length}팀</em>
             </div>
-            <p>각 팀의 입찰 금액은 마감 전까지 비공개입니다.</p>
+            <p>각 팀의 현재 입찰 금액을 실시간으로 공개합니다.</p>
           </section>
 
           <section className="broadcast-team-grid">
@@ -255,7 +255,12 @@ export default function AuctionBroadcastClient() {
                       {" · "}{team.captain_average_tier || "롤 티어 미정"}
                     </small>
                   </div>
-                  <strong>{team.budget.toLocaleString()}점</strong>
+                  <div className="broadcast-team-bid-summary">
+                    <strong>{team.budget.toLocaleString()}점</strong>
+                    <b>{state.submissions.find((item) => item.team_id === team.id)?.amount != null
+                      ? `입찰 ${state.submissions.find((item) => item.team_id === team.id)!.amount!.toLocaleString()}점`
+                      : "미입찰"}</b>
+                  </div>
                 </header>
                 <div className="broadcast-budget-facts">
                   <span>시작 {team.starting_budget.toLocaleString()}</span>
@@ -279,7 +284,7 @@ export default function AuctionBroadcastClient() {
             {state.teams.map((team) => (
               <div key={team.id}>
                 <b>{team.name}</b>
-                <span>{state.submissions.some((item) => item.team_id === team.id) ? "✓ 제출 완료" : "… 대기"}</span>
+                <span>{(() => { const submission = state.submissions.find((item) => item.team_id === team.id); return submission?.amount != null ? `${submission.amount.toLocaleString()}점` : "… 미입찰"; })()}</span>
                 <small><SponsorNickname nickname={team.captain_nickname} /></small>
               </div>
             ))}

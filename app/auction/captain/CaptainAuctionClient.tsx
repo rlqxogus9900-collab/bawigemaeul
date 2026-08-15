@@ -352,7 +352,7 @@ export default function CaptainAuctionClient({
             </div>
           )}
           <div><span>제출 현황</span><strong>{submittedCount}/{state.teams.length}팀</strong></div>
-          <p>다른 팀의 입찰 금액은 마감 전까지 공개되지 않습니다.</p>
+          <p>각 팀의 현재 제출 금액이 실시간으로 공개됩니다.</p>
         </div>
 
         <div className="captain-sealed-bid-form">
@@ -382,8 +382,8 @@ export default function CaptainAuctionClient({
         {mySubmission?.amount != null && <p className="captain-own-submission">내 제출 금액: <b>{mySubmission.amount.toLocaleString()}점</b></p>}
         {submittedMessage && <p className="form-success">{submittedMessage}</p>}
         {error && <p className="form-error">{error}</p>}
-        {isStaff && currentPlayer && (
-          <div className="captain-admin-submissions">
+        {currentPlayer && (
+          <div className="captain-admin-submissions captain-live-submissions">
             {state.teams.map((team) => {
               const submission = state.submissions.find((item) => item.team_id === team.id);
               return <p key={team.id}><b>{team.name}</b><span>{submission?.amount != null ? `${submission.amount.toLocaleString()}점` : "미제출"}</span></p>;
@@ -393,7 +393,7 @@ export default function CaptainAuctionClient({
       </section>
 
       <section className="card captain-all-team-overview">
-        <div className="dashboard-head"><div><span>TEAM STATUS</span><h2>팀별 선수 · 남은 예산</h2></div><b>현재 입찰 금액만 비공개</b></div>
+        <div className="dashboard-head"><div><span>TEAM STATUS</span><h2>팀별 선수 · 남은 예산</h2></div><b>현재 입찰 금액 공개</b></div>
         <div className="captain-team-status-grid">
           {state.teams.map((team) => {
             const players = teamPlayers[team.id] || [];

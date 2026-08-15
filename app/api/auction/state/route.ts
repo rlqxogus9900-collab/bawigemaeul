@@ -20,14 +20,16 @@ export async function GET() {
   const currentBids = (bids || []).filter((bid) => bid.player_id === room.current_player_id);
   const ownTeamIds = new Set((teams || []).filter((team) => team.captain_member_id === user?.id).map((team) => team.id));
   const isStaff = user?.role === "staff";
+  // 1.3.9.18: 현재 선수의 팀별 제출 금액을 모든 로그인 사용자에게 공개합니다.
+  // 팀장/방송 화면이 같은 submissions 데이터를 사용하므로 제출 즉시 서로의 금액을 확인할 수 있습니다.
   const submissions = currentBids.map((bid) => ({
     team_id: bid.team_id,
     submitted: true,
-    amount: isStaff || ownTeamIds.has(bid.team_id) ? bid.amount : null,
+    amount: bid.amount,
     updated_at: bid.created_at
   }));
 
-  // 과거 낙찰 기록은 금액을 보여줘도 되지만, 현재 선수의 봉인 입찰 금액은 일반 화면에 노출하지 않습니다.
+  // 상세 입찰 로그는 기존 권한 범위를 유지하고, 현재 팀별 제출 금액은 submissions로 공개합니다.
   const visibleBids = (bids || []).filter((bid) => bid.player_id !== room.current_player_id || isStaff || ownTeamIds.has(bid.team_id));
 
   return NextResponse.json(

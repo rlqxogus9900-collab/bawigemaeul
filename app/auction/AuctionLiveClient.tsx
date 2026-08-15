@@ -180,7 +180,7 @@ export default function AuctionLiveClient({
             <span>제출 현황</span>
             <b className="auction-price-pulse">{submittedCount}/{state.teams.length}팀</b>
           </div>
-          <em>입찰 금액은 마감 후 공개됩니다.</em>
+          <em>현재 팀별 입찰 금액이 실시간으로 공개됩니다.</em>
         </div>
 
         {currentNickname && (
@@ -219,7 +219,7 @@ export default function AuctionLiveClient({
 
           {state.teams.map((team) => {
             const submission = state.submissions.find((item) => item.team_id === team.id);
-            return <span className="auction-submission-chip" key={team.id}>{team.name} {submission ? "✓ 제출" : "대기"}</span>;
+            return <span className="auction-submission-chip" key={team.id}>{team.name} {submission?.amount != null ? `${submission.amount.toLocaleString()}점` : "미입찰"}</span>;
           })}
 
           {isStaff && (
