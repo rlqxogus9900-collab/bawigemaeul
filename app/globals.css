@@ -3563,7 +3563,7 @@ html,body{
 .riot-id-copy-button:hover{background:rgba(230,190,75,.18)}
 .copy-message{font-size:12px;color:#e6c45c;white-space:nowrap}
 
-/* Online Beta 1.3.9.18 - live bid visibility */
+/* Online Beta 1.3.9.19 - live bid visibility */
 .broadcast-team-bid-summary{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
 .broadcast-team-bid-summary>b{font-size:12px;color:#efd371;font-weight:800}
 .captain-live-submissions{margin-top:12px}

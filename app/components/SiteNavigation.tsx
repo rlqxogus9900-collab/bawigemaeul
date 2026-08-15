@@ -97,7 +97,8 @@ const staffItems = [
   ["/admin/schedule", "📅", "일정 관리"],
   ["/admin/whistle", "📮", "신문고 관리"],
   ["/admin/home", "🏠", "홈페이지 관리"],
-  ["/admin/sponsors", "💖", "후원 관리"],
+  ["/admin/sponsors", "💖", "후원자 관리"],
+  ["/admin/donations", "💰", "후원금 관리"],
   ["/admin/settings", "⚙", "관리자 설정"]
 ];
 

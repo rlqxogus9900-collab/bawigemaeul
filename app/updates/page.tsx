@@ -13,7 +13,7 @@ type UpdateEntry = {
 
 const updates: UpdateEntry[] = [
   {
-    version: "1.3.9.18",
+    version: "1.3.9.19",
     date: "2026-08-16",
     title: "투표 시간 수정 및 경매 입찰 금액 공개",
     items: [

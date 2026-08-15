@@ -20,7 +20,7 @@ export async function GET() {
   const currentBids = (bids || []).filter((bid) => bid.player_id === room.current_player_id);
   const ownTeamIds = new Set((teams || []).filter((team) => team.captain_member_id === user?.id).map((team) => team.id));
   const isStaff = user?.role === "staff";
-  // 1.3.9.18: 현재 선수의 팀별 제출 금액을 모든 로그인 사용자에게 공개합니다.
+  // 1.3.9.19: 현재 선수의 팀별 제출 금액을 모든 로그인 사용자에게 공개합니다.
   // 팀장/방송 화면이 같은 submissions 데이터를 사용하므로 제출 즉시 서로의 금액을 확인할 수 있습니다.
   const submissions = currentBids.map((bid) => ({
     team_id: bid.team_id,
