@@ -13,6 +13,16 @@ type UpdateEntry = {
 
 const updates: UpdateEntry[] = [
   {
+    version: "1.3.9.22",
+    date: "2026-08-16",
+    title: "스네이크 픽 배포 오류 수정",
+    items: [
+      "스네이크 픽 API의 TypeScript 암시적 any 오류로 Vercel 빌드가 실패하던 문제를 수정했습니다.",
+      "1.3.9.21의 스네이크 픽 기능과 데이터 구조는 그대로 유지됩니다.",
+      "추가 SQL 없이 기존 1.3.9.21 SQL을 그대로 사용합니다."
+    ]
+  },
+  {
     version: "1.3.9.21",
     date: "2026-08-16",
     title: "스네이크 픽 추가",

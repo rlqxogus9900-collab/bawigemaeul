@@ -53,7 +53,7 @@ export async function POST(request: Request) {
   if (action === "addMembers") {
     const ids = Array.isArray(body.memberIds) ? body.memberIds.map(String).filter(Boolean) : [];
     if (!ids.length) return NextResponse.json({message:"추가할 클랜원을 선택하세요."},{status:400});
-    const {error}=await db.from("snake_draft_players").upsert(ids.map(member_id=>({member_id,team_no:null,pick_order:null})),{onConflict:"member_id"});
+    const {error}=await db.from("snake_draft_players").upsert(ids.map((member_id: string)=>({member_id,team_no:null,pick_order:null})),{onConflict:"member_id"});
     if(error) return NextResponse.json({message:error.message},{status:500});
     return NextResponse.json({ok:true});
   }
