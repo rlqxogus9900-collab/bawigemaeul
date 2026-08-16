@@ -62,6 +62,7 @@ function getFixedGroups(user: User, eventHref: string): FixedGroup[] {
         ["/normal-match", "⚖️", "자동 팀짜기"],
         ["/snake-draft", "🐍", "스네이크 픽"],
         ["/match-vote", "🗳", "투표"],
+        ["/match-notices", "📢", "내전 공지"],
         ["/auction", "📺", "실시간 경매 방송"],
         ["/auction/captain", "👑", "경매 팀장 전용"]
       ]
@@ -87,6 +88,7 @@ const staffItems = [
   ["/admin/activity", "▣", "활동 관리"],
   ["/admin/vacations", "🏖️", "휴가 관리"],
   ["/admin/regular-match", "🗳", "정기내전 모집 관리"],
+  ["/admin/match-notices", "📢", "내전 공지 관리"],
   ["/admin/polls", "🗳", "정기내전 투표 관리"],
   ["/admin/auction", "🔨", "경매 관리"],
   ["/admin/tournament", "🏆", "대회 관리"],

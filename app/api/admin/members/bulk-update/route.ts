@@ -16,6 +16,7 @@ type IncomingMember = {
   activity_status: string | null;
   activity_excluded: boolean;
   is_active: boolean;
+  staff_note: string | null;
 };
 
 export async function POST(request: Request) {
@@ -40,7 +41,8 @@ export async function POST(request: Request) {
     role: member.role === "staff" ? "staff" : "member",
     activity_status: member.activity_status === "active" ? "active" : "inactive",
     activity_excluded: Boolean(member.activity_excluded),
-    is_active: Boolean(member.is_active)
+    is_active: Boolean(member.is_active),
+    staff_note: String(member.staff_note || "").trim() || null
   }));
 
   if (normalized.some(member => !member.nickname || !member.riot_id.includes("#"))) {

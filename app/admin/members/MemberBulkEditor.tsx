@@ -20,6 +20,7 @@ type MemberRow = {
   riot_sync_error: string | null;
   last_riot_sync_at: string | null;
   last_game_at: string | null;
+  staff_note: string | null;
 };
 
 const lines = ["미정", "ALL", "탑", "정글", "미드", "원딜", "서폿"];
@@ -217,6 +218,15 @@ export default function MemberBulkEditor({
                 <select value={row.sub_line || "미정"} onChange={e => updateRow(row.id, "sub_line", e.target.value)}>
                   {lines.map(line => <option key={line}>{line}</option>)}
                 </select>
+              </label>
+              <label className="member-staff-note-field">
+                운영진 전용 참고사항
+                <textarea
+                  value={row.staff_note || ""}
+                  rows={3}
+                  placeholder="운영진만 볼 수 있는 내부 메모 (경매/투표/명단/툴팁에는 노출되지 않음)"
+                  onChange={e => updateRow(row.id, "staff_note", e.target.value)}
+                />
               </label>
               <label>
                 권한

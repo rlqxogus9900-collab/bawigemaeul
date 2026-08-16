@@ -33,7 +33,8 @@ export default async function MembersPage({
       riot_sync_status,
       riot_sync_error,
       last_riot_sync_at,
-      last_game_at
+      last_game_at,
+      staff_note
     `)
     .order("nickname", { ascending: true });
 
