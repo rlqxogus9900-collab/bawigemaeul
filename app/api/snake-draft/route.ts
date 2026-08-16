@@ -16,7 +16,7 @@ export async function GET() {
     db.from("snake_draft_settings").select("id,team_count,current_pick").eq("id",1).maybeSingle(),
     db.from("snake_draft_teams").select("team_no,name").order("team_no"),
     db.from("snake_draft_players").select("member_id,team_no,pick_order,added_at").order("added_at"),
-    db.from("members").select("id,nickname,main_line,sub_line,match_tier").eq("is_active",true).order("nickname")
+    db.from("members").select("id,nickname,riot_id,main_line,sub_line,match_tier").eq("is_active",true).order("nickname")
   ]);
   const map = new Map((members || []).map(m => [m.id,m]));
   const players = (draftPlayers || []).map(p => ({...p, ...(map.get(p.member_id) || {})})).filter(p => p.nickname);
