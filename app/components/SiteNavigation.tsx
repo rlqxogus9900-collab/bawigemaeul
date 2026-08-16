@@ -60,6 +60,7 @@ function getFixedGroups(user: User, eventHref: string): FixedGroup[] {
       icon: "⚔️",
       items: [
         ["/normal-match", "⚖️", "자동 팀짜기"],
+        ["/snake-draft", "🐍", "스네이크 픽"],
         ["/match-vote", "🗳", "투표"],
         ["/auction", "📺", "실시간 경매 방송"],
         ["/auction/captain", "👑", "경매 팀장 전용"]
