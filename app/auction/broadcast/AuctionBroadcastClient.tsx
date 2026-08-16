@@ -172,6 +172,20 @@ export default function AuctionBroadcastClient() {
     <main className={"auction-broadcast " + (safeArea ? "show-safe-area " : "") + (uiHidden ? "hide-broadcast-ui" : "")}>
       <div className="broadcast-safe-frame" />
 
+      <section className="broadcast-rules" aria-label="내전 규칙">
+        <strong>📋 내전 규칙</strong>
+        <div className="broadcast-rules-grid">
+          <p><b>1.</b> 내전 진행 중 팀원간 분위기를 깨는 언행, 비하, 지나친훈수 금지</p>
+          <p><b>2.</b> 전체 채팅 금지 <span>(일시정지 시 사유 간략히 설명만 해주세요)</span></p>
+          <p><b>3.</b> 상대에게 도발 <span>(감정표현, 인장, 습관성이시면 빼주세요)</span></p>
+          <p><b>4.</b> 게임 진행 중에 디코 마이크는 전부 켜서 소통하여 주시고 마이크가 안되시면 사유 꼭 말해주세요!</p>
+        </div>
+        <div className="broadcast-rules-note">
+          <span>* 팀장분들은 저티어분들이 우선적으로 주라인에 가게끔 양해부탁드립니다 *</span>
+          <b>3판 2선 하드피어리스입니다.</b>
+        </div>
+      </section>
+
       <div className="broadcast-toolbar">
         <button onClick={() => setUiHidden((value) => !value)}>방송 UI {uiHidden ? "표시" : "숨기기"}</button>
         <button onClick={() => setSafeArea((value) => !value)}>세이프 에어리어 {safeArea ? "OFF" : "ON"}</button>
