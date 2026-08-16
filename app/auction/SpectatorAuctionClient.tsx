@@ -56,9 +56,12 @@ export default function SpectatorAuctionClient() {
   const previousSold = useRef(new Set<string>());
   const initialized = useRef(false);
   const previousBid = useRef(0);
+  const loadingState = useRef(false);
 
   const load = useCallback(async () => {
-    if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+    if (loadingState.current || (typeof document !== "undefined" && document.visibilityState === "hidden")) return;
+    loadingState.current = true;
+    try {
     const response = await fetch("/api/auction/state", { cache: "no-store" });
     if (!response.ok) return;
     const next: State = await response.json();
@@ -79,13 +82,14 @@ export default function SpectatorAuctionClient() {
     previousSold.current = new Set(sold.map((player) => player.id));
     initialized.current = true;
     setState(next);
+    } finally { loadingState.current = false; }
   }, []);
 
   useEffect(() => {
     load();
-    const timer = window.setInterval(load, 5000);
+    const timer = window.setInterval(load, state.room?.status === "live" ? 2000 : 5000);
     return () => window.clearInterval(timer);
-  }, [load]);
+  }, [load, state.room?.status]);
 
   useEffect(() => {
     const bid = state.room?.current_bid || 0;

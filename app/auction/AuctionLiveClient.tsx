@@ -80,11 +80,14 @@ export default function AuctionLiveClient({
   const [soundOn, setSoundOn] = useState(true);
   const previousSoldIds = useRef(new Set<string>());
   const soldStateReady = useRef(false);
+  const loadingState = useRef(false);
   const [bidPulse, setBidPulse] = useState(0);
   const [soldFlash, setSoldFlash] = useState<{ nickname: string; team: string; price: number } | null>(null);
 
   const load = useCallback(async () => {
-    if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+    if (loadingState.current || (typeof document !== "undefined" && document.visibilityState === "hidden")) return;
+    loadingState.current = true;
+    try {
     const r = await fetch("/api/auction/state", { cache: "no-store" });
     if (!r.ok) return;
     const next: AuctionState = await r.json();
@@ -98,12 +101,13 @@ export default function AuctionLiveClient({
     previousSoldIds.current = new Set(soldPlayers.map((player) => player.id));
     soldStateReady.current = true;
     setState(next);
+    } finally { loadingState.current = false; }
   }, []);
   useEffect(() => {
     load();
-    const timer = window.setInterval(load, 5000);
+    const timer = window.setInterval(load, state.room?.status === "live" ? 2000 : 5000);
     return () => window.clearInterval(timer);
-  }, [load]);
+  }, [load, state.room?.status]);
 
   const adminAction = async (action: string, extra: Record<string, unknown> = {}) => {
     if (!state.room) return;

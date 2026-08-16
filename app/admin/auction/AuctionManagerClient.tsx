@@ -2,7 +2,7 @@
 import SponsorNickname from "@/app/components/SponsorNickname";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type Room = {
   id: string; title: string; status: "ready" | "live" | "finished";
@@ -50,19 +50,23 @@ export default function AuctionManagerClient({ regularMatchEvents }: { regularMa
   const [playerPreview, setPlayerPreview] = useState<{ nickname: string; main_line: string | null; sub_line: string | null; match_tier: number | null } | null>(null);
   const [lookingUpPlayer, setLookingUpPlayer] = useState(false);
   const [addingPlayer, setAddingPlayer] = useState(false);
+  const loadingState = useRef(false);
   const [memberOptions, setMemberOptions] = useState<Array<{ nickname: string; main_line: string | null; sub_line: string | null; match_tier: number | null }>>([]);
 
   const load = useCallback(async () => {
-    if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
-    const response = await fetch("/api/auction/state", { cache: "no-store" });
-    if (response.ok) setState(await response.json());
+    if (loadingState.current || (typeof document !== "undefined" && document.visibilityState === "hidden")) return;
+    loadingState.current = true;
+    try {
+      const response = await fetch("/api/auction/state", { cache: "no-store" });
+      if (response.ok) setState(await response.json());
+    } finally { loadingState.current = false; }
   }, []);
   useEffect(() => {
     load();
     fetch("/api/admin/auction/player", { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(data => setMemberOptions(data?.members || [])).catch(() => {});
-    const timer = window.setInterval(load, 5000);
+    const timer = window.setInterval(load, state.room?.status === "live" ? 3000 : 8000);
     return () => window.clearInterval(timer);
-  }, [load]);
+  }, [load, state.room?.status]);
 
   const createRoom = async () => {
     if (busy || deleting) return;

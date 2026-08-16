@@ -112,14 +112,14 @@ export default function CaptainAuctionClient({
 
   useEffect(() => {
     load();
-    const timer = window.setInterval(load, 5000);
+    const timer = window.setInterval(load, state.room?.status === "live" ? 1500 : 5000);
     const onVisible = () => { if (!document.hidden) void load(); };
     document.addEventListener("visibilitychange", onVisible);
     return () => {
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [load]);
+  }, [load, state.room?.status]);
 
   useEffect(() => {
     if (isStaff && state.teams.length && !state.teams.some((team) => team.id === staffTeamId)) {

@@ -68,6 +68,7 @@ export default function AuctionBroadcastClient() {
   );
 
   const previousState = useRef<AuctionState | null>(null);
+  const loadingState = useRef(false);
   const stateReady = useRef(false);
 
   const playTone = useCallback((frequency: number, duration: number, volume = 0.06) => {
@@ -89,8 +90,10 @@ export default function AuctionBroadcastClient() {
   }, [soundOn]);
 
   const load = useCallback(async () => {
-    if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
-    const response = await fetch("/api/auction/state", { cache: "no-store" });
+    if (loadingState.current || (typeof document !== "undefined" && document.visibilityState === "hidden")) return;
+    loadingState.current = true;
+    try {
+    const response = await fetch("/api/auction/state?history=0", { cache: "no-store" });
     if (!response.ok) return;
     const next = (await response.json()) as AuctionState;
 
@@ -124,13 +127,16 @@ export default function AuctionBroadcastClient() {
     previousState.current = next;
     stateReady.current = true;
     setState(next);
+    } finally { loadingState.current = false; }
   }, [playTone]);
 
   useEffect(() => {
-    load();
-    const timer = window.setInterval(load, 5000);
-    return () => window.clearInterval(timer);
-  }, [load]);
+    void load();
+    const timer = window.setInterval(() => void load(), state.room?.status === "live" ? 1200 : 5000);
+    const onVisible = () => { if (!document.hidden) void load(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { window.clearInterval(timer); document.removeEventListener("visibilitychange", onVisible); };
+  }, [load, state.room?.status]);
 
   useEffect(() => {
     setTimeLeft(Number(state.room?.auction_duration_seconds || 15));
