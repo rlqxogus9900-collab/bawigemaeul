@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type MemberRow = {
   id: string;
@@ -39,6 +39,12 @@ export default function MemberBulkEditor({
   const [message, setMessage] = useState("");
   const [resettingId, setResettingId] = useState<string | null>(null);
   const [copyMessage, setCopyMessage] = useState("");
+  const [rowSaveState, setRowSaveState] = useState<Record<string, "saving" | "saved" | "error">>({});
+  const saveTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+
+  useEffect(() => () => {
+    Object.values(saveTimers.current).forEach(timer => clearTimeout(timer));
+  }, []);
 
   const visibleRows = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -63,8 +69,47 @@ export default function MemberBulkEditor({
     window.setTimeout(() => setCopyMessage(""), 1800);
   }
 
-  function updateRow(id: string, field: keyof MemberRow, value: string | number | boolean | null) {
-    setRows(current => current.map(row => row.id === id ? { ...row, [field]: value } : row));
+  function scheduleRowSave(nextRow: MemberRow, delay = 550) {
+    const existing = saveTimers.current[nextRow.id];
+    if (existing) clearTimeout(existing);
+    setRowSaveState(current => ({ ...current, [nextRow.id]: "saving" }));
+    saveTimers.current[nextRow.id] = setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/admin/members/${nextRow.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(nextRow),
+          cache: "no-store"
+        });
+        const result = await response.json().catch(() => null);
+        if (!response.ok) {
+          setRowSaveState(current => ({ ...current, [nextRow.id]: "error" }));
+          setMessage(`${nextRow.nickname || "회원"} 저장 실패: ${result?.message || "알 수 없는 오류"}`);
+          return;
+        }
+        if (result?.member) {
+          setRows(current => current.map(row => row.id === nextRow.id ? { ...row, ...result.member } : row));
+        }
+        setRowSaveState(current => ({ ...current, [nextRow.id]: "saved" }));
+        window.setTimeout(() => setRowSaveState(current => {
+          if (current[nextRow.id] !== "saved") return current;
+          const next = { ...current };
+          delete next[nextRow.id];
+          return next;
+        }), 1500);
+      } catch (error) {
+        setRowSaveState(current => ({ ...current, [nextRow.id]: "error" }));
+        setMessage(`${nextRow.nickname || "회원"} 저장 요청 실패: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }, delay);
+  }
+
+  function updateRow(id: string, field: keyof MemberRow, value: string | number | boolean | null, delay = 550) {
+    const currentRow = rows.find(row => row.id === id);
+    if (!currentRow) return;
+    const nextRow = { ...currentRow, [field]: value } as MemberRow;
+    setRows(current => current.map(row => row.id === id ? nextRow : row));
+    scheduleRowSave(nextRow, delay);
     setMessage("");
   }
 
@@ -167,9 +212,14 @@ export default function MemberBulkEditor({
                 <strong>{row.nickname || "이름 없음"}</strong>
                 <span>{row.riot_id || "Riot ID 없음"}</span>
               </div>
-              <span className={`roman-tier-badge tier-${row.match_tier || 0}`}>
-                {row.match_tier ? romanTier[row.match_tier] : "-"}
-              </span>
+              <div className="member-save-state-wrap">
+                {rowSaveState[row.id] === "saving" && <small className="muted">저장 중...</small>}
+                {rowSaveState[row.id] === "saved" && <small className="member-auto-saved">✓ 저장됨</small>}
+                {rowSaveState[row.id] === "error" && <small className="error-text">저장 실패</small>}
+                <span className={`roman-tier-badge tier-${row.match_tier || 0}`}>
+                  {row.match_tier ? romanTier[row.match_tier] : "-"}
+                </span>
+              </div>
             </div>
 
             <div className="member-field-grid">
@@ -198,7 +248,7 @@ export default function MemberBulkEditor({
               </label>
               <label>
                 내전티어
-                <select value={row.match_tier || 0} onChange={e => updateRow(row.id, "match_tier", Number(e.target.value) || null)}>
+                <select value={row.match_tier || 0} onChange={e => updateRow(row.id, "match_tier", Number(e.target.value) || null, 120)}>
                   <option value={0}>미정</option>
                   <option value={1}>Ⅰ티어</option>
                   <option value={2}>Ⅱ티어</option>
@@ -209,13 +259,13 @@ export default function MemberBulkEditor({
               </label>
               <label>
                 주라인
-                <select value={row.main_line || "미정"} onChange={e => updateRow(row.id, "main_line", e.target.value)}>
+                <select value={row.main_line || "미정"} onChange={e => updateRow(row.id, "main_line", e.target.value, 120)}>
                   {lines.map(line => <option key={line}>{line}</option>)}
                 </select>
               </label>
               <label>
                 부라인
-                <select value={row.sub_line || "미정"} onChange={e => updateRow(row.id, "sub_line", e.target.value)}>
+                <select value={row.sub_line || "미정"} onChange={e => updateRow(row.id, "sub_line", e.target.value, 120)}>
                   {lines.map(line => <option key={line}>{line}</option>)}
                 </select>
               </label>
@@ -233,7 +283,7 @@ export default function MemberBulkEditor({
                 <select
                   value={row.role}
                   disabled={row.id === currentUserId}
-                  onChange={e => updateRow(row.id, "role", e.target.value)}
+                  onChange={e => updateRow(row.id, "role", e.target.value, 120)}
                 >
                   <option value="member">클랜원</option>
                   <option value="staff">운영진</option>
@@ -254,9 +304,17 @@ export default function MemberBulkEditor({
                   disabled={row.id === currentUserId}
                   onChange={e => {
                     const value = e.target.value;
-                    updateRow(row.id, "is_active", value !== "disabled");
-                    updateRow(row.id, "activity_excluded", value === "excluded");
-                    updateRow(row.id, "activity_status", value === "active" ? "active" : "inactive");
+                    const currentRow = rows.find(item => item.id === row.id);
+                    if (!currentRow) return;
+                    const nextRow = {
+                      ...currentRow,
+                      is_active: value !== "disabled",
+                      activity_excluded: value === "excluded",
+                      activity_status: value === "active" ? "active" : "inactive"
+                    };
+                    setRows(current => current.map(item => item.id === row.id ? nextRow : item));
+                    scheduleRowSave(nextRow, 120);
+                    setMessage("");
                   }}
                 >
                   <option value="active">활동 (최근 7일)</option>
@@ -295,7 +353,7 @@ export default function MemberBulkEditor({
 
       <div className="member-save-bar">
         <button className="button primary member-save-main" type="button" onClick={saveAll} disabled={saving}>
-          {saving ? "저장 중..." : "💾 전체 변경사항 저장"}
+          {saving ? "저장 중..." : "💾 전체 다시 저장"}
         </button>
       </div>
     </>
