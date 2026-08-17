@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 
 type Role = "탑" | "정글" | "미드" | "원딜" | "서폿";
+type RoleFilter = "전체" | Role;
 type ChampionBuild = {
   id: string;
   champion: string;
@@ -97,6 +98,7 @@ const RECENT_KEY = "bawigemaeul-guide-recent";
 
 export default function GuidesClient() {
   const [query, setQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>("전체");
   const [allBuilds, setAllBuilds] = useState<ChampionBuild[]>(builds);
   const [championMap, setChampionMap] = useState<Record<string, DataDragonChampion>>({});
   const [selected, setSelected] = useState<ChampionBuild>(builds[0]);
@@ -174,8 +176,12 @@ export default function GuidesClient() {
 
   const filtered = useMemo(() => {
     const keyword = query.trim().toLowerCase();
-    return allBuilds.filter(build => !keyword || `${build.champion} ${build.englishName}`.toLowerCase().includes(keyword));
-  }, [allBuilds, query]);
+    return allBuilds.filter(build => {
+      const matchesRole = roleFilter === "전체" || build.role === roleFilter;
+      const matchesKeyword = !keyword || `${build.champion} ${build.englishName}`.toLowerCase().includes(keyword);
+      return matchesRole && matchesKeyword;
+    });
+  }, [allBuilds, query, roleFilter]);
 
   function selectChampion(build: ChampionBuild) {
     setSelected(build);
@@ -203,7 +209,19 @@ export default function GuidesClient() {
         <div className="guides-hero-badge"><b>{loading ? "…" : allBuilds.length}</b><small>PATCH {patch}</small></div>
       </section>
 
-      <section className="card guides-toolbar guides-toolbar-simple">
+      <section className="card guides-toolbar guides-toolbar-simple guides-toolbar-with-role">
+        <div className="guide-role-filter" aria-label="챔피언 라인 선택">
+          {(["전체", "탑", "정글", "미드", "원딜", "서폿"] as RoleFilter[]).map(role => (
+            <button
+              key={role}
+              type="button"
+              className={roleFilter === role ? "active" : ""}
+              onClick={() => setRoleFilter(role)}
+            >
+              {role}
+            </button>
+          ))}
+        </div>
         <div className="guides-search-row guides-name-search">
           <input value={query} onChange={event => setQuery(event.target.value)} placeholder="챔피언 이름 검색" aria-label="챔피언 이름 검색" />
         </div>
@@ -227,6 +245,7 @@ export default function GuidesClient() {
             <button key={build.id} type="button" className={`champion-portrait-card ${selected.id === build.id ? "selected" : ""}`} onClick={() => selectChampion(build)}>
               <div className="champion-image-wrap"><Image src={`${championImageBase}/${build.imageName ?? `${build.englishName}.png`}`} alt={build.champion} width={96} height={96} unoptimized /></div>
               <strong>{build.champion}</strong>
+              <span className={`champion-role-badge role-${build.role}`}>{build.role}</span>
             </button>
           ))}
           {!filtered.length && <div className="card guides-empty">조건에 맞는 챔피언이 없습니다.</div>}
