@@ -217,8 +217,8 @@ export default function MatchVoteClient({
               </div>
 
               <footer className="match-vote-card-footer">
-                <button className={`attending ${mine === "attending" ? "active" : ""}`} disabled={!isOpen || savingId === event.id} onClick={() => submitVote(event.id, "attending")}>참가</button>
-                <button className={`undecided ${mine === "undecided" ? "active" : ""}`} disabled={!isOpen || savingId === event.id} onClick={() => submitVote(event.id, "undecided")}>미정</button>
+                <button className={`attending ${mine === "attending" ? "active" : ""}`} disabled={!isOpen || savingId === event.id} onClick={() => submitVote(event.id, "attending")}>{mine === "attending" ? "참가 취소" : "참가"}</button>
+                <button className={`undecided ${mine === "undecided" ? "active" : ""}`} disabled={!isOpen || savingId === event.id} onClick={() => submitVote(event.id, "undecided")}>{mine === "undecided" ? "미정 취소" : "미정"}</button>
               </footer>
             </article>
           );
