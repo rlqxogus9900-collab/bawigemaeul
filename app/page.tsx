@@ -8,8 +8,8 @@ export const revalidate = 0;
 
 const latestUpdate = {
   version: SITE_VERSION,
-  title: "대회 메뉴 정리·휴가 관리 개선",
-  summary: "대회와 명예의 전당을 전용 탭으로 통합하고 운영진 수기 휴가 등록을 추가"
+  title: "바위게 복불복 달리기 추가",
+  summary: "2~10마리 참가 수 설정과 캐릭터 성능 차이 없는 완전 랜덤 달리기 미니게임 추가"
 };
 
 
