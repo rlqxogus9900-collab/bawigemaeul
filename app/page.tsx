@@ -8,8 +8,8 @@ export const revalidate = 0;
 
 const latestUpdate = {
   version: SITE_VERSION,
-  title: "바위게 복불복 달리기 추가",
-  summary: "2~10마리 참가 수 설정과 캐릭터 성능 차이 없는 완전 랜덤 달리기 미니게임 추가"
+  title: "업데이트 내역 및 버전 표기 동기화",
+  summary: "누락된 1.3.9.29·1.3.9.30 내역을 복구하고 홈·업데이트·사이트 버전 표기를 동일하게 맞췄습니다."
 };
 
 
