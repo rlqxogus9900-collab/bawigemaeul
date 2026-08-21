@@ -29,21 +29,37 @@ const RACERS: Racer[] = [
 
 const MIN_RACERS = 2;
 const MAX_RACERS = 10;
-const RACE_MS = 7200;
+const RACE_MS = 6400;
+const FRAME_INTERVAL_MS = 50; // 약 20fps: 모바일/저사양 기기 렌더링 부하 감소
 
-function randomUnit() {
+function randomUint32() {
   if (typeof crypto !== "undefined" && crypto.getRandomValues) {
     const value = new Uint32Array(1);
     crypto.getRandomValues(value);
-    return value[0] / 4294967296;
+    return value[0];
   }
-  return Math.random();
+  return Math.floor(Math.random() * 4294967296);
+}
+
+function randomUnit() {
+  return randomUint32() / 4294967296;
+}
+
+// 2^32를 maxExclusive로 나눈 나머지 구간을 버리는 rejection sampling.
+// 캐릭터 인덱스와 무관하게 Fisher-Yates의 각 선택값이 정확히 같은 확률을 갖습니다.
+function secureRandomInt(maxExclusive: number) {
+  if (maxExclusive <= 1) return 0;
+  const range = 4294967296;
+  const limit = Math.floor(range / maxExclusive) * maxExclusive;
+  let value = randomUint32();
+  while (value >= limit) value = randomUint32();
+  return value % maxExclusive;
 }
 
 function shuffled<T>(items: T[]) {
   const result = [...items];
   for (let i = result.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(randomUnit() * (i + 1));
+    const j = secureRandomInt(i + 1);
     [result[i], result[j]] = [result[j], result[i]];
   }
   return result;
@@ -83,28 +99,33 @@ export default function RandomRaceClient() {
     setFinished(false);
     setRace(selected.map(r => ({ ...r, progress: 0, rank: null })));
     const startedAt = performance.now();
+    let lastPaintAt = startedAt - FRAME_INTERVAL_MS;
 
     const animate = (now: number) => {
       const elapsed = now - startedAt;
 
-      setRace(current => current.map(racer => {
-        const finishAt = finishMap.get(racer.id) ?? RACE_MS;
-        const linear = Math.min(1, elapsed / finishAt);
-        const phase = phaseMap.get(racer.id) ?? 0;
-        const wobble = wobbleMap.get(racer.id) ?? 1;
-        const surge = Math.sin(elapsed / (300 + racer.id * 13) + phase) * 2.2 * wobble;
-        const stumble = Math.sin(elapsed / (145 + racer.id * 7) + phase * 1.7) * 0.9;
-        const base = linear * 100;
-        const progress = linear >= 1 ? 100 : Math.max(0, Math.min(99.2, base + surge + stumble));
-        return {
-          ...racer,
-          progress,
-          rank: progress >= 100 ? (rankMap.get(racer.id) ?? null) : null
-        };
-      }));
+      // requestAnimationFrame은 60~120회/초 호출될 수 있지만 React 전체 재렌더는 약 20fps로 제한합니다.
+      // 결과/물리 로직은 경과 시간 기반이라 프레임 제한이 순위 확률에는 영향을 주지 않습니다.
+      if (now - lastPaintAt >= FRAME_INTERVAL_MS || elapsed >= maxFinishAt) {
+        lastPaintAt = now;
+        setRace(current => current.map(racer => {
+          const finishAt = finishMap.get(racer.id) ?? RACE_MS;
+          const linear = Math.min(1, elapsed / finishAt);
+          const phase = phaseMap.get(racer.id) ?? 0;
+          const wobble = wobbleMap.get(racer.id) ?? 1;
+          const surge = Math.sin(elapsed / (300 + racer.id * 13) + phase) * 2.2 * wobble;
+          const stumble = Math.sin(elapsed / (145 + racer.id * 7) + phase * 1.7) * 0.9;
+          const base = linear * 100;
+          const progress = linear >= 1 ? 100 : Math.max(0, Math.min(99.2, base + surge + stumble));
+          return {
+            ...racer,
+            progress,
+            rank: progress >= 100 ? (rankMap.get(racer.id) ?? null) : null
+          };
+        }));
+      }
 
-      // React 상태 업데이트는 비동기이므로 setRace 내부에서 종료 여부를 판정하면
-      // 첫 프레임에 종료되는 문제가 생길 수 있습니다. 실제 경과 시간으로 종료를 판단합니다.
+      // React 상태 업데이트는 비동기이므로 종료 여부는 실제 경과 시간으로 판단합니다.
       if (elapsed < maxFinishAt) {
         rafRef.current = requestAnimationFrame(animate);
       } else {

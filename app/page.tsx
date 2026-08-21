@@ -8,8 +8,8 @@ export const revalidate = 0;
 
 const latestUpdate = {
   version: SITE_VERSION,
-  title: "업데이트 내역 및 버전 표기 동기화",
-  summary: "누락된 1.3.9.29·1.3.9.30 내역을 복구하고 홈·업데이트·사이트 버전 표기를 동일하게 맞췄습니다."
+  title: "복불복 달리기 공정성·성능 개선",
+  summary: "모든 캐릭터의 우승 확률을 동일하게 유지하는 독립 난수 셔플을 강화하고 달리기 렌더링 부하를 줄였습니다."
 };
 
 
