@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 const SPIN_DURATION = 1800;
 const FACE_SWAP_INTERVAL = 110;
-const ASSET_VERSION = "1.3.8.10";
+const ASSET_VERSION = "1.3.9.30";
 
 type CoinSide = "smile" | "cry";
 
@@ -34,10 +34,20 @@ export default function CoinTossClient() {
     };
   }, []);
 
+  function randomCoinSide(): CoinSide {
+    // 매 던지기마다 이전 결과와 무관한 독립 50:50 추첨.
+    if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+      const value = new Uint32Array(1);
+      crypto.getRandomValues(value);
+      return (value[0] & 1) === 0 ? "smile" : "cry";
+    }
+    return Math.random() < 0.5 ? "smile" : "cry";
+  }
+
   function tossCoin() {
     if (spinning) return;
 
-    const next: CoinSide = Math.random() < 0.5 ? "smile" : "cry";
+    const next = randomCoinSide();
 
     setSpinning(true);
     setResult(null);

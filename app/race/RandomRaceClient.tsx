@@ -186,14 +186,21 @@ export default function RandomRaceClient() {
       {finished && (
         <section className="card race-result-card">
           <div className="race-track-head"><div><span>FINAL RESULT</span><h2>최종 순위</h2></div><small>다음 경기는 다시 완전 무작위</small></div>
+          <div className="race-winner-banner">
+            <span>🏆 WINNER</span>
+            <strong>{standings[0]?.accessory} 🦀 {standings[0]?.label} 바위게</strong>
+          </div>
           <div className="race-podium-list">
             {standings.map(racer => (
               <div key={racer.id} className={`race-result-row rank-${racer.rank}`}>
-                <strong>{racer.rank}</strong>
+                <strong>{racer.rank === 1 ? "🥇" : racer.rank === 2 ? "🥈" : racer.rank === 3 ? "🥉" : `${racer.rank}위`}</strong>
                 <span className="race-result-crab">{racer.accessory} 🦀</span>
                 <div><b>{racer.label} 바위게</b><small>{racer.rank === 1 ? "우승!" : `${racer.rank}위 도착`}</small></div>
               </div>
             ))}
+          </div>
+          <div className="race-result-actions">
+            <button type="button" className="race-start" onClick={startRace}>같은 인원으로 다시하기</button>
           </div>
         </section>
       )}
