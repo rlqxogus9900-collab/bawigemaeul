@@ -75,6 +75,7 @@ export default function RandomRaceClient() {
     const order = shuffled(selected);
     const rankMap = new Map(order.map((racer, index) => [racer.id, index + 1]));
     const finishMap = new Map(order.map((racer, index) => [racer.id, RACE_MS + index * 240]));
+    const maxFinishAt = RACE_MS + Math.max(0, order.length - 1) * 240;
     const phaseMap = new Map(selected.map(racer => [racer.id, randomUnit() * Math.PI * 2]));
     const wobbleMap = new Map(selected.map(racer => [racer.id, 0.7 + randomUnit() * 0.7]));
 
@@ -85,7 +86,6 @@ export default function RandomRaceClient() {
 
     const animate = (now: number) => {
       const elapsed = now - startedAt;
-      let allDone = true;
 
       setRace(current => current.map(racer => {
         const finishAt = finishMap.get(racer.id) ?? RACE_MS;
@@ -96,7 +96,6 @@ export default function RandomRaceClient() {
         const stumble = Math.sin(elapsed / (145 + racer.id * 7) + phase * 1.7) * 0.9;
         const base = linear * 100;
         const progress = linear >= 1 ? 100 : Math.max(0, Math.min(99.2, base + surge + stumble));
-        if (progress < 100) allDone = false;
         return {
           ...racer,
           progress,
@@ -104,9 +103,16 @@ export default function RandomRaceClient() {
         };
       }));
 
-      if (!allDone) {
+      // React 상태 업데이트는 비동기이므로 setRace 내부에서 종료 여부를 판정하면
+      // 첫 프레임에 종료되는 문제가 생길 수 있습니다. 실제 경과 시간으로 종료를 판단합니다.
+      if (elapsed < maxFinishAt) {
         rafRef.current = requestAnimationFrame(animate);
       } else {
+        setRace(current => current.map(racer => ({
+          ...racer,
+          progress: 100,
+          rank: rankMap.get(racer.id) ?? racer.rank
+        })));
         setRunning(false);
         setFinished(true);
         rafRef.current = null;
